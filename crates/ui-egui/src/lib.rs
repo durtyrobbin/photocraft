@@ -162,6 +162,7 @@ pub mod tip_designer;
 pub mod splatter_ui;
 pub mod knife_ui;
 pub mod artist_palette;
+pub mod brush_rack;
 mod studio_persist;
 mod titlebar;
 pub mod tone;
@@ -1495,6 +1496,7 @@ impl eframe::App for PhotocraftApp {
         tip_designer::window(self, &ctx);
         splatter_ui::window(self, &ctx);
         knife_ui::window(self, &ctx);
+        brush_rack::window(self, &ctx);
         artist_palette::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);

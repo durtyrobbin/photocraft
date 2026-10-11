@@ -188,7 +188,7 @@ sampling without paint, Escape/focus/tool cancellation and deferred release samp
 The 1440×900 native screenshot comparison reports 46,707 changed pixels while drawing
 and zero difference between the live and committed canvas crop. Engine geometry and
 prepared replay/Undo checks pass. One clean-brush assertion initially compared sparse
-storage identity instead of pixels; its corrected pixel-value check awaits rerun.
+storage identity instead of pixels; its corrected pixel-value check now passes.
 Clippy, layers, WASM and parity pass. The 24 MP fixed/directional blade benchmark is
 recorded separately when it completes. Open upstream #3003 was inspected and does not
 contain a palette-knife implementation; its vector/transform/picker work is untouched.
@@ -260,7 +260,7 @@ probe reports CPU costs separately from document size and physical display laten
 The local reservoir currently retains sampled spatial color but uses a global pickup
 and depletion amount. Local pigment exchange and 16/32/64/sparse comparisons remain
 NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette
-knife and artist palette are PARTIAL pending final qualification. Brush rack, AI result comparison,
+knife, artist palette and brush rack are PARTIAL pending final qualification. AI result comparison,
 guidance and provider integration remain NOT IMPLEMENTED in this phase. Advanced
 bristle simulation is BLOCKED by the unmet fast-mode performance qualification gate.
 
@@ -270,3 +270,138 @@ introduced here. Before publishing advanced palette, custom-bristle or AI compon
 report their final code/asset/model licensing and contribution implications and obtain
 the owner's explicit release approval. Local development does not authorize uploading
 document pixels to an external provider, publishing those components or merging main.
+
+
+## Phase G — Physical brush rack (qualification in progress)
+
+Eight editable factory presets use existing `brush.presets.save` and `tools.setBrush`:
+squirrel mop, sable round/flat, hog bristle, filbert, fan, rigger and synthetic round.
+Sampled comb/fan contact masks and existing direction/pressure dynamics provide their
+initial behavior; family names describe presets, not physical hair simulation.
+Hover/focus extends original geometric artwork and shows name/use. Reduced motion,
+keyboard-accessible named buttons, 0.5–2× artwork scaling, movable position relative
+to the palette, selected family and per-slot custom artwork are persisted through
+the existing preference service. `palette.capture` reads a bounded 256×256 composite
+for artwork without changing the palette or document; it is not journaled.
+Artwork uses document-to-sRGB then monitor conversion, preserves source aspect ratio
+when displayed, and never influences brush contact. Settings validate all image
+dimensions and encoded lengths before decoding. Original assets use the repository's
+MIT OR Apache-2.0 licensing; publication approval remains pending.
+
+Native interaction, hostile-input, restart persistence and 24 MP dense source
+benchmarks are present. Status is PARTIAL until their execution and visual inspection
+are recorded. No GPU, tablet, frame-rate or physical bristle qualification is claimed.
+
+### E/F/G qualification update — 2026-10-11
+
+Release (`opt-level=3`, LTO off, codegen-units=16): engine **1,218 PASS**,
+paint **87 PASS**, UI **1,843 PASS / 1 FAIL / 10 ignored**. The one failure was
+rack movement. A UI-only `opt-level=1` retest passed all three rack tests after
+using native background dragging and testing the actual title-bar coordinates.
+That test also verifies attachment when the palette moves. The added palette
+mixing-drag test passed its single local Undo assertions, then exposed the same
+movement issue. Palette positioning now uses the same repair; the final combined
+movement/resize/compact-menu suite remains pending. Initial failed logs are retained.
+
+Both actual native palette screenshots were rendered and visually inspected.
+Paint deposits, mixed pigment, sampled paint on a separate document layer, wood
+skin, custom document-image skin and hue markers are visible. Inspection exposed
+rack controls covered by the palette; the rack now uses native Options and named
+brush menus, leaving its normal height compact. Screenshot refresh is pending.
+Saved-tip bitmap bounds are now checked before decoding, including on WASM.
+No publication, contributor identity, model-quality or physical GPU/tablet claim.
+
+### E/F/G measured acceptance record
+
+The later combined run passes 1,218 engine and 87 paint tests. UI passes 1,845
+tests with one rack menu-sequence test pending repair/retest, plus 10 ignored.
+Engine/paint use release opt-level 3; the UI unit-test binary uses opt-level 1
+to shorten iteration. Benchmarks and screenshot examples use opt-level 3.
+Palette deposit, mixing gesture with one local Undo, resize, native window drag,
+skin, spatial pickup, CMS, hostile input and restart persistence tests pass.
+Rack selection, case-insensitive artist preset preservation, custom artwork and
+hover pass before the menu-sequence failure. Earlier full rack drag/attachment
+tests passed; the final compact-menu regression still needs confirmation.
+
+All 12 knife trials use 6000×4000 dense three-layer documents and 97 input points.
+Every trial verifies preview/commit, unchanged source and exact Undo/Redo.
+Times below are input-update mean / p95 / p99 in milliseconds; they include
+all interpolated dabs for each input point, not physical display latency.
+
+| Width | Travel | Fixed blade | Direction-tracking blade |
+|---|---|---|---|
+| 64 | Slow | 4.813 / 7.315 / 9.650 | 4.776 / 6.943 / 10.058 |
+| 64 | Rapid | 19.391 / 21.502 / 22.194 | 20.240 / 24.739 / 54.518 |
+| 256 | Slow | 20.588 / 38.215 / 40.892 | 21.523 / 39.068 / 50.105 |
+| 256 | Rapid | 84.414 / 98.211 / 101.236 | 84.439 / 98.010 / 185.130 |
+| 1024 | Slow | 72.506 / 186.269 / 201.193 | 72.773 / 186.729 / 203.595 |
+| 1024 | Rapid | 289.720 / 374.643 / 446.544 | 289.144 / 378.339 / 389.676 |
+
+Prepared knife commits take 0.850–4.708 ms. Observed process peak is 366.89 MiB,
+host CPU 38.20% on eight logical processors, sampled every 100 ms. These are
+functionally valid strokes but **fail the responsiveness target** across much
+of the tested envelope. Blade spacing and per-dab composition remain expensive.
+No automatic quality change or performance PASS is claimed.
+
+Palette command trials (128 samples each) report mean / p95 / p99 ms:
+deposit 0.550 / 0.467 / 0.517; mix 0.531 / 0.590 / 0.723;
+pickup 0.311 / 0.305 / 1.218. The mean can exceed p99 because the maximum cold
+sample is outside that percentile. Snapshot serialization is 19.404 ms for
+699,252 bytes; restore is 10.578 ms with exact paint and source preservation.
+The palette surface is fixed at 256²; document dimensions do not imply a full
+24 MP painting operation in these palette timings.
+
+Rack defaults on the dense 24 MP document (97 rapid pressure samples) report:
+
+| Family | Mean / p95 / p99 ms | Prepared commit ms |
+|---|---|---|
+| Squirrel mop | 3.975 / 6.359 / 7.398 | 0.969 |
+| Sable round | 1.581 / 2.585 / 4.395 | 0.874 |
+| Sable flat | 3.962 / 5.414 / 8.031 | 0.855 |
+| Hog bristle | 5.210 / 7.770 / 9.526 | 0.916 |
+| Filbert | 2.317 / 3.431 / 5.453 | 1.008 |
+| Fan | 6.003 / 8.725 / 9.014 | 0.938 |
+| Rigger | 1.584 / 2.491 / 3.327 | 0.935 |
+| Synthetic round | 1.969 / 3.033 / 5.579 | 0.933 |
+
+All rack trials pass exact preview/commit/source/Undo/Redo checks. Studio process
+peak across palette, rack and UI probes is 249.20 MiB and host CPU 56.74%.
+The native egui update probe uses a 1600×1100 viewport, warmed caches and 128
+samples, without GPU raster/presentation or preference-file disk I/O:
+
+| Custom artwork slots | Cached UI mean / p95 / p99 ms | Changed-settings serialization mean / p95 / p99 ms |
+|---|---|---|
+| 0 | 2.399 / 2.777 / 3.350 | 18.768 / 19.366 / 19.818 |
+| 8 | 5.232 / 6.441 / 7.247 | 32.678 / 35.388 / 36.363 |
+
+The expensive settings-change measurements prompted caching the unchanged paint
+snapshot. Its separate remeasurement must be reported before claiming improvement.
+Neither cached CPU UI updates nor command times establish presentation FPS.
+
+Reproduce with release examples `knife_probe`, `palette_probe`, `rack_probe`
+and `studio_ui_probe`; `rack_probe 0` through `rack_probe 7` selects each family.
+Raw JSON, per-case binary SHA-256 and sampled process metrics are retained in the
+task's `outputs/knife-benchmarks` and `outputs/studio-benchmarks` directories.
+The actual native wood/custom-skin screenshots were refreshed after compacting
+the rack controls, then visually inspected with every normal control accessible.
+
+### Cached palette snapshot remeasurement
+
+With unchanged paint snapshots cached by revision, the same release native UI
+probe measures changed-settings mean / p95 / p99 of **2.171 / 2.548 / 2.682 ms**
+with no custom artwork, versus 18.768 / 19.366 / 19.818 ms before; eight custom
+artwork slots measure **15.193 / 17.111 / 18.192 ms**, versus
+32.678 / 35.388 / 36.363 ms before. Cached ordinary UI updates remain
+2.238 / 2.711 / 2.889 ms and 5.231 / 6.500 / 7.338 ms respectively.
+The custom-artwork serialization cost remains material. Paint snapshots are
+reused only while the palette revision is unchanged; changed paint still saves.
+Raw before/after results and separate process/binary hashes are retained.
+
+Final Phase G focused native rerun: **3 PASS, 0 FAIL** after reopening the native
+Options menu following artwork selection. It covers pointer selection, keyboard
+selection, hover, reduced motion, custom artwork, artist preset replacement,
+case-insensitive preset lookup, title-bar drag, palette attachment, tip-editor
+opening, source preservation and hostile artwork. The compact-menu failure was
+in the test's assumption that an action menu stays open. Source improvements and
+original failed logs remain independently recorded. The full subsequent suite
+will include this corrected regression; no ignored tests were enabled or hidden.

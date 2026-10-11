@@ -101,9 +101,7 @@ pub fn relationships(hues: &[f32], ryb: bool) -> [bool; 4] {
     }
     found
 }
-fn cache(app: &PhotocraftApp, ctx: &egui::Context) -> Cache {
-    let palette = &app.session.tools.artist_palette;
-    let id = egui::Id::new("artist-palette-image");
+pub(crate) fn srgb_display(app: &PhotocraftApp) -> Option<std::sync::Arc<photocraft_engine::display_color::CanvasDisplay>> {
     // Palette paint uses SDR sRGB, like the foreground picker. Monitor conversion remains active.
     static DOCUMENT: std::sync::OnceLock<photocraft_doc::Document> = std::sync::OnceLock::new();
     let doc = DOCUMENT.get_or_init(|| {
@@ -112,7 +110,12 @@ fn cache(app: &PhotocraftApp, ctx: &egui::Context) -> Cache {
         d.icc_profile = Some(photocraft_cms::Builtin::Srgb.profile().to_bytes());
         d
     });
-    let display = app.session.color.canvas_display(doc).ok();
+    app.session.color.canvas_display(doc).ok()
+}
+fn cache(app: &PhotocraftApp, ctx: &egui::Context) -> Cache {
+    let palette = &app.session.tools.artist_palette;
+    let id = egui::Id::new("artist-palette-image");
+    let display = srgb_display(app);
     let key = display.as_ref().map_or(0, |d| d.key);
     if let Some(c) = ctx.data_mut(|d| d.get_temp::<Cache>(id)).filter(|c| c.revision == palette.revision && c.display_key == key) {
         return c;
@@ -179,7 +182,8 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let result = egui::Window::new(tl!("Artist Palette"))
         .id(egui::Id::new("artist-palette"))
         .open(&mut open)
-        .default_pos(Pos2::from(state.position))
+        .current_pos(Pos2::from(state.position))
+        .drag_area(egui::WindowDrag::Anywhere)
         .default_width(state.width)
         .default_height(650.0)
         .min_width(280.0)
@@ -198,6 +202,9 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
                     run(app, "palette.clear", json!({}));
                 }
             });
+            if ui.button(tl!("Brush Rack")).clicked() {
+                app.ui.brush_rack.open = true;
+            }
             ui.add(egui::Slider::new(&mut state.size, 2.0..=128.0).text(tl!("Size")));
             if ui.button(tl!("Deposit canvas load")).clicked() {
                 run(app, "palette.depositLoad", json!({"x":128,"y":96,"size":state.size.max(24.0)}));
@@ -220,6 +227,7 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
             if let Some(at) = response.interact_pointer_pos().filter(|_| response.clicked() || response.dragged() || response.is_pointer_button_down_on()) {
                 let at = point(at);
                 let begin = state.previous.is_none();
+                let changed = state.previous != Some(at);
                 if state.previous == Some(at) {
                     // Holding still is not an airbrush: do not repeatedly deposit the same dab.
                 } else if state.mode == Mode::Pickup || ui.input(|i| i.modifiers.alt) {
@@ -229,7 +237,9 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
                     run(app, if state.mode == Mode::Mix { "palette.mix" } else { "palette.deposit" }, json!({"points":points,"size":state.size,"begin":begin}));
                 }
                 state.previous = Some(at);
-                ctx.request_repaint();
+                if changed {
+                    ctx.request_repaint();
+                }
             }
             if response.drag_stopped() || !ui.input(|i| i.pointer.any_down()) {
                 state.previous = None;
@@ -287,6 +297,64 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn palette_native_mix_drag_is_one_local_undo_and_window_moves_and_resizes() {
+        use egui_kittest::{Harness, kittest::Queryable};
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Default::default());
+        app.ui.tool = Tool::MixerBrush;
+        app.ui.artist_palette.position = [40.0, 40.0];
+        for (x, c) in [(85, [1, 0, 0, 1]), (155, [0, 0, 1, 1])] {
+            app.run("palette.deposit", json!({"points":[[x,100]],"color":c,"size":60})).unwrap();
+        }
+        let before = app.session.tools.artist_palette.paint.clone();
+        let mut h = Harness::builder().with_size(vec2(1200.0, 1100.0)).build_ui_state(
+            |ui, app: &mut PhotocraftApp| {
+                let ctx = ui.ctx().clone();
+                if ctx.fonts(|f| f.families().contains(&egui::FontFamily::Name("medium".into()))) {
+                    window(app, &ctx);
+                }
+            },
+            app,
+        );
+        PhotocraftApp::setup_context(&h.ctx, crate::theme::ThemeKind::ALL[0]);
+        h.run_steps(4);
+        h.get_by_label("Mix").click();
+        h.run_steps(2);
+        let r = h.get_by_label("Palette mixing surface").rect();
+        let point = |x: f32| r.min + vec2(r.width() * x / 256.0, r.height() * 100.0 / 256.0);
+        let drag = |h: &mut Harness<'_, PhotocraftApp>, from: Pos2, to: Pos2| {
+            h.hover_at(from);
+            h.run_steps(1);
+            h.drag_at(from);
+            h.run_steps(1);
+            for i in 1..=6 {
+                h.hover_at(from + (to - from) * (i as f32 / 6.0));
+                h.run_steps(1);
+            }
+            h.drop_at(to);
+            h.run_steps(3);
+        };
+        drag(&mut h, point(85.0), point(160.0));
+        assert!(h.state().session.tools.artist_palette.paint != before);
+        h.get_by_label("Undo").click();
+        h.run_steps(3);
+        assert!(h.state().session.tools.artist_palette.paint == before);
+        let bounds = egui::AreaState::load(&h.ctx, egui::Id::new("artist-palette")).unwrap().rect();
+        let title = pos2(bounds.center().x, bounds.top() + 12.0);
+        let old = h.state().ui.artist_palette.position;
+        drag(&mut h, title, title + vec2(45.0, 25.0));
+        assert!(
+            (h.state().ui.artist_palette.position[0] - old[0] - 45.0).abs() < 2.0,
+            "palette follows native drag: {:?} -> {:?}",
+            old,
+            h.state().ui.artist_palette.position
+        );
+        let bounds = egui::AreaState::load(&h.ctx, egui::Id::new("artist-palette")).unwrap().rect();
+        let old = h.state().ui.artist_palette.width;
+        let corner = bounds.right_bottom() - vec2(2.0, 2.0);
+        drag(&mut h, corner, corner + vec2(80.0, 25.0));
+        assert!(h.state().ui.artist_palette.width > old + 40.0, "palette native resize changes the stored width");
+    }
     #[test]
     fn palette_native_surface_deposit_pickup_save_clear_and_skin_are_real() {
         use egui_kittest::{Harness, kittest::Queryable};

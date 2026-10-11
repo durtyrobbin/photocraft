@@ -291,24 +291,24 @@ fn undo(s: &mut Session, _: &Value) -> Result<Value> {
     p.changed();
     Ok(json!({"undone":true}))
 }
-pub fn parse_snapshot(raw: &Value) -> Result<Snapshot> {
-    fn check_image(raw: &Value) -> Result<()> {
-        let planes = raw.as_array().filter(|v| v.len() == 4).ok_or_else(|| bad("palette image needs four planes"))?;
-        for p in planes {
-            if p.get("width").and_then(Value::as_u64) != Some(256) || p.get("height").and_then(Value::as_u64) != Some(256) {
-                return Err(bad("palette image dimensions must be 256 square"));
-            }
-            let bounded = match p.get("data") {
-                Some(Value::String(s)) => s.len() <= 174764,
-                Some(Value::Array(a)) => a.len() == 65536,
-                _ => false,
-            };
-            if !bounded {
-                return Err(bad("palette image data exceeds its fixed bound"));
-            }
+pub fn check_image(raw: &Value) -> Result<()> {
+    let planes = raw.as_array().filter(|v| v.len() == 4).ok_or_else(|| bad("palette image needs four planes"))?;
+    for p in planes {
+        if p.get("width").and_then(Value::as_u64) != Some(256) || p.get("height").and_then(Value::as_u64) != Some(256) {
+            return Err(bad("palette image dimensions must be 256 square"));
         }
-        Ok(())
+        let bounded = match p.get("data") {
+            Some(Value::String(s)) => s.len() <= 174764,
+            Some(Value::Array(a)) => a.len() == 65536,
+            _ => false,
+        };
+        if !bounded {
+            return Err(bad("palette image data exceeds its fixed bound"));
+        }
     }
+    Ok(())
+}
+pub fn parse_snapshot(raw: &Value) -> Result<Snapshot> {
     check_image(raw.get("paint").ok_or_else(|| bad("missing palette paint"))?)?;
     if let Some(skin) = raw.get("skin").filter(|v| !v.is_null()) {
         check_image(skin)?;
@@ -367,29 +367,31 @@ fn preset_load(s: &mut Session, p: &Value) -> Result<Value> {
     palette.changed();
     Ok(json!({"loaded":name}))
 }
-fn skin(s: &mut Session, p: &Value) -> Result<Value> {
+pub fn capture_image(s: &Session) -> Result<Image> {
     let transform = color_transform(s, true)?;
-    let skin = if flag(p, "clear", false)? {
-        None
-    } else {
-        let doc = &s.active().ok_or(EngineError::NoDocument)?.doc;
-        let buf = photocraft_compose::thumbnail_buffer(doc, SIDE);
-        let mut surface = Surface::new(PixelFormat::RGBA16);
-        let width = buf.rect.width() as usize;
-        let height = buf.rect.height() as usize;
-        if width == 0 || height == 0 {
-            return Err(bad("skin source image is empty"));
+    let doc = &s.active().ok_or(EngineError::NoDocument)?.doc;
+    let buf = photocraft_compose::thumbnail_buffer(doc, SIDE);
+    let mut surface = Surface::new(PixelFormat::RGBA16);
+    let width = buf.rect.width() as usize;
+    let height = buf.rect.height() as usize;
+    if width == 0 || height == 0 {
+        return Err(bad("artwork source image is empty"));
+    }
+    let mut pixels = Vec::with_capacity((SIDE * SIDE * 4) as usize);
+    for y in 0..SIDE as usize {
+        for x in 0..SIDE as usize {
+            let at = (y * height / SIDE as usize) * width + x * width / SIDE as usize;
+            pixels.extend_from_slice(&transformed(buf.px.get(at).copied().unwrap_or([0.0; 4]), transform.as_ref()));
         }
-        let mut pixels = Vec::with_capacity((SIDE * SIDE * 4) as usize);
-        for y in 0..SIDE as usize {
-            for x in 0..SIDE as usize {
-                let at = (y * height / SIDE as usize) * width + x * width / SIDE as usize;
-                pixels.extend_from_slice(&transformed(buf.px.get(at).copied().unwrap_or([0.0; 4]), transform.as_ref()));
-            }
-        }
-        surface.write_region(bounds(), &pixels);
-        Some(image(&surface))
-    };
+    }
+    surface.write_region(bounds(), &pixels);
+    Ok(image(&surface))
+}
+fn capture(s: &mut Session, _: &Value) -> Result<Value> {
+    serde_json::to_value(capture_image(s)?).map_err(|e| bad(e.to_string()))
+}
+fn skin(s: &mut Session, p: &Value) -> Result<Value> {
+    let skin = if flag(p, "clear", false)? { None } else { Some(capture_image(s)?) };
     s.tools.artist_palette.skin = skin;
     s.tools.artist_palette.changed();
     Ok(json!({"skin":s.tools.artist_palette.skin.is_some()}))
@@ -399,10 +401,10 @@ pub fn specs() -> Vec<CommandSpec> {
       ("palette.mix","Mix palette paint",mix), ("palette.pickup","Pick up palette paint",pickup),
       ("palette.depositLoad","Deposit sampled canvas paint",deposit_load),
       ("palette.clear","Clear palette paint",clear),("palette.undo","Undo palette paint",undo),
-      ("palette.get","Get artist palette",get),("palette.restore","Restore artist palette",restore),
+      ("palette.get","Get artist palette",get),("palette.capture","Capture current image for studio artwork",capture),("palette.restore","Restore artist palette",restore),
       ("palette.presets.save","Save palette preset",preset_save),("palette.presets.load","Load palette preset",preset_load),
       ("palette.skin","Use current image as palette skin",skin)]
-    .into_iter().map(|(id,label,run)|CommandSpec {id,label,menu:&[],shortcut:None,params:r#"deposit/mix:{points:[[x,y,pressure?],...],size:2..128,opacity:0..1,color:[r,g,b,a]?,begin:bool=true}; pickup:{x,y,size}; preset:{name}; skin:{clear:bool=false}; restore:versioned palette.get snapshot. Tool state only; canvas coordinates 0..255."#,enabled:always,run,journal:id!="palette.get"}).collect()
+    .into_iter().map(|(id,label,run)|CommandSpec {id,label,menu:&[],shortcut:None,params:r#"deposit/mix:{points:[[x,y,pressure?],...],size:2..128,opacity:0..1,color:[r,g,b,a]?,begin:bool=true}; pickup:{x,y,size}; preset:{name}; skin:{clear:bool=false}; restore:versioned palette.get snapshot. Tool state only; canvas coordinates 0..255."#,enabled:always,run,journal:!matches!(id,"palette.get"|"palette.capture")}).collect()
 }
 
 #[cfg(test)]
@@ -410,13 +412,18 @@ mod tests {
     use super::*;
     #[test]
     fn palette_tool_edits_do_not_drop_a_floating_canvas_selection() {
-        let mut s=Session::new();s.execute("file.new",json!({"width":64,"height":64,"background":"#405080"})).unwrap();
-        s.execute("select.all",json!({})).unwrap();s.execute("select.float",json!({"dx":4,"dy":0,"copy":true})).unwrap();
-        let before=s.active().unwrap().doc.clone();let steps=s.active().unwrap().history.past_len();
-        s.execute("palette.deposit",json!({"points":[[128,128]],"color":[1,0,0,1]})).unwrap();
-        s.execute("palette.pickup",json!({"x":128,"y":128})).unwrap();s.execute("palette.skin",json!({})).unwrap();
+        let mut s = Session::new();
+        s.execute("file.new", json!({"width":64,"height":64,"background":"#405080"})).unwrap();
+        s.execute("select.all", json!({})).unwrap();
+        s.execute("select.float", json!({"dx":4,"dy":0,"copy":true})).unwrap();
+        let before = s.active().unwrap().doc.clone();
+        let steps = s.active().unwrap().history.past_len();
+        s.execute("palette.deposit", json!({"points":[[128,128]],"color":[1,0,0,1]})).unwrap();
+        s.execute("palette.pickup", json!({"x":128,"y":128})).unwrap();
+        s.execute("palette.skin", json!({})).unwrap();
         assert!(crate::float_cmds::floating(s.active().unwrap()).is_some());
-        assert!(std::sync::Arc::ptr_eq(&before,&s.active().unwrap().doc));assert_eq!(s.active().unwrap().history.past_len(),steps);
+        assert!(std::sync::Arc::ptr_eq(&before, &s.active().unwrap().doc));
+        assert_eq!(s.active().unwrap().history.past_len(), steps);
     }
     #[test]
     fn palette_converts_linear_document_colors_and_preserves_canvas_load_variation() {
