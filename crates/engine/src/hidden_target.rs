@@ -16,6 +16,7 @@ const GATED: &[&str] = &[
     "paint.stroke",
     "paint.pencil",
     "paint.mixerBrush",
+    "paint.splatter",
     "paint.colorReplacement",
     "paint.bucket",
     "paint.gradient",

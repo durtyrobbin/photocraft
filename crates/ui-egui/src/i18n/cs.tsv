@@ -2472,3 +2472,24 @@ fontWeight	Italic	Kurzíva
 	Scatter amount	Míra rozptylu
 	Size variation	Změna velikosti
 	Undo tip edit	Vrátit úpravu hrotu
+
+# Procedural splatter
+	Animate flick	Animovat švih
+	Click to flick; enable gesture to drag direction	Kliknutím rozstříkněte barvu; gestem tažení určete směr
+	Clustering	Shlukování
+	Color variation	Změna barvy
+	Custom distribution replaces spread and bias	Vlastní rozložení nahrazuje rozptyl a směrové zvýhodnění
+	Directional bias	Směrové zvýhodnění
+	Droplet count	Počet kapek
+	Edge breakup	Nepravidelné okraje
+	Flick / Splatter	Švih / Rozstřik
+	Gesture direction and intensity	Směr a intenzita gesta
+	Maximum size	Maximální velikost
+	Minimum size	Minimální velikost
+	Opacity variation	Změna krytí
+	Paint Load	Náplň barvy
+	Random Seed	Náhodné semínko
+	Reduced motion	Omezený pohyb
+	Reset distribution	Obnovit rozložení
+	Secondary droplets	Vedlejší kapky
+	Use tip distribution	Použít rozložení hrotu

@@ -213,14 +213,14 @@ pub fn resolve_brush(s: &Session, p: &Value, cmd: &str) -> Result<BrushSettings>
     Ok(b)
 }
 
-fn layer_id(s: &Session, p: &Value) -> Result<photocraft_doc::LayerId> {
+pub(crate) fn layer_id(s: &Session, p: &Value) -> Result<photocraft_doc::LayerId> {
     match p.get("layer").and_then(Value::as_u64) {
         Some(id) => Ok(photocraft_doc::LayerId(id)),
         None => s.active().and_then(|d| d.active_layer).ok_or(EngineError::Other("no active layer".into())),
     }
 }
 
-fn damage_json(s: &mut Session, dmg: Rect) -> Value {
+pub(crate) fn damage_json(s: &mut Session, dmg: Rect) -> Value {
     if let Some(st) = s.active_mut() {
         st.last_damage = Some(dmg);
     }
@@ -248,7 +248,7 @@ fn erase_locked(brush: &mut BrushSettings, lock: bool, bg: [f32; 4]) {
 /// The document's own CMYK profile (absent, built-in or not a CMYK document: `None`, the
 /// default conversions), which the stroke's colour conversions must honour — the compositors
 /// and composite exports enter the same scope.
-fn doc_cmyk_space(s: &Session) -> Option<std::sync::Arc<photocraft_color::convert::CmykSpace>> {
+pub(crate) fn doc_cmyk_space(s: &Session) -> Option<std::sync::Arc<photocraft_color::convert::CmykSpace>> {
     photocraft_color::convert::CmykSpace::for_profile(s.active().and_then(|d| d.doc.icc_profile.as_ref()))
 }
 

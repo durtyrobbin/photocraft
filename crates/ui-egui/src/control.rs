@@ -87,7 +87,8 @@ pub enum Outcome {
 /// field's value is validated before the first one is applied, so a typo, an unknown field, a
 /// bad value or a bad nested key can't reply with success while nothing — or only half of it —
 /// changed (#412).
-pub const UI_SET_FIELDS: [&str; 34] = [
+pub const UI_SET_FIELDS: [&str; 35] = [
+    "splatter",
     "tipDesigner",
     "tool",
     "panels",
@@ -450,6 +451,15 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 };
                 let brush_section = uint_field(p, "brushSection")?;
                 let tip_designer = bool_field(p, "tipDesigner")?;
+                let splatter = p
+                    .get("splatter")
+                    .map(|value| {
+                        if let Some(settings) = value.get("settings") {
+                            photocraft_engine::splatter_cmds::parse_settings(settings).map_err(|e| e.to_string())?;
+                        }
+                        serde_json::from_value::<crate::splatter_ui::State>(value.clone()).map_err(|e| e.to_string())
+                    })
+                    .transpose()?;
                 let brush_tab = uint_field(p, "brushTab")?;
                 let brushes_view = match p.get("brushesView") {
                     Some(v) => serde_json::from_value(v.clone()).map(Some).map_err(|e| format!("brushesView: {e} (list, grid)"))?,
@@ -646,6 +656,9 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                     } else {
                         app.ui.tip_designer.open = false;
                     }
+                }
+                if let Some(value) = splatter {
+                    app.ui.splatter = value;
                 }
                 Ok(Value::Null)
             })();

@@ -2541,3 +2541,24 @@ fontWeight	Italic	Corsivo
 	Scatter amount	Quantità di dispersione
 	Size variation	Variazione dimensione
 	Undo tip edit	Annulla modifica della punta
+
+# Procedural splatter
+	Animate flick	Anima lo scatto
+	Click to flick; enable gesture to drag direction	Fai clic per schizzare; attiva il gesto per trascinare la direzione
+	Clustering	Raggruppamento
+	Color variation	Variazione colore
+	Custom distribution replaces spread and bias	La distribuzione personalizzata sostituisce diffusione e preferenza
+	Directional bias	Preferenza direzionale
+	Droplet count	Numero di gocce
+	Edge breakup	Irregolarità dei bordi
+	Flick / Splatter	Scatto / Schizzi
+	Gesture direction and intensity	Direzione e intensità del gesto
+	Maximum size	Dimensione massima
+	Minimum size	Dimensione minima
+	Opacity variation	Variazione opacità
+	Paint Load	Carico di pittura
+	Random Seed	Seme casuale
+	Reduced motion	Movimento ridotto
+	Reset distribution	Ripristina distribuzione
+	Secondary droplets	Gocce secondarie
+	Use tip distribution	Usa distribuzione della punta

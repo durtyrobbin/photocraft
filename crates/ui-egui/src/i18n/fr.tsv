@@ -2889,3 +2889,24 @@ fontWeight	Italic	Italique
 	Scatter amount	Quantité de diffusion
 	Size variation	Variation de taille
 	Undo tip edit	Annuler la modification de la pointe
+
+# Procedural splatter
+	Animate flick	Animer la projection
+	Click to flick; enable gesture to drag direction	Cliquez pour projeter ; activez le geste pour définir la direction
+	Clustering	Regroupement
+	Color variation	Variation de couleur
+	Custom distribution replaces spread and bias	La distribution personnalisée remplace la dispersion et le biais
+	Directional bias	Biais directionnel
+	Droplet count	Nombre de gouttes
+	Edge breakup	Irrégularité des bords
+	Flick / Splatter	Projection / Éclaboussures
+	Gesture direction and intensity	Direction et intensité du geste
+	Maximum size	Taille maximale
+	Minimum size	Taille minimale
+	Opacity variation	Variation d’opacité
+	Paint Load	Charge de peinture
+	Random Seed	Graine aléatoire
+	Reduced motion	Mouvements réduits
+	Reset distribution	Réinitialiser la distribution
+	Secondary droplets	Gouttes secondaires
+	Use tip distribution	Utiliser la distribution de la pointe

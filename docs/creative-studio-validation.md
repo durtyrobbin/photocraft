@@ -117,6 +117,60 @@ Observed peak process working set was at most 400.6 MiB for the live matrix.
 These results do not qualify 1024 px tips for the stated responsiveness targets.
 Even the smaller engine-only timings do not prove display FPS or physical pen latency.
 
+## Procedural splatter (functional checks VERIFIED; performance PARTIAL)
+
+`paint.splatter` records a bounded seeded request as one document edit. Its settings
+have version 1 and use the existing GrayTile format for a custom distribution.
+The raster kernel uses native channels/depth, selection coverage and transparency
+locks. It does not simulate fluid dynamics. Count is capped at 2,048, diameter at
+128 px, distance at 1,024 px, bitmap dimensions at 512 square, and worst-case raster
+work at 8,388,608 pixel visits. Oversized combinations return an actionable error.
+
+Select **Flick / Splatter** in the Brush flyout. A click paints on press; enabling
+gesture mode instead uses the drag's direction and distance on release. Peak recorded
+pressure controls droplet count/contact, and gesture distance scales paint load.
+The seed stays fixed until edited, so identical requests reproduce identical pixels.
+Use **Design Tip…**, apply the drawn tip, then **Use tip distribution**. A custom
+distribution replaces the fan spread/directional bias controls; angle and distance
+still transform it. Secondary droplets may fall outside its primary distribution.
+Paint deposition is independent of the optional animation and reduced-motion setting.
+Configuration persists with existing UI state and is available through `ui.set`'s
+`splatter` object. The optional feedback is an original geometric brush/finger drawing.
+
+All eight focused tests pass, including native press/gesture/cancel events, deterministic
+replay, source preservation, selections, masks, channels and locked/hidden targets.
+The final broad unit run passes 1,211 engine, 87 paint and 1,834 UI tests (12 engine
+and 10 UI tests ignored). Clippy, layering, WASM, parity and adversarial command
+checks pass. The initial broad run exposed three inventory/translation assertions;
+those failures are retained in the evidence and the repaired broad run passes.
+
+The release `splatter_probe` uses a 6000×4000 document with background, dense RGBA8
+source and empty target. Each row is 32 seeded bursts, each verified with exact
+Undo/Redo and source preservation. The custom distribution is a 128² checker mask.
+These CPU command timings exclude fixture construction and document comparison.
+
+| Count / maximum diameter | Distribution | Mean / p95 / p99 ms |
+|---|---|---|
+| 160 / 10 px | Fan | 0.684 / 1.191 / 2.311 |
+| 160 / 10 px | Custom | 1.288 / 1.972 / 2.936 |
+| 512 / 32 px | Fan | 7.686 / 12.558 / 13.392 |
+| 512 / 32 px | Custom | 8.942 / 10.191 / 42.771 |
+| 2048 / 32 px | Fan | 27.082 / 27.894 / 28.524 |
+| 2048 / 32 px | Custom | 29.101 / 30.663 / 30.941 |
+
+All 192 Undo/Redo checks pass. Observed process peak working set was 135.31 MiB;
+peak host CPU was 13.33% across eight logical processors, sampled every 100 ms.
+The process ran for 3.50 s including fixtures and validation. Release build used two
+compiler jobs, LTO disabled and 16 codegen units. Large bursts exceed 16.67 ms and
+the custom medium case has a 42.77 ms outlier; no universal 60 FPS claim is made.
+Pointer-to-display and GPU timings remain unmeasured. The native offscreen screenshot
+shows click, directional gesture and custom-distribution paint on three separate layers.
+
+```powershell
+cargo build -p photocraft-paint -p photocraft-engine -p photocraft-ui-egui --example splatter_probe --example snapshot --release --locked --offline -j2 --config profile.release.lto=false --config profile.release.codegen-units=16
+target/release/examples/splatter_probe.exe
+```
+
 ## Functional and platform gates
 
 The mixer foundation unit/integration checks, live/committed screenshots and exact

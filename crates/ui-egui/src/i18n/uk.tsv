@@ -3577,3 +3577,24 @@ cameraRaw	Masking	Маскування
 	Scatter amount	Величина розсіювання
 	Size variation	Зміна розміру
 	Undo tip edit	Скасувати редагування кінчика
+
+# Procedural splatter
+	Animate flick	Анімація помаху
+	Click to flick; enable gesture to drag direction	Натисніть для бризок; увімкніть жест для задання напрямку перетягуванням
+	Clustering	Групування
+	Color variation	Зміна кольору
+	Custom distribution replaces spread and bias	Власна карта розподілу замінює розкид і спрямованість
+	Directional bias	Спрямованість
+	Droplet count	Кількість крапель
+	Edge breakup	Нерівність країв
+	Flick / Splatter	Помах / Бризки
+	Gesture direction and intensity	Напрямок і сила жесту
+	Maximum size	Максимальний розмір
+	Minimum size	Мінімальний розмір
+	Opacity variation	Зміна непрозорості
+	Paint Load	Запас фарби
+	Random Seed	Початкове число генератора
+	Reduced motion	Зменшення руху
+	Reset distribution	Скинути розподіл
+	Secondary droplets	Вторинні краплі
+	Use tip distribution	Використати розподіл кінчика

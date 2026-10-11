@@ -3490,3 +3490,24 @@ fontWeight	Italic	斜体
 	Scatter amount	散布量
 	Size variation	サイズの変化
 	Undo tip edit	先端の編集を取り消す
+
+# Procedural splatter
+	Animate flick	弾く動作をアニメーション表示
+	Click to flick; enable gesture to drag direction	クリックで飛沫を描画。ジェスチャーを有効にしてドラッグで方向を指定
+	Clustering	群集度
+	Color variation	色の変化
+	Custom distribution replaces spread and bias	カスタム分布は広がりと方向の偏りを置き換えます
+	Directional bias	方向の偏り
+	Droplet count	液滴の数
+	Edge breakup	輪郭の乱れ
+	Flick / Splatter	弾く／飛沫
+	Gesture direction and intensity	ジェスチャーの方向と強さ
+	Maximum size	最大サイズ
+	Minimum size	最小サイズ
+	Opacity variation	不透明度の変化
+	Paint Load	絵の具の量
+	Random Seed	乱数シード
+	Reduced motion	動きを減らす
+	Reset distribution	分布をリセット
+	Secondary droplets	二次液滴
+	Use tip distribution	先端の分布を使用

@@ -2876,3 +2876,24 @@ fontWeight	Italic	Miring
 	Scatter amount	Jumlah sebaran
 	Size variation	Variasi ukuran
 	Undo tip edit	Urungkan edit ujung
+
+# Procedural splatter
+	Animate flick	Animasikan jentikan
+	Click to flick; enable gesture to drag direction	Klik untuk memercik; aktifkan gestur untuk menyeret arah
+	Clustering	Pengelompokan
+	Color variation	Variasi warna
+	Custom distribution replaces spread and bias	Distribusi khusus menggantikan sebaran dan bias
+	Directional bias	Bias arah
+	Droplet count	Jumlah tetesan
+	Edge breakup	Ketidakteraturan tepi
+	Flick / Splatter	Jentik / Percikan
+	Gesture direction and intensity	Arah dan intensitas gestur
+	Maximum size	Ukuran maksimum
+	Minimum size	Ukuran minimum
+	Opacity variation	Variasi opasitas
+	Paint Load	Muatan cat
+	Random Seed	Benih acak
+	Reduced motion	Kurangi gerakan
+	Reset distribution	Atur ulang distribusi
+	Secondary droplets	Tetesan sekunder
+	Use tip distribution	Gunakan distribusi ujung

@@ -2449,3 +2449,24 @@ fontWeight	Italic	斜體
 	Scatter amount	散佈量
 	Size variation	大小變化
 	Undo tip edit	復原筆尖編輯
+
+# Procedural splatter
+	Animate flick	彈甩動畫
+	Click to flick; enable gesture to drag direction	按一下潑灑；啟用手勢後拖曳設定方向
+	Clustering	聚集度
+	Color variation	顏色變化
+	Custom distribution replaces spread and bias	自訂分佈取代擴散和方向偏向
+	Directional bias	方向偏向
+	Droplet count	液滴數量
+	Edge breakup	邊緣破碎
+	Flick / Splatter	彈甩／潑灑
+	Gesture direction and intensity	手勢方向和強度
+	Maximum size	最大大小
+	Minimum size	最小大小
+	Opacity variation	不透明度變化
+	Paint Load	載漆量
+	Random Seed	隨機種子
+	Reduced motion	減少動態效果
+	Reset distribution	重設分佈
+	Secondary droplets	次級液滴
+	Use tip distribution	使用筆尖分佈

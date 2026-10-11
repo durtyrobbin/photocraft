@@ -3579,3 +3579,24 @@ fontWeight	Thin	Πολύ λεπτά
 	Scatter amount	Ποσότητα διασποράς
 	Size variation	Μεταβολή μεγέθους
 	Undo tip edit	Αναίρεση επεξεργασίας μύτης
+
+# Procedural splatter
+	Animate flick	Κίνηση τινάγματος
+	Click to flick; enable gesture to drag direction	Κλικ για πιτσιλιές· ενεργοποιήστε χειρονομία για σύρσιμο κατεύθυνσης
+	Clustering	Ομαδοποίηση
+	Color variation	Μεταβολή χρώματος
+	Custom distribution replaces spread and bias	Η προσαρμοσμένη κατανομή αντικαθιστά διασπορά και προτίμηση
+	Directional bias	Προτίμηση κατεύθυνσης
+	Droplet count	Πλήθος σταγονιδίων
+	Edge breakup	Διάσπαση άκρων
+	Flick / Splatter	Τίναγμα / Πιτσιλιές
+	Gesture direction and intensity	Κατεύθυνση και ένταση χειρονομίας
+	Maximum size	Μέγιστο μέγεθος
+	Minimum size	Ελάχιστο μέγεθος
+	Opacity variation	Μεταβολή αδιαφάνειας
+	Paint Load	Φορτίο χρώματος
+	Random Seed	Σπόρος τυχαιότητας
+	Reduced motion	Μειωμένη κίνηση
+	Reset distribution	Επαναφορά κατανομής
+	Secondary droplets	Δευτερεύοντα σταγονίδια
+	Use tip distribution	Χρήση κατανομής μύτης

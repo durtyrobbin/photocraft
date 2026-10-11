@@ -3490,3 +3490,24 @@ cameraRaw	Roughness	Chropowatość
 	Scatter amount	Wielkość rozproszenia
 	Size variation	Zmienność rozmiaru
 	Undo tip edit	Cofnij edycję końcówki
+
+# Procedural splatter
+	Animate flick	Animuj strzepnięcie
+	Click to flick; enable gesture to drag direction	Kliknij, aby rozpryskać; włącz gest, aby przeciągnąć kierunek
+	Clustering	Grupowanie
+	Color variation	Zmienność koloru
+	Custom distribution replaces spread and bias	Własny rozkład zastępuje rozproszenie i preferencję kierunku
+	Directional bias	Preferencja kierunku
+	Droplet count	Liczba kropel
+	Edge breakup	Nieregularność krawędzi
+	Flick / Splatter	Strzepnięcie / Rozprysk
+	Gesture direction and intensity	Kierunek i intensywność gestu
+	Maximum size	Maksymalny rozmiar
+	Minimum size	Minimalny rozmiar
+	Opacity variation	Zmienność krycia
+	Paint Load	Ładunek farby
+	Random Seed	Ziarno losowości
+	Reduced motion	Ograniczony ruch
+	Reset distribution	Przywróć rozkład
+	Secondary droplets	Dodatkowe krople
+	Use tip distribution	Użyj rozkładu końcówki

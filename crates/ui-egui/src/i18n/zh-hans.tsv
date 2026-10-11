@@ -2479,3 +2479,24 @@ fontWeight	Italic	斜体
 	Scatter amount	散布量
 	Size variation	大小变化
 	Undo tip edit	撤销笔尖编辑
+
+# Procedural splatter
+	Animate flick	弹甩动画
+	Click to flick; enable gesture to drag direction	单击泼洒；启用手势后拖动设置方向
+	Clustering	聚集度
+	Color variation	颜色变化
+	Custom distribution replaces spread and bias	自定义分布替代扩散和方向偏向
+	Directional bias	方向偏向
+	Droplet count	液滴数量
+	Edge breakup	边缘破碎
+	Flick / Splatter	弹甩／泼洒
+	Gesture direction and intensity	手势方向和强度
+	Maximum size	最大大小
+	Minimum size	最小大小
+	Opacity variation	不透明度变化
+	Paint Load	载漆量
+	Random Seed	随机种子
+	Reduced motion	减少动态效果
+	Reset distribution	重置分布
+	Secondary droplets	次级液滴
+	Use tip distribution	使用笔尖分布

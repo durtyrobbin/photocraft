@@ -2551,3 +2551,24 @@ fontWeight	Italic	Cursiva
 	Scatter amount	Cantidad de dispersión
 	Size variation	Variación de tamaño
 	Undo tip edit	Deshacer edición de punta
+
+# Procedural splatter
+	Animate flick	Animar el golpe
+	Click to flick; enable gesture to drag direction	Haz clic para salpicar; activa el gesto para arrastrar la dirección
+	Clustering	Agrupación
+	Color variation	Variación de color
+	Custom distribution replaces spread and bias	La distribución personalizada sustituye la dispersión y el sesgo
+	Directional bias	Sesgo direccional
+	Droplet count	Cantidad de gotas
+	Edge breakup	Irregularidad de bordes
+	Flick / Splatter	Golpe / Salpicadura
+	Gesture direction and intensity	Dirección e intensidad del gesto
+	Maximum size	Tamaño máximo
+	Minimum size	Tamaño mínimo
+	Opacity variation	Variación de opacidad
+	Paint Load	Carga de pintura
+	Random Seed	Semilla aleatoria
+	Reduced motion	Movimiento reducido
+	Reset distribution	Restablecer distribución
+	Secondary droplets	Gotas secundarias
+	Use tip distribution	Usar distribución de la punta

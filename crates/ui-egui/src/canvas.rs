@@ -595,6 +595,7 @@ fn begin_live_stroke(app: &PhotocraftApp) -> Option<LiveStroke> {
 /// Render the drag points the live stroke hasn't seen yet, with the pen pressure, tilt and
 /// rotation the commit's `paint.stroke` gets for them.
 pub(crate) fn cancel_mixer_on_context_change(app: &mut PhotocraftApp, ctx: &egui::Context) -> bool {
+    if crate::splatter_ui::cancel_on_context_change(app, ctx) { return true; }
     if !app.drag.as_ref().is_some_and(|drag| drag.tool == Tool::MixerBrush) {
         return false;
     }
@@ -4223,6 +4224,11 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
                     crate::vector_ui::pen_down(app, x, y);
                     return;
                 }
+                Tool::Splatter if !app.ui.splatter.gesture => {
+                    crate::splatter_ui::flick(app, [x,y], None, pressure);
+                    return;
+                }
+                Tool::Splatter => { app.ui.splatter.context = app.session.active().map(|st| (st.doc.id, st.revision)); }
                 Tool::CloneStamp | Tool::Healing if mods.alt => {
                     crate::retouch_ui::set_source(app, x, y);
                     return;
@@ -4350,6 +4356,7 @@ pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers)
 fn hidden_target(app: &PhotocraftApp, tool: Tool) -> Option<&'static str> {
     let cmd = match tool {
         Tool::Move => "layer.translate",
+        Tool::Splatter => "paint.splatter",
         // The live Gradient makes a new Gradient Fill layer above the target, which Photoshop
         // allows over a hidden layer; only the classic one paints the target itself.
         Tool::Gradient if !app.ui.tool_options.gradient_classic => return None,
@@ -4509,6 +4516,11 @@ fn finish_selection_drag(app: &mut PhotocraftApp, floating: bool, start: [f64; 2
 
 pub(crate) fn finish_gesture(app: &mut PhotocraftApp, d: Drag) {
     let end = d.points.last().copied().unwrap_or([d.start[0], d.start[1], 1.0]);
+    if d.tool == Tool::Splatter {
+        let pressure = d.points.iter().map(|p| p[2] as f32).fold(0.0_f32, f32::max);
+        crate::splatter_ui::flick(app, d.start, Some([end[0], end[1]]), pressure);
+        return;
+    }
     if let Some(floating) = d.sel_move {
         finish_selection_drag(app, floating, d.start, [end[0], end[1]]);
         return;

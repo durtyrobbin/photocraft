@@ -3050,3 +3050,24 @@ fontWeight	Italic	기울임
 	Scatter amount	분산량
 	Size variation	크기 변화
 	Undo tip edit	끝 모양 편집 실행 취소
+
+# Procedural splatter
+	Animate flick	튕기기 애니메이션
+	Click to flick; enable gesture to drag direction	클릭하여 튀기기. 제스처를 켜고 드래그하여 방향 지정
+	Clustering	군집도
+	Color variation	색상 변화
+	Custom distribution replaces spread and bias	사용자 분포는 퍼짐과 방향 편향을 대체합니다
+	Directional bias	방향 편향
+	Droplet count	방울 수
+	Edge breakup	가장자리 불규칙성
+	Flick / Splatter	튕기기 / 흩뿌리기
+	Gesture direction and intensity	제스처 방향 및 강도
+	Maximum size	최대 크기
+	Minimum size	최소 크기
+	Opacity variation	불투명도 변화
+	Paint Load	물감 양
+	Random Seed	난수 시드
+	Reduced motion	동작 줄이기
+	Reset distribution	분포 초기화
+	Secondary droplets	보조 방울
+	Use tip distribution	끝 모양 분포 사용

@@ -2510,3 +2510,24 @@ fontWeight	Italic	Kursiv
 	Scatter amount	Streuungsstärke
 	Size variation	Größenvariation
 	Undo tip edit	Spitzenbearbeitung rückgängig
+
+# Procedural splatter
+	Animate flick	Schnippen animieren
+	Click to flick; enable gesture to drag direction	Zum Spritzen klicken; für die Richtung die Ziehgeste aktivieren
+	Clustering	Gruppierung
+	Color variation	Farbvariation
+	Custom distribution replaces spread and bias	Eigene Verteilung ersetzt Streuung und Richtungsgewichtung
+	Directional bias	Richtungsgewichtung
+	Droplet count	Tropfenanzahl
+	Edge breakup	Kantenaufbruch
+	Flick / Splatter	Schnippen / Spritzer
+	Gesture direction and intensity	Richtung und Stärke der Geste
+	Maximum size	Maximale Größe
+	Minimum size	Minimale Größe
+	Opacity variation	Deckkraftvariation
+	Paint Load	Farbvorrat
+	Random Seed	Zufallsstartwert
+	Reduced motion	Reduzierte Bewegung
+	Reset distribution	Verteilung zurücksetzen
+	Secondary droplets	Nebentropfen
+	Use tip distribution	Spitzenverteilung verwenden

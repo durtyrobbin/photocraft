@@ -2756,3 +2756,26 @@ fontWeight	Italic	Курсив
 	Scatter amount	Величина рассеивания
 	Size variation	Изменение размера
 	Undo tip edit	Отменить правку кончика
+
+# Procedural splatter
+	Animate flick	Анимация взмаха
+	Click to flick; enable gesture to drag direction	Нажмите для брызг; включите жест для задания направления перетаскиванием
+	Clustering	Группировка
+	Color variation	Изменение цвета
+	Custom distribution replaces spread and bias	Своя карта распределения заменяет разброс и направленность
+	Directional bias	Направленность
+	Droplet count	Число капель
+	Edge breakup	Неровность краёв
+	Flick / Splatter	Взмах / Брызги
+	Gesture direction and intensity	Направление и сила жеста
+	Maximum size	Максимальный размер
+	Minimum size	Минимальный размер
+	Opacity variation	Изменение непрозрачности
+	Paint Load	Запас краски
+	Random Seed	Начальное число генератора
+	Reduced motion	Уменьшение движения
+	Reset distribution	Сбросить распределение
+	Secondary droplets	Вторичные капли
+	Use tip distribution	Использовать распределение кончика
+	Distance	Расстояние
+	Spread	Разброс

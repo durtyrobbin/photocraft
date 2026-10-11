@@ -28,6 +28,7 @@ pub mod render;
 pub mod replace;
 pub mod retouch;
 pub mod rng;
+pub mod splatter;
 pub mod symmetry;
 pub mod tile;
 

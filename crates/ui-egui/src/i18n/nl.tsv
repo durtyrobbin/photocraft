@@ -3649,3 +3649,24 @@ cameraRaw	Whites	Witten
 	Scatter amount	Hoeveelheid spreiding
 	Size variation	Groottevariatie
 	Undo tip edit	Puntbewerking ongedaan maken
+
+# Procedural splatter
+	Animate flick	Tik animeren
+	Click to flick; enable gesture to drag direction	Klik om te spatten; schakel het gebaar in om de richting te slepen
+	Clustering	Clustering
+	Color variation	Kleurvariatie
+	Custom distribution replaces spread and bias	Eigen verdeling vervangt spreiding en richtingsvoorkeur
+	Directional bias	Richtingsvoorkeur
+	Droplet count	Aantal druppels
+	Edge breakup	Onregelmatige randen
+	Flick / Splatter	Tik / Spatten
+	Gesture direction and intensity	Richting en kracht van gebaar
+	Maximum size	Maximale grootte
+	Minimum size	Minimale grootte
+	Opacity variation	Dekkingsvariatie
+	Paint Load	Verflading
+	Random Seed	Willekeurige startwaarde
+	Reduced motion	Minder beweging
+	Reset distribution	Verdeling herstellen
+	Secondary droplets	Secundaire druppels
+	Use tip distribution	Puntverdeling gebruiken
