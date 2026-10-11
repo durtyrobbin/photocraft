@@ -2872,6 +2872,18 @@ fontWeight	Italic	Miring
 
 
 
+# Shared panel docking
+	Activate Panel	Aktifkan Panel
+	Change Panel Group	Ubah Grup Panel
+	Change Panel Layout	Ubah Tata Letak Panel
+	Close Panel	Tutup Panel
+	Dock Panel	Tambatkan Panel
+	Float Panel	Panel Mengambang
+	Move Panel	Pindahkan Panel
+	Group with	Kelompokkan dengan
+	Panel menu	Menu panel
+	Resize panel window	Ubah ukuran jendela panel
+	Resize panels	Ubah ukuran panel
 	Use Classic Mode	Gunakan Mode Klasik
 	Auto Center Preview	Pusatkan Pratinjau Otomatis
 	Next Document	Dokumen Berikutnya
