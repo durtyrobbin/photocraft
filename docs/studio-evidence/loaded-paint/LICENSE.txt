@@ -6,3 +6,9 @@ use it alongside the requested local commits. It shows PhotoCraft's interface,
 the synthetic test artwork, and the owner's painting gestures. No broader license
 for the owner's added marks is asserted here. Preserve this attribution and obtain
 the required release approval before distributing the owner-supplied screenshot.
+
+Publication update, 2026-10-11: the owner subsequently explicitly requested
+publication of this contribution to the open-source product's GitHub repository.
+Together with the permission to use the supplied screenshot, this permits its
+inclusion in this public contribution's documentation. No broader standalone
+license for the owner's added marks is asserted. See ../../studio-publication.md.
