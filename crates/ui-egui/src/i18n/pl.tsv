@@ -3567,3 +3567,31 @@ cameraRaw	Roughness	Chropowatość
 
 # Bounded local pigment
 	Local pigment reservoir	Lokalny zbiornik pigmentu
+
+# Independent AI result layers and comparison
+	AI Results	Wyniki AI
+	Accept	Akceptuj
+	Accepted · remains editable	Zaakceptowano · nadal można edytować
+	After	Po
+	B: before · A: after · S: split · Esc: finish comparison	B: przed · A: po · S: podział · Esc: zakończ porównanie
+	Before	Przed
+	Before hides this result in the current document	Widok Przed ukrywa ten wynik w bieżącym dokumencie
+	Choose result image…	Wybierz obraz wyniku…
+	Compare on canvas	Porównaj na płótnie
+	Divider	Linia podziału
+	Edit mask	Edytuj maskę
+	Import a proposed result	Importuj proponowany wynik
+	Import replacement…	Importuj zamiennik…
+	Imported attribution is unverified	Zaimportowane informacje o pochodzeniu nie są zweryfikowane
+	Material	Materiał
+	Model attribution	Informacje o modelu
+	Overlay opacity	Krycie nakładki
+	Proposed result	Proponowany wynik
+	Provenance	Pochodzenie
+	Provider attribution	Informacje o dostawcy
+	Reject	Odrzuć
+	Requested edit	Żądana edycja
+	Result layer	Warstwa wyniku
+	Result must match the selection bounds or full canvas	Wynik musi odpowiadać granicom zaznaczenia lub całemu płótnu
+	Select a result	Wybierz wynik
+	Select or import a result layer	Wybierz lub importuj warstwę wyniku

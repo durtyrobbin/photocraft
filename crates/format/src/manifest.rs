@@ -229,6 +229,8 @@ pub struct LayerM {
     pub advanced: photocraft_doc::AdvancedBlending,
     #[serde(default)]
     pub video: Option<VideoDataM>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ai_result: Option<std::sync::Arc<photocraft_doc::ai_result::AiResult>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

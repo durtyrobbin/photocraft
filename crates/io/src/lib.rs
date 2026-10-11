@@ -267,6 +267,26 @@ fn has_extension(name: &str, expected: &str) -> bool {
 /// Exports `doc` to the format named by `name_or_ext` (a file name, path or
 /// bare extension).
 pub fn export(doc: &Document, name_or_ext: &str, opts: &ExportOptions) -> Result<ExportResult, IoError> {
+    let mut result = export_inner(doc, name_or_ext, opts)?;
+    if extension(name_or_ext) != photocraft_format::EXTENSION {
+        for warning in native_ai_warnings(doc) {
+            if !result.warnings.contains(&warning) {
+                result.warnings.push(warning);
+            }
+        }
+    }
+    Ok(result)
+}
+
+pub(crate) fn native_ai_warnings(doc: &Document) -> Vec<String> {
+    if doc.walk().iter().any(|(_, _, layer)| layer.ai_result.is_some()) {
+        vec!["AI result provenance is not preserved by this format; save .pcraft to retain it".into()]
+    } else {
+        Vec::new()
+    }
+}
+
+fn export_inner(doc: &Document, name_or_ext: &str, opts: &ExportOptions) -> Result<ExportResult, IoError> {
     let ext = extension(name_or_ext);
     if ext == "pdn" {
         return Err(IoError::Unsupported("PDN is import-only; save as .pcraft to preserve all layers and blend modes".into()));

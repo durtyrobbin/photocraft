@@ -2529,3 +2529,32 @@ fontWeight	Italic	斜體
 # Bounded local pigment
 	Local pigment reservoir	局部顏料儲存
 	Uniform	均勻
+
+# Independent AI result layers and comparison
+	AI Results	AI 結果
+	Accept	接受
+	Accepted · remains editable	已接受 · 仍可編輯
+	After	之後
+	B: before · A: after · S: split · Esc: finish comparison	B：之前 · A：之後 · S：分割 · Esc：結束比較
+	Before	之前
+	Before hides this result in the current document	「之前」檢視隱藏目前文件中的此結果
+	Choose result image…	選擇結果影像…
+	Compare on canvas	在畫布上比較
+	Divider	分隔線
+	Edit mask	編輯遮色片
+	Import a proposed result	匯入提議的結果
+	Import replacement…	匯入替換結果…
+	Imported attribution is unverified	匯入的來源資訊未經核實
+	Lighting	光照
+	Material	材質
+	Model attribution	模型來源資訊
+	Overlay opacity	覆疊不透明度
+	Proposed result	提議的結果
+	Provenance	來源
+	Provider attribution	提供者來源資訊
+	Reject	拒絕
+	Requested edit	要求的編輯
+	Result layer	結果圖層
+	Result must match the selection bounds or full canvas	結果必須符合選取範圍邊界或整個畫布
+	Select a result	選擇結果
+	Select or import a result layer	選擇或匯入結果圖層

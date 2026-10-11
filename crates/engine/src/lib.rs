@@ -19,6 +19,7 @@ pub mod background_cmds;
 pub mod brush_cmds;
 pub mod splatter_cmds;
 pub mod knife_cmds;
+pub mod ai_result_cmds;
 pub mod palette_cmds;
 pub mod brush_key_cmds;
 pub mod brush_preset_cmds;

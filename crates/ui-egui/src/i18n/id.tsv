@@ -2956,3 +2956,32 @@ fontWeight	Italic	Miring
 # Bounded local pigment
 	Local pigment reservoir	Reservoir pigmen lokal
 	Uniform	Seragam
+
+# Independent AI result layers and comparison
+	AI Results	Hasil AI
+	Accept	Terima
+	Accepted · remains editable	Diterima · tetap dapat diedit
+	After	Sesudah
+	B: before · A: after · S: split · Esc: finish comparison	B: sebelum · A: sesudah · S: bagi · Esc: akhiri perbandingan
+	Before	Sebelum
+	Before hides this result in the current document	Sebelum menyembunyikan hasil ini dalam dokumen saat ini
+	Choose result image…	Pilih gambar hasil…
+	Compare on canvas	Bandingkan di kanvas
+	Divider	Pembatas
+	Edit mask	Edit masker
+	Import a proposed result	Impor hasil yang diusulkan
+	Import replacement…	Impor pengganti…
+	Imported attribution is unverified	Atribusi yang diimpor belum diverifikasi
+	Lighting	Pencahayaan
+	Material	Bahan
+	Model attribution	Atribusi model
+	Overlay opacity	Opasitas overlay
+	Proposed result	Hasil yang diusulkan
+	Provenance	Asal-usul
+	Provider attribution	Atribusi penyedia
+	Reject	Tolak
+	Requested edit	Edit yang diminta
+	Result layer	Lapisan hasil
+	Result must match the selection bounds or full canvas	Hasil harus sesuai dengan batas seleksi atau seluruh kanvas
+	Select a result	Pilih hasil
+	Select or import a result layer	Pilih atau impor lapisan hasil

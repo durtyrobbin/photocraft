@@ -442,3 +442,12 @@ Final source qualification: 1,223 engine, 91 paint and 1,847 UI tests PASS; 22 p
 The workspace quick examples used the NVIDIA GeForce RTX 2070 SUPER for supported compositor scenarios. This adds GPU regression-execution evidence for those existing examples. It does not qualify new Mixer/Knife physical presentation latency, peak GPU utilization or real tablet input. The separate knife screenshots continue to use a CPU canvas on WARP.
 
 See the task deliverable `contact-reproduction.md` for exact commands; all raw logs, paired binaries hashes and native scripts are retained. No commit identity was supplied, so patch trees are not represented as commit IDs.
+
+
+## Phase 10 — independent AI result layers and comparison
+
+PARTIAL overall; tested native contracts VERIFIED. New bounded, root-top result layers carry typed native provenance, editable masks, visibility/opacity, accept/reject/replacement and one-step Undo. Imports convert RGB/Gray/CMYK/Lab at 8/16/32f; special modes reject atomically. Comparison reuses compositor/CMS/view transforms and isolates both native and automation paint input. Five native synthetic screenshots pass split/overlay pixel checks. No model or network call.
+
+Broad tests: doc 57, engine 1229, format 30, paint 91, UI 1850 PASS; additional native-format integration and final focused pointer/color-mode guards PASS. Adversarial commands, Clippy, layers, WASM and parity PASS. Pinned corpus fixtures verified; full combined corpus regression pending.
+
+24MP cached comparison CPU updates mean 0.682–0.721 ms; worst p95 0.873/p99 1.556 ms. Cold harness/first four frames 1142.31 ms: remaining responsiveness limitation. Import 33.707 ms; Undo/Redo 0.043/0.037 ms; source/history exact. Peak sampled 375.92 MiB / 53.73% host CPU. No GPU, display FPS, real pen, Linux/Wayland or macOS claim. Provider regeneration and guidance remain separate phases. Source and full evidence: outputs/ai-result-qualification.md, ai-results.md, ai-result-benchmark/, ai-result-evidence/, ai-result-logs/ and sequential phase patch. No new commit without owner Git identity; no publication.

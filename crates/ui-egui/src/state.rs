@@ -1039,6 +1039,7 @@ pub struct UiState {
     pub knife: crate::knife_ui::State,
     #[serde(default)]
     pub artist_palette: crate::artist_palette::State,
+    pub ai_results: crate::ai_results_ui::State,
     #[serde(default)]
     pub brush_rack: crate::brush_rack::State,
     /// Marquee options-bar mode: 0 new, 1 add, 2 subtract, 3 intersect (modifier keys override).
@@ -1150,6 +1151,7 @@ impl Default for UiState {
             splatter: Default::default(),
             knife: Default::default(),
             artist_palette: Default::default(),
+            ai_results: Default::default(),
             brush_rack: Default::default(),
             selection_mode: 0,
             tool_options: ToolOptions::default(),

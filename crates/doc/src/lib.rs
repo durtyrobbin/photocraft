@@ -8,6 +8,7 @@
 #![forbid(unsafe_code)]
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+pub mod ai_result;
 pub mod adjust;
 pub mod advanced;
 pub mod analysis;
@@ -625,6 +626,8 @@ pub struct Layer {
     pub advanced: AdvancedBlending,
     /// Layer › Video Layers frame stack (None for a normal layer).
     pub video: Option<VideoData>,
+    /// Provenance for a proposed or accepted result; its pixels remain an ordinary layer.
+    pub ai_result: Option<Arc<ai_result::AiResult>>,
 }
 
 impl Layer {
@@ -651,6 +654,7 @@ impl Layer {
             blend_if: BlendIf::default(),
             advanced: AdvancedBlending::default(),
             video: None,
+            ai_result: None,
         }
     }
     pub fn raster(name: impl Into<String>, format: PixelFormat) -> Self {

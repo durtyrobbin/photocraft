@@ -3654,3 +3654,31 @@ cameraRaw	Masking	Маскування
 
 # Bounded local pigment
 	Local pigment reservoir	Локальний резервуар пігменту
+
+# Independent AI result layers and comparison
+	AI Results	Результати ШІ
+	Accept	Прийняти
+	Accepted · remains editable	Прийнято · доступно для редагування
+	After	Після
+	B: before · A: after · S: split · Esc: finish comparison	B: до · A: після · S: поділ · Esc: завершити порівняння
+	Before	До
+	Before hides this result in the current document	Вигляд «До» приховує цей результат у поточному документі
+	Choose result image…	Вибрати зображення результату…
+	Compare on canvas	Порівняти на полотні
+	Divider	Роздільник
+	Edit mask	Редагувати маску
+	Import a proposed result	Імпортувати запропонований результат
+	Import replacement…	Імпортувати заміну…
+	Imported attribution is unverified	Імпортовані відомості про походження не перевірено
+	Material	Матеріал
+	Model attribution	Відомості про модель
+	Overlay opacity	Непрозорість накладання
+	Proposed result	Запропонований результат
+	Provenance	Походження
+	Provider attribution	Відомості про постачальника
+	Reject	Відхилити
+	Requested edit	Запитане редагування
+	Result layer	Шар результату
+	Result must match the selection bounds or full canvas	Результат має відповідати межам виділення або всьому полотну
+	Select a result	Вибрати результат
+	Select or import a result layer	Виберіть або імпортуйте шар результату

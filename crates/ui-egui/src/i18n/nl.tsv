@@ -3726,3 +3726,29 @@ cameraRaw	Whites	Witten
 
 # Bounded local pigment
 	Local pigment reservoir	Lokaal pigmentreservoir
+
+# Independent AI result layers and comparison
+	AI Results	AI-resultaten
+	Accept	Accepteren
+	Accepted · remains editable	Geaccepteerd · blijft bewerkbaar
+	B: before · A: after · S: split · Esc: finish comparison	B: voor · A: na · S: splitsen · Esc: vergelijking beëindigen
+	Before hides this result in the current document	Voor verbergt dit resultaat in het huidige document
+	Choose result image…	Resultaatafbeelding kiezen…
+	Compare on canvas	Op het canvas vergelijken
+	Divider	Scheidingslijn
+	Edit mask	Masker bewerken
+	Import a proposed result	Een voorgesteld resultaat importeren
+	Import replacement…	Vervanging importeren…
+	Imported attribution is unverified	Geïmporteerde herkomstgegevens zijn niet geverifieerd
+	Material	Materiaal
+	Model attribution	Modelvermelding
+	Overlay opacity	Dekking van overlay
+	Proposed result	Voorgesteld resultaat
+	Provenance	Herkomst
+	Provider attribution	Providervermelding
+	Reject	Afwijzen
+	Requested edit	Gevraagde bewerking
+	Result layer	Resultaatlaag
+	Result must match the selection bounds or full canvas	Het resultaat moet overeenkomen met de selectiegrenzen of het volledige canvas
+	Select a result	Een resultaat selecteren
+	Select or import a result layer	Een resultaatlaag selecteren of importeren

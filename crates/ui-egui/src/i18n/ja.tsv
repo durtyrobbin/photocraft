@@ -3567,3 +3567,31 @@ fontWeight	Italic	斜体
 
 # Bounded local pigment
 	Local pigment reservoir	局所顔料リザーバー
+
+# Independent AI result layers and comparison
+	AI Results	AIの結果
+	Accept	承認
+	Accepted · remains editable	承認済み · 引き続き編集可能
+	After	変更後
+	B: before · A: after · S: split · Esc: finish comparison	B：変更前 · A：変更後 · S：分割 · Esc：比較を終了
+	Before	変更前
+	Before hides this result in the current document	変更前では現在のドキュメントのこの結果を非表示にします
+	Choose result image…	結果の画像を選択…
+	Compare on canvas	キャンバス上で比較
+	Divider	境界線
+	Edit mask	マスクを編集
+	Import a proposed result	提案された結果を読み込む
+	Import replacement…	置き換え用の結果を読み込む…
+	Imported attribution is unverified	読み込んだ出典情報は未確認です
+	Material	素材
+	Model attribution	モデルの出典情報
+	Overlay opacity	オーバーレイの不透明度
+	Proposed result	提案された結果
+	Provenance	出典
+	Provider attribution	プロバイダーの出典情報
+	Reject	却下
+	Requested edit	要求した編集
+	Result layer	結果レイヤー
+	Result must match the selection bounds or full canvas	結果は選択範囲の境界またはキャンバス全体と一致する必要があります
+	Select a result	結果を選択
+	Select or import a result layer	結果レイヤーを選択または読み込む

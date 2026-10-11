@@ -2630,3 +2630,32 @@ fontWeight	Italic	Cursiva
 
 # Bounded local pigment
 	Local pigment reservoir	Depósito local de pigmento
+
+# Independent AI result layers and comparison
+	AI Results	Resultados de IA
+	Accept	Aceptar
+	Accepted · remains editable	Aceptado · sigue siendo editable
+	After	Después
+	B: before · A: after · S: split · Esc: finish comparison	B: antes · A: después · S: división · Esc: finalizar comparación
+	Before	Antes
+	Before hides this result in the current document	Antes oculta este resultado en el documento actual
+	Choose result image…	Elegir imagen de resultado…
+	Compare on canvas	Comparar en el lienzo
+	Divider	Divisor
+	Edit mask	Editar máscara
+	Import a proposed result	Importar un resultado propuesto
+	Import replacement…	Importar reemplazo…
+	Imported attribution is unverified	La atribución importada no está verificada
+	Lighting	Iluminación
+	Material	Material
+	Model attribution	Atribución del modelo
+	Overlay opacity	Opacidad de superposición
+	Proposed result	Resultado propuesto
+	Provenance	Procedencia
+	Provider attribution	Atribución del proveedor
+	Reject	Rechazar
+	Requested edit	Edición solicitada
+	Result layer	Capa de resultado
+	Result must match the selection bounds or full canvas	El resultado debe coincidir con los límites de la selección o con todo el lienzo
+	Select a result	Seleccionar un resultado
+	Select or import a result layer	Seleccionar o importar una capa de resultado

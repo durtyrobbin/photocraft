@@ -162,6 +162,7 @@ pub mod tip_designer;
 pub mod splatter_ui;
 pub mod knife_ui;
 pub mod artist_palette;
+pub mod ai_results_ui;
 pub mod brush_rack;
 mod studio_persist;
 mod titlebar;
@@ -412,6 +413,7 @@ pub struct PhotocraftApp {
     /// Canvas caches per (document, display): CPU textures hold monitor values; the GPU
     /// canvas state is shared (`canvas::GPU_OUTPUT`).
     canvases: HashMap<(DocId, u32), canvas::CanvasCache>,
+    pub(crate) ai_result_caches: Vec<ai_results_ui::Cache>,
     /// Navigator textures belong to open documents, not the lifetime of the egui context.
     navigator_textures: HashMap<DocId, canvas::NavigatorCache>,
     /// Display profile readings (#569).
@@ -628,6 +630,7 @@ impl PhotocraftApp {
             ui: UiState::default(),
             services,
             canvases: HashMap::new(),
+            ai_result_caches: Vec::new(),
             navigator_textures: HashMap::new(),
             monitors: Default::default(),
             checker: None,
@@ -1383,6 +1386,7 @@ impl eframe::App for PhotocraftApp {
             jobs_ui::tick(self, ctx);
             #[cfg(not(target_arch = "wasm32"))]
             filter_preview_worker::discard_closed(self);
+            ai_results_ui::shortcuts(self, ctx);
             shortcuts::handle(self, ctx);
         }
         let arrived: Vec<(String, Vec<u8>)> =
@@ -1498,6 +1502,7 @@ impl eframe::App for PhotocraftApp {
         knife_ui::window(self, &ctx);
         brush_rack::window(self, &ctx);
         artist_palette::window(self, &ctx);
+        ai_results_ui::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);
         type_panels_ui::windows(self, &ctx);

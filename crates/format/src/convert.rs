@@ -208,6 +208,7 @@ fn layer_m(l: &Layer, sink: &mut dyn Sink) -> LayerM {
         blend_if: l.blend_if.clone(),
         advanced: l.advanced,
         video: l.video.as_ref().map(|v| video_m(v, sink)),
+        ai_result: l.ai_result.clone(),
     }
 }
 
@@ -401,6 +402,7 @@ impl Loader<'_> {
     }
 
     fn layer(&mut self, m: &LayerM, depth: usize) -> Result<Layer> {
+        if let Some(result) = &m.ai_result { result.validate().map_err(FormatError::corrupt)?; }
         if depth > MAX_GROUP_DEPTH {
             return Err(too_deep());
         }
@@ -492,6 +494,7 @@ impl Loader<'_> {
             psd_blocks.push((key4(k)?, self.fetch.blob(h)?));
         }
         Ok(Layer {
+            ai_result: m.ai_result.clone(),
             id: self.id(m.id),
             name: m.name.clone(),
             visible: m.visible,

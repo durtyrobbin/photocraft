@@ -3656,3 +3656,29 @@ fontWeight	Thin	Πολύ λεπτά
 
 # Bounded local pigment
 	Local pigment reservoir	Τοπική δεξαμενή χρωστικής
+
+# Independent AI result layers and comparison
+	AI Results	Αποτελέσματα AI
+	Accept	Αποδοχή
+	Accepted · remains editable	Αποδεκτό · παραμένει επεξεργάσιμο
+	B: before · A: after · S: split · Esc: finish comparison	B: πριν · A: μετά · S: διαχωρισμός · Esc: τέλος σύγκρισης
+	Before hides this result in the current document	Το Πριν κρύβει αυτό το αποτέλεσμα στο τρέχον έγγραφο
+	Choose result image…	Επιλογή εικόνας αποτελέσματος…
+	Compare on canvas	Σύγκριση στον καμβά
+	Divider	Διαχωριστικό
+	Edit mask	Επεξεργασία μάσκας
+	Import a proposed result	Εισαγωγή προτεινόμενου αποτελέσματος
+	Import replacement…	Εισαγωγή αντικατάστασης…
+	Imported attribution is unverified	Η εισαγόμενη απόδοση προέλευσης δεν έχει επαληθευτεί
+	Material	Υλικό
+	Model attribution	Απόδοση μοντέλου
+	Overlay opacity	Αδιαφάνεια επικάλυψης
+	Proposed result	Προτεινόμενο αποτέλεσμα
+	Provenance	Προέλευση
+	Provider attribution	Απόδοση παρόχου
+	Reject	Απόρριψη
+	Requested edit	Ζητούμενη επεξεργασία
+	Result layer	Επίπεδο αποτελέσματος
+	Result must match the selection bounds or full canvas	Το αποτέλεσμα πρέπει να ταιριάζει στα όρια επιλογής ή σε ολόκληρο τον καμβά
+	Select a result	Επιλογή αποτελέσματος
+	Select or import a result layer	Επιλογή ή εισαγωγή επιπέδου αποτελέσματος

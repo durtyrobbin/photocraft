@@ -2969,3 +2969,32 @@ fontWeight	Italic	Italique
 # Bounded local pigment
 	Local pigment reservoir	Réservoir local de pigment
 	Uniform	Uniforme
+
+# Independent AI result layers and comparison
+	AI Results	Résultats IA
+	Accept	Accepter
+	Accepted · remains editable	Accepté · reste modifiable
+	After	Après
+	B: before · A: after · S: split · Esc: finish comparison	B : avant · A : après · S : séparation · Échap : terminer la comparaison
+	Before	Avant
+	Before hides this result in the current document	Avant masque ce résultat dans le document actuel
+	Choose result image…	Choisir une image de résultat…
+	Compare on canvas	Comparer sur la zone de travail
+	Divider	Séparateur
+	Edit mask	Modifier le masque
+	Import a proposed result	Importer un résultat proposé
+	Import replacement…	Importer un remplacement…
+	Imported attribution is unverified	L’attribution importée n’est pas vérifiée
+	Lighting	Éclairage
+	Material	Matière
+	Model attribution	Attribution du modèle
+	Overlay opacity	Opacité de la superposition
+	Proposed result	Résultat proposé
+	Provenance	Provenance
+	Provider attribution	Attribution du fournisseur
+	Reject	Rejeter
+	Requested edit	Modification demandée
+	Result layer	Calque de résultat
+	Result must match the selection bounds or full canvas	Le résultat doit correspondre aux limites de la sélection ou à toute la zone de travail
+	Select a result	Sélectionner un résultat
+	Select or import a result layer	Sélectionner ou importer un calque de résultat

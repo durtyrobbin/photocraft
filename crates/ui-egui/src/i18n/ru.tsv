@@ -2838,3 +2838,32 @@ fontWeight	Italic	Курсив
 # Bounded local pigment
 	Local pigment reservoir	Локальный резервуар пигмента
 	Uniform	Однородный
+
+# Independent AI result layers and comparison
+	AI Results	Результаты ИИ
+	Accept	Принять
+	Accepted · remains editable	Принято · доступно для редактирования
+	After	После
+	B: before · A: after · S: split · Esc: finish comparison	B: до · A: после · S: разделение · Esc: завершить сравнение
+	Before	До
+	Before hides this result in the current document	Вид «До» скрывает этот результат в текущем документе
+	Choose result image…	Выбрать изображение результата…
+	Compare on canvas	Сравнить на холсте
+	Divider	Разделитель
+	Edit mask	Изменить маску
+	Import a proposed result	Импортировать предложенный результат
+	Import replacement…	Импортировать замену…
+	Imported attribution is unverified	Импортированные сведения о происхождении не проверены
+	Lighting	Освещение
+	Material	Материал
+	Model attribution	Сведения о модели
+	Overlay opacity	Непрозрачность наложения
+	Proposed result	Предложенный результат
+	Provenance	Происхождение
+	Provider attribution	Сведения о поставщике
+	Reject	Отклонить
+	Requested edit	Запрошенная правка
+	Result layer	Слой результата
+	Result must match the selection bounds or full canvas	Результат должен соответствовать границам выделения или всему холсту
+	Select a result	Выбрать результат
+	Select or import a result layer	Выберите или импортируйте слой результата

@@ -1276,7 +1276,7 @@ fn document_to_psd_nested(doc: &Document, opts: &PsdExportOptions, depth: u32) -
         layer_ids: Default::default(),
         canvas: doc.bounds(),
         records: Vec::new(),
-        warnings: Vec::new(),
+        warnings: crate::native_ai_warnings(doc),
         guides: doc.guides.clone(),
         comps: (!crate::comps_map::comps_unchanged(doc)).then(|| (doc.layer_comps.clone(), doc.last_document_state.clone())),
         smart: SmartOut::new(doc, depth),

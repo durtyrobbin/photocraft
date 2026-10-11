@@ -2590,3 +2590,32 @@ fontWeight	Italic	Kursiv
 # Bounded local pigment
 	Local pigment reservoir	Lokaler Pigmentspeicher
 	Uniform	Gleichmäßig
+
+# Independent AI result layers and comparison
+	AI Results	KI-Ergebnisse
+	Accept	Akzeptieren
+	Accepted · remains editable	Akzeptiert · weiterhin bearbeitbar
+	After	Nachher
+	B: before · A: after · S: split · Esc: finish comparison	B: vorher · A: nachher · S: geteilt · Esc: Vergleich beenden
+	Before	Vorher
+	Before hides this result in the current document	Vorher blendet dieses Ergebnis im aktuellen Dokument aus
+	Choose result image…	Ergebnisbild auswählen…
+	Compare on canvas	Auf der Leinwand vergleichen
+	Divider	Trennlinie
+	Edit mask	Maske bearbeiten
+	Import a proposed result	Vorgeschlagenes Ergebnis importieren
+	Import replacement…	Ersatz importieren…
+	Imported attribution is unverified	Importierte Herkunftsangaben sind ungeprüft
+	Lighting	Beleuchtung
+	Material	Material
+	Model attribution	Modellangabe
+	Overlay opacity	Deckkraft der Überlagerung
+	Proposed result	Vorgeschlagenes Ergebnis
+	Provenance	Herkunft
+	Provider attribution	Anbieterangabe
+	Reject	Verwerfen
+	Requested edit	Gewünschte Bearbeitung
+	Result layer	Ergebnisebene
+	Result must match the selection bounds or full canvas	Das Ergebnis muss den Auswahlgrenzen oder der gesamten Leinwand entsprechen
+	Select a result	Ergebnis auswählen
+	Select or import a result layer	Ergebnisebene auswählen oder importieren

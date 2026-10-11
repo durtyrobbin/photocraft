@@ -510,6 +510,7 @@ fn layer_pixels_equal(a: &Layer, b: &Layer) -> bool {
         blend_if,
         advanced,
         video: _,
+        ai_result: _, // Attribution and acceptance do not alter composite pixels.
     } = a;
     *id == b.id
         && *visible == b.visible

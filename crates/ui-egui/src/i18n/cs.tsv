@@ -2552,3 +2552,32 @@ fontWeight	Italic	Kurzíva
 # Bounded local pigment
 	Local pigment reservoir	Lokální zásobník pigmentu
 	Uniform	Rovnoměrný
+
+# Independent AI result layers and comparison
+	AI Results	Výsledky AI
+	Accept	Přijmout
+	Accepted · remains editable	Přijato · zůstává upravitelné
+	After	Po
+	B: before · A: after · S: split · Esc: finish comparison	B: před · A: po · S: rozdělení · Esc: ukončit porovnání
+	Before	Před
+	Before hides this result in the current document	Před skryje tento výsledek v aktuálním dokumentu
+	Choose result image…	Vybrat obrázek výsledku…
+	Compare on canvas	Porovnat na plátně
+	Divider	Dělicí čára
+	Edit mask	Upravit masku
+	Import a proposed result	Importovat navržený výsledek
+	Import replacement…	Importovat náhradu…
+	Imported attribution is unverified	Importované údaje o původu nejsou ověřeny
+	Lighting	Osvětlení
+	Material	Materiál
+	Model attribution	Údaj o modelu
+	Overlay opacity	Krytí překryvu
+	Proposed result	Navržený výsledek
+	Provenance	Původ
+	Provider attribution	Údaj o poskytovateli
+	Reject	Odmítnout
+	Requested edit	Požadovaná úprava
+	Result layer	Vrstva výsledku
+	Result must match the selection bounds or full canvas	Výsledek musí odpovídat hranicím výběru nebo celému plátnu
+	Select a result	Vybrat výsledek
+	Select or import a result layer	Vyberte nebo importujte vrstvu výsledku

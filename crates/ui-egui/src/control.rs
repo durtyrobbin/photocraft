@@ -87,10 +87,11 @@ pub enum Outcome {
 /// field's value is validated before the first one is applied, so a typo, an unknown field, a
 /// bad value or a bad nested key can't reply with success while nothing — or only half of it —
 /// changed (#412).
-pub const UI_SET_FIELDS: [&str; 38] = [
+pub const UI_SET_FIELDS: [&str; 39] = [
     "splatter",
     "knife",
     "artistPalette",
+    "aiResults",
     "brushRack",
     "tipDesigner",
     "tool",
@@ -455,6 +456,12 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 let brush_section = uint_field(p, "brushSection")?;
                 let tip_designer = bool_field(p, "tipDesigner")?;
                 let brush_rack = p.get("brushRack").map(crate::brush_rack::parse).transpose()?;
+                let ai_results = p.get("aiResults").map(|value| {
+                    let state: crate::ai_results_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                    state.validate()?;
+                    if state.enabled && (app.drag.is_some() || app.ui.transform.is_some()) { return Err("finish the current edit before comparing".to_string()); }
+                    Ok::<_, String>(state)
+                }).transpose()?;
                 let artist_palette = p.get("artistPalette").map(|value| {
                     let state: crate::artist_palette::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
                     state.validate()?;
@@ -673,6 +680,7 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 }
                 if let Some(value) = brush_rack { app.ui.brush_rack = value; }
                 if let Some(value) = artist_palette { app.ui.artist_palette = value; }
+                if let Some(value) = ai_results { app.ui.ai_results = value; }
                 if let Some(value) = knife { app.ui.knife = value; }
                 if let Some(value) = splatter {
                     app.ui.splatter = value;
