@@ -213,3 +213,29 @@ fn failed_page_import_preserves_picker_and_existing_work_for_retry() {
     assert_eq!(app.session.documents().len(), 2);
     assert_eq!(app.pending_pdf_pages(), None);
 }
+
+#[test]
+fn binder_selection_is_stable_across_refresh_reorder_and_new_documents() {
+    use photocraft_ui_egui::export_dialog;
+    use serde_json::json;
+    let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Services::default());
+    for _ in 0..3 {
+        app.session.add_document(Document::new("same", Size::new(8, 8), ColorMode::Rgb, SampleType::U8), None);
+    }
+    let ids: Vec<_> = app.session.documents().iter().map(|st| st.doc.id.0).collect();
+    let dialog = export_dialog::open_all_pdf(&mut app).unwrap();
+    let mut fields = app.ui.dialogs.iter().find(|d| d.id == dialog).unwrap().fields.clone();
+    fields.insert("documentIds".into(), json!([ids[0], ids[2]]));
+    app.session.execute("document.move", json!({"document":2,"to":0})).unwrap();
+    app.session.add_document(Document::new("new", Size::new(8, 8), ColorMode::Rgb, SampleType::U8), None);
+    let ctx = egui::Context::default();
+    let _ = ctx.run_ui(Default::default(), |ui| export_dialog::body(&mut app, ui, &mut fields));
+    assert_eq!(fields["documentIds"], json!([ids[2], ids[0]]));
+    assert!(export_dialog::can_confirm(&app, &fields));
+    app.session.close(0);
+    let _ = ctx.run_ui(Default::default(), |ui| export_dialog::body(&mut app, ui, &mut fields));
+    assert_eq!(fields["documentIds"], json!([ids[0]]));
+    fields.insert("documentIds".into(), json!([]));
+    assert!(!export_dialog::can_confirm(&app, &fields));
+    assert!(export_dialog::confirm(&mut app, &fields).is_err());
+}

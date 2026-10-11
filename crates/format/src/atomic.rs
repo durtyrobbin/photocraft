@@ -134,6 +134,45 @@ pub fn atomic_write(path: &Path, bytes: &[u8]) -> io::Result<()> {
 
 /// [`atomic_write`] through an explicit file system and retry policy (the failure-injection seam).
 pub fn atomic_write_with(fs: &dyn AtomicFs, retry: RenameRetry, path: &Path, bytes: &[u8]) -> io::Result<()> {
+    let (target, dir, tmp) = prepare_with(fs, path, bytes)?;
+
+    if let Err(e) = retry_rename(retry, || fs.rename(&tmp, &target)) {
+        let _ = fs.remove(&tmp);
+        return Err(rename_error(e, path));
+    }
+    // The new bytes are in place; a failed directory fsync can't be undone and must not report
+    // the save as failed, so it is best effort.
+    let _ = fs.sync_dir(&dir);
+    Ok(())
+}
+
+/// A flushed same-directory temporary file. Dropping it cancels the write without
+/// touching the destination. Workers can prepare it, then the UI accepts the result
+/// and commits only the short rename step.
+#[derive(Debug)]
+pub struct PreparedWrite {
+    target: PathBuf,
+    dir: PathBuf,
+    tmp: PathBuf,
+}
+impl PreparedWrite {
+    pub fn prepare(path: &Path, bytes: &[u8]) -> io::Result<Self> {
+        let (target, dir, tmp) = prepare_with(&RealFs, path, bytes)?;
+        Ok(Self { target, dir, tmp })
+    }
+    pub fn commit(self) -> io::Result<()> {
+        retry_rename(RenameRetry::platform(), || RealFs.rename(&self.tmp, &self.target)).map_err(|e| rename_error(e, &self.target))?;
+        let _ = RealFs.sync_dir(&self.dir);
+        Ok(())
+    }
+}
+impl Drop for PreparedWrite {
+    fn drop(&mut self) {
+        let _ = RealFs.remove(&self.tmp);
+    }
+}
+
+fn prepare_with(fs: &dyn AtomicFs, path: &Path, bytes: &[u8]) -> io::Result<(PathBuf, PathBuf, PathBuf)> {
     let target = resolve_symlink(path);
     let name = target.file_name().ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, format!("{}: not a file path", path.display())))?;
     let dir = match target.parent() {
@@ -167,14 +206,7 @@ pub fn atomic_write_with(fs: &dyn AtomicFs, retry: RenameRetry, path: &Path, byt
         let _ = fs.copy_permissions(&target, &tmp);
     }
 
-    if let Err(e) = retry_rename(retry, || fs.rename(&tmp, &target)) {
-        let _ = fs.remove(&tmp);
-        return Err(rename_error(e, path));
-    }
-    // The new bytes are in place; a failed directory fsync can't be undone and must not report
-    // the save as failed, so it is best effort.
-    let _ = fs.sync_dir(&dir);
-    Ok(())
+    Ok((target, dir, tmp))
 }
 
 /// Run `rename`, retrying with backoff while it fails with `PermissionDenied` (see
@@ -253,3 +285,23 @@ fn is_cross_device(e: &io::Error) -> bool {
 
 #[cfg(test)]
 mod tests;
+
+#[cfg(test)]
+mod prepared_tests {
+    use super::*;
+    #[test]
+    fn prepared_output_is_invisible_until_commit_and_drop_cancels() {
+        let dir = std::env::temp_dir().join(temp_name("prepared-write-test"));
+        std::fs::create_dir_all(&dir).unwrap();
+        let target = dir.join("output.pdf");
+        std::fs::write(&target, b"old").unwrap();
+        let staged = PreparedWrite::prepare(&target, b"cancelled").unwrap();
+        assert_eq!(std::fs::read(&target).unwrap(), b"old");
+        drop(staged);
+        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 1);
+        PreparedWrite::prepare(&target, b"new").unwrap().commit().unwrap();
+        assert_eq!(std::fs::read(&target).unwrap(), b"new");
+        std::fs::remove_file(&target).unwrap();
+        std::fs::remove_dir(dir).unwrap();
+    }
+}

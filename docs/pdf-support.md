@@ -61,6 +61,56 @@ in `photocraft-io::pdf_writer`. Printing retains its marks, labels and printer I
 handling; Artboards to PDF retains JPEG output and its quality setting.
 Export All Tabs to PDF is a PhotoCraft extension outside the Photoshop parity catalog.
 
+### PDF Binder 2.0: selected tabs
+
+Use **File > Export > Export All Tabs to PDF** to select documents with checkboxes.
+Select All, Select None, and Shift-click ranges are supported. Tab moves between
+controls; Space toggles a focused checkbox. The dialog remembers
+stable document IDs: switching tabs, duplicate names, and reordering cannot substitute
+another document. Closed tabs disappear; newly opened tabs are not selected automatically.
+Selected tabs export in their current left-to-right order, captured when Export is pressed.
+The page count is exactly the number of selected tabs. No selection disables Export.
+
+**Flatten each selected tab** creates one whole-canvas page per selected document,
+including documents containing several artboards. This differs intentionally from
+Save As / Export As, which retain the artboard-per-page behavior described above.
+Crop and Trim canvas dimensions determine the binder page size. Width and height in
+PDF points are pixels times 72 divided by document ppi.
+
+**Include all eligible layers** means the full composited appearance, not editable
+PDF layers. The normal compositor retains masks, clipping, adjustments, opacity,
+blend modes, Smart Object caches and ancestor visibility. **Include hidden layers**
+turns visibility on in an export-only snapshot, including hidden groups. It does not
+alter source visibility or the contents inside an embedded Smart Object. Linked
+Smart Objects use their captured rendered appearance; missing caches produce an
+error asking you to refresh or rasterize them rather than silently omit content.
+
+Desktop composition and temporary-file writing run as a cancellable background job.
+Use the progress area's Cancel button or Escape. Cancellation is observed between
+raster bands and before accepting the temporary file; an individual rendering band
+or filesystem flush must return before its worker stops. Only the final atomic rename
+and directory sync run when the UI accepts the result. A failed or cancelled export
+keeps the existing destination and source tabs. **Close exported tabs after successful
+export** closes only selected documents whose identity, revision and snapshot still
+match. New tabs, edited documents, and documents with unfinished edit/save jobs stay
+open. Imported PDFs never acquire an automatic source overwrite path; the binder
+asks for a destination.
+
+Layers as Pages, individual layer selection, per-tab mode overrides and PDF Optional
+Content Groups (OCG) are not implemented. Unsupported API modes return errors; they
+are not silently flattened or offered as functional UI options. Browser filesystem
+binder export is unavailable; existing single-document browser downloads remain
+separate. Keep `.pcraft` files for editable sources.
+
+| Workflow | Pages | Layer retention | Availability |
+| --- | --- | --- | --- |
+| Binder flatten | One canvas per selected tab | Raster composite; optional hidden layers | Desktop |
+| Save As / Export As PDF | One page per artboard, otherwise canvas | Visible raster composite | Existing native/browser export services |
+| Artboards to PDF | Artboards | Existing JPEG raster pages | Existing desktop workflow |
+| Print | Existing print layout | Existing composited print output | Existing platform printer workflow |
+| Layers as Pages | Undefined pending dependency/group rules | Not implemented | Omitted / API rejects |
+| PDF OCG layers | Requires writer/viewer interoperability work | Not implemented | Omitted / API rejects |
+
 PDF text, vector objects, links, forms, annotations, and signatures are not
 preserved as editable PDF objects. These are raster image editing workflows.
 Use .pcraft for an editable layered master and PDF for the exported result.

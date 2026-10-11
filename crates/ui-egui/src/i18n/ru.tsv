@@ -2772,3 +2772,9 @@ fontWeight	Italic	Курсив
 	Rasterize Layer Style	Растрировать стиль слоя
 	Search settings…	Поиск настроек…
 	No matching settings	Нет подходящих настроек
+	eligible layers	подходящие слои
+	{count} PDF pages	{count} страниц PDF
+	Flatten each selected tab	Свести каждую выбранную вкладку
+	Include all eligible layers	Включить все подходящие слои
+	Include hidden layers	Включить скрытые слои
+	Select None	Снять выделение

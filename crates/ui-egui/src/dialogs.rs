@@ -130,7 +130,7 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
             modal = modal.frame(egui::Frame::popup(&ctx.global_style()).inner_margin(16));
         }
         // Tab / ⇧Tab walk the topmost dialog's text fields, not every widget (field_tab.rs).
-        let tab = if top == Some(d.id) && !egui::Popup::is_any_open(ctx) { crate::field_tab::take_step(ctx) } else { 0 };
+        let tab = if top == Some(d.id) && !egui::Popup::is_any_open(ctx) && !fields.contains_key("__all_pdf") { crate::field_tab::take_step(ctx) } else { 0 };
         // Photoshop doesn't dim the window behind dialogs: previews must be judged at true contrast.
         let modal = modal.show(ctx, |ui| {
             if !interactive {
@@ -271,7 +271,8 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                         } else {
                             crate::file_ui::ok_label(&d.fields).unwrap_or(tl!("OK"))
                         };
-                        let ok = DialogButton::new(ButtonRole::Default, ok_label, 84.0);
+                        let can_confirm = crate::export_dialog::can_confirm(app, &fields);
+                        let ok = DialogButton::new(ButtonRole::Default, ok_label, 84.0).enabled(can_confirm);
                         // Photoshop: holding Alt turns Cancel into Reset (the dialog stays open).
                         let reset = ui.input(|i| i.modifiers.alt) && crate::adjust_dialog::resets(&fields);
                         let cancel_label = if reset {
@@ -293,7 +294,13 @@ pub fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                             Some(ButtonRole::Cancel) => outcome = Some(false),
                             Some(ButtonRole::Apply) => apply_requested = true,
                             Some(_) => outcome = Some(true),
-                            None if interactive && ui.input(|i| i.key_pressed(egui::Key::Enter)) => outcome = Some(true),
+                            None if interactive
+                                && can_confirm
+                                && (!fields.contains_key("__all_pdf") || ui.memory(|m| m.focused().is_none()))
+                                && ui.input(|i| i.key_pressed(egui::Key::Enter)) =>
+                            {
+                                outcome = Some(true)
+                            }
                             None => {}
                         }
                     }

@@ -218,6 +218,21 @@ pub fn export_pdf(doc: &Document, opts: &ExportOptions) -> Result<ExportResult, 
 
 /// Export documents in tab order, retaining each page's own size, resolution and colour profile.
 pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<ExportResult, IoError> {
+    export_pdf_layout(docs, opts, false, &mut |_| Ok(()))
+}
+
+/// One whole-canvas page per document. Check cancellation and report progress between bands.
+pub fn export_pdf_canvases(docs: &[&Document], opts: &ExportOptions, progress: &mut dyn FnMut(f32) -> Result<(), String>) -> Result<ExportResult, IoError> {
+    export_pdf_layout(docs, opts, true, progress)
+}
+
+fn export_pdf_layout(
+    docs: &[&Document],
+    opts: &ExportOptions,
+    canvas: bool,
+    progress: &mut dyn FnMut(f32) -> Result<(), String>,
+) -> Result<ExportResult, IoError> {
+    progress(0.0).map_err(error)?;
     let mut pages = Vec::new();
     let mut total = 0;
     for doc in docs {
@@ -225,7 +240,7 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
             return Err(error("document resolution must be finite and positive"));
         }
         let boards = doc.artboards();
-        if boards.is_empty() {
+        if canvas || boards.is_empty() {
             pages.push((*doc, None, doc.bounds()));
         } else {
             pages.extend(boards.iter().rev().map(|(id, _, board)| (*doc, Some(*id), board.rect)));
@@ -237,14 +252,19 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
     if pages.is_empty() {
         return Err(error("PDF must contain between 1 and 100 pages"));
     }
-    for (_, _, rect) in &pages {
+    for (doc, _, rect) in &pages {
+        let physical = f64::from(rect.width().max(rect.height())) * 72.0 / f64::from(doc.resolution_dpi);
+        if !physical.is_finite() || physical > 14400.0 {
+            return Err(error("PDF page exceeds 200 inches; increase the document resolution"));
+        }
         total += check_size(rect.width(), rect.height())?;
         if total > MAX_TOTAL_PIXELS {
             return Err(error("PDF export exceeds 512 megapixels across its pages"));
         }
     }
     let mut output_pages = Vec::new();
-    for (doc, id, rect) in &pages {
+    for (index, (doc, id, rect)) in pages.iter().enumerate() {
+        progress(index as f32 / pages.len() as f32).map_err(error)?;
         let gray = doc.mode == ColorMode::Grayscale;
         let source = if matches!(doc.mode, ColorMode::Rgb | ColorMode::Grayscale) {
             doc.icc_profile.as_deref().and_then(|p| Profile::parse(p).ok()).filter(|p| p.color_space == if gray { ColorSpace::Gray } else { ColorSpace::Rgb })
@@ -261,7 +281,11 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
         }
         let mut rgb = ZlibEncoder::new(Vec::new(), Compression::default());
         let mut alpha = ZlibEncoder::new(Vec::new(), Compression::default());
+        let mut rendered = 0usize;
         photocraft_compose::render_bands(&one, *rect, 64, |band| -> Result<(), IoError> {
+            rendered += band.px.len();
+            let fraction = rendered as f32 / (rect.width() as f32 * rect.height() as f32);
+            progress((index as f32 + fraction) / pages.len() as f32).map_err(error)?;
             let stride = if gray { 1 } else { 3 };
             let mut colors = Vec::with_capacity(band.px.len() * 3);
             if let Some(t) = &transform {
@@ -298,6 +322,7 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
             },
         });
     }
+    progress(1.0).map_err(error)?;
     let metadata = if opts.xmp == XmpEmbed::All && docs.len() == 1 { docs.first().and_then(|d| d.metadata.xmp.as_ref()) } else { None };
     Ok(ExportResult {
         bytes: crate::pdf_writer::write_pdf(&output_pages, metadata.map(String::as_str)),

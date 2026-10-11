@@ -2495,3 +2495,9 @@ fontWeight	Italic	斜体
 	Front Image	前面的图像
 	Search settings…	搜索设置…
 	No matching settings	没有匹配的设置
+	eligible layers	符合条件的图层
+	{count} PDF pages	{count} 页 PDF
+	Flatten each selected tab	合并每个选中的标签页
+	Include all eligible layers	包含所有符合条件的图层
+	Include hidden layers	包含隐藏图层
+	Select None	取消全选

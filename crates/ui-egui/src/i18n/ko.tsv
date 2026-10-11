@@ -3066,3 +3066,9 @@ fontWeight	Italic	기울임
 	Front Image	전면 이미지
 	Search settings…	설정 검색…
 	No matching settings	일치하는 설정 없음
+	eligible layers	적합한 레이어
+	{count} PDF pages	PDF {count}페이지
+	Flatten each selected tab	선택한 각 탭 병합
+	Include all eligible layers	모든 적합한 레이어 포함
+	Include hidden layers	숨겨진 레이어 포함
+	Select None	모두 선택 해제

@@ -3506,3 +3506,9 @@ fontWeight	Italic	斜体
 	Front Image	前面の画像
 	Search settings…	設定を検索…
 	No matching settings	一致する設定はありません
+	eligible layers	対象レイヤー
+	{count} PDF pages	PDF {count} ページ
+	Flatten each selected tab	選択した各タブを統合
+	Include all eligible layers	すべての対象レイヤーを含める
+	Include hidden layers	非表示レイヤーを含める
+	Select None	選択を解除

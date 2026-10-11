@@ -37,6 +37,10 @@ pub fn open_all_pdf(app: &mut PhotocraftApp) -> Result<u64, String> {
         d.fields.insert("__label".into(), json!(tl!("Export All Tabs to PDF…")));
         d.fields.insert("format".into(), json!("pdf"));
         d.fields.insert("closeAfter".into(), json!(false));
+        d.fields.insert("documentIds".into(), json!(app.session.documents().iter().map(|st| st.doc.id.0).collect::<Vec<_>>()));
+        d.fields.insert("mode".into(), json!("flatten"));
+        d.fields.insert("includeAllLayers".into(), json!(true));
+        d.fields.insert("includeHiddenLayers".into(), json!(false));
     }
     Ok(id)
 }
@@ -165,16 +169,48 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
     let t = Tokens::get(ui.ctx());
     if f.get("__all_pdf").and_then(Value::as_bool) == Some(true) {
         ui.set_width(460.0);
-        ui.label(crate::i18n::fmt(tl!("{count} tabs will be combined in left-to-right tab order."), &[("count", &app.session.documents().len().to_string())]));
-        ui.label(tl!("Current edits are included. Each page keeps its size and resolution."));
-        egui::ScrollArea::vertical().max_height(190.0).show(ui, |ui| {
-            for (i, st) in app.session.documents().iter().enumerate() {
-                ui.label(format!("{}. {}", i + 1, st.doc.name));
+        let ids: Vec<_> = app.session.documents().iter().map(|st| st.doc.id.0).collect();
+        let mut selected: Vec<u64> = f
+            .get("documentIds")
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(Value::as_u64).filter(|id| ids.contains(id)).collect())
+            .unwrap_or_default();
+        ui.horizontal(|ui| {
+            if ui.button(tl!("Select All")).clicked() {
+                selected.clone_from(&ids);
+            }
+            if ui.button(tl!("Select None")).clicked() {
+                selected.clear();
             }
         });
+        let mut hidden = f.get("includeHiddenLayers").and_then(Value::as_bool).unwrap_or(false);
+        egui::ScrollArea::vertical().max_height((ui.ctx().content_rect().height() - 460.0).clamp(60.0, 190.0)).show(ui, |ui| {
+            for st in app.session.documents() {
+                let id = st.doc.id.0;
+                let mut checked = selected.contains(&id);
+                let label = format!("{} - {} {}", st.doc.name, photocraft_engine::pdf_export_cmds::eligible_layers(&st.doc, hidden), tl!("eligible layers"));
+                let response = ui.push_id(id, |ui| ui.checkbox(&mut checked, &label)).inner;
+                if response.changed() {
+                    let anchor = f.get("__binder_anchor").and_then(Value::as_u64);
+                    select_range(&mut selected, &ids, anchor, id, checked, ui.input(|i| i.modifiers.shift));
+                    f.insert("__binder_anchor".into(), json!(id));
+                }
+            }
+        });
+        selected = ids.into_iter().filter(|id| selected.contains(id)).collect();
+        ui.label(crate::i18n::fmt(tl!("{count} PDF pages"), &[("count", &selected.len().to_string())]));
+        f.insert("documentIds".into(), json!(selected));
+        ui.label(tl!("Flatten each selected tab"));
+        let mut all = true;
+        ui.add_enabled_ui(false, |ui| {
+            ui.checkbox(&mut all, tl!("Include all eligible layers"));
+        });
+        ui.checkbox(&mut hidden, tl!("Include hidden layers"));
+        f.insert("includeHiddenLayers".into(), json!(hidden));
+        ui.label(tl!("Current edits are included. Each page keeps its size and resolution."));
         ui.add_space(10.0);
         let mut close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
-        crate::widgets::checkbox(ui, &mut close, tl!("Close exported tabs after successful export"));
+        ui.checkbox(&mut close, tl!("Close exported tabs after successful export"));
         f.insert("closeAfter".into(), json!(close));
         ui.label(tl!("Canceled or failed exports leave every tab open."));
         ui.label(egui::RichText::new(tl!("PDF saves the visible pages with flattened layers.")).color(t.text_dim));
@@ -281,9 +317,19 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
 /// Export with the dialog's settings: choose a path, render, encode, write.
 pub fn confirm(app: &mut PhotocraftApp, f: &Map<String, Value>) -> Result<Value, String> {
     if f.get("__all_pdf").and_then(Value::as_bool) == Some(true) {
-        let snapshot = photocraft_engine::pdf_export_cmds::Snapshot::capture(&app.session).map_err(|e| e.to_string())?;
+        let plan = photocraft_engine::pdf_export_cmds::BinderExportPlan::from_params(&app.session, &Value::Object(f.clone())).map_err(|e| e.to_string())?;
+        let snapshot = photocraft_engine::pdf_export_cmds::Snapshot::capture_plan(&app.session, &plan).map_err(|e| e.to_string())?;
         let close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
         return app.pick_save("Combined-pages.pdf", move |app, path| {
+            if app.background_jobs {
+                return match snapshot.start(&mut app.session, path, close).map_err(|e| e.to_string())? {
+                    photocraft_engine::jobs::Started::Done(v) => Ok(v),
+                    photocraft_engine::jobs::Started::Job(job) => {
+                        app.jobs.last_started = Some(job);
+                        Ok(json!({"job":job.0, "pending":true}))
+                    }
+                };
+            }
             let write = app.services.write.as_mut().ok_or("no writer configured")?;
             let result = snapshot.write(&mut app.session, &path, close, |path, bytes| write(path, bytes)).map_err(|e| e.to_string())?;
             app.ui.status = format!("Exported {} tabs to {path}; closed {} tabs", result["tabs"], result["closed"]);
@@ -343,8 +389,69 @@ fn quick_export(app: &mut PhotocraftApp, p: Value) -> Result<Value, String> {
     Ok(r)
 }
 
+/// Stable-ID range selection shared by pointer and keyboard activation.
+fn select_range(selected: &mut Vec<u64>, order: &[u64], anchor: Option<u64>, id: u64, checked: bool, shift: bool) {
+    let range = if shift { anchor.and_then(|a| order.iter().position(|v| *v == a)).zip(order.iter().position(|v| *v == id)) } else { None };
+    let targets: Vec<_> = match range {
+        Some((a, b)) => order.iter().skip(a.min(b)).take(a.abs_diff(b) + 1).copied().collect(),
+        None => vec![id],
+    };
+    selected.retain(|v| !targets.contains(v));
+    if checked {
+        selected.extend(targets);
+    }
+}
+
+pub fn can_confirm(app: &PhotocraftApp, fields: &Map<String, Value>) -> bool {
+    if fields.get("__all_pdf").and_then(Value::as_bool) != Some(true) {
+        return true;
+    }
+    fields.get("documentIds").and_then(Value::as_array).is_some_and(|ids| {
+        !ids.is_empty() && ids.len() <= 100 && ids.iter().all(|id| id.as_u64().is_some_and(|id| app.session.documents().iter().any(|st| st.doc.id.0 == id)))
+    })
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn binder_checkboxes_are_keyboard_accessible_without_accidental_export() {
+        use egui_kittest::{Harness, kittest::Queryable};
+        use photocraft_doc::{ColorMode, SampleType, Size};
+        let mut session = photocraft_engine::Session::new();
+        session.add_document(Document::new("Keyboard", Size::new(8, 8), ColorMode::Rgb, SampleType::U8), None);
+        let app = PhotocraftApp::new(session, crate::Services::default());
+        let mut h = Harness::builder().with_size(egui::vec2(800., 600.)).build_ui_state(|ui, app| crate::dialogs::show(app, ui.ctx()), app);
+        PhotocraftApp::setup_context(&h.ctx, crate::theme::ThemeKind::ALL[0]);
+        open_all_pdf(h.state_mut()).unwrap();
+        h.run_steps(3);
+        for _ in 0..12 {
+            if h.query_by_label("Keyboard - 0 eligible layers").is_some_and(|n| n.is_focused()) {
+                break;
+            }
+            h.key_press(egui::Key::Tab);
+            h.run_steps(2);
+        }
+        assert!(h.get_by_label("Keyboard - 0 eligible layers").is_focused());
+        h.key_press(egui::Key::Space);
+        h.run_steps(2);
+        assert_eq!(h.state().ui.dialogs[0].fields["documentIds"], json!([]));
+        h.key_press(egui::Key::Enter);
+        h.run_steps(2);
+        assert_eq!(h.state().ui.dialogs.len(), 1, "Enter on a checkbox must not export");
+        assert_eq!(h.state().ui.dialogs[0].fields.get("__all_pdf"), Some(&json!(true)), "binder must remain open, not an export error dialog");
+    }
+
+    #[test]
+    fn binder_shift_range_tracks_ids_and_survives_missing_anchor() {
+        let mut selected = vec![10];
+        super::select_range(&mut selected, &[30, 10, 20, 40], Some(10), 40, true, true);
+        assert_eq!(selected, vec![10, 20, 40]);
+        super::select_range(&mut selected, &[30, 10, 20, 40], Some(40), 20, false, true);
+        assert_eq!(selected, vec![10]);
+        super::select_range(&mut selected, &[30, 20, 40], Some(10), 30, true, true);
+        assert_eq!(selected, vec![10, 30]);
+    }
+
     use super::*;
 
     #[test]
