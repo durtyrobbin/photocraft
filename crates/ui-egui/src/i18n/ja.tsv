@@ -3471,3 +3471,22 @@ fontWeight	Italic	斜体
 	Front Image	前面の画像
 	Search settings…	設定を検索…
 	No matching settings	一致する設定はありません
+
+# Dynamic tip designer
+	Angle control	角度のコントロール
+	Apply tip and paint	先端を適用して描画
+	Brush Tip Designer	ブラシ先端エディター
+	Clear tip	先端を消去
+	Design Tip…	先端をデザイン…
+	Draw brush tip	ブラシ先端を描画
+	Drawing density	描画の濃度
+	Drawing radius	描画の半径
+	Fixed spacing	固定間隔
+	Mask resolution	マスクの解像度
+	Paint	描画
+	Pressure opacity	筆圧で不透明度を変更
+	Pressure size	筆圧でサイズを変更
+	Save brush preset	ブラシプリセットを保存
+	Scatter amount	散布量
+	Size variation	サイズの変化
+	Undo tip edit	先端の編集を取り消す

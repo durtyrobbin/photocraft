@@ -3031,3 +3031,22 @@ fontWeight	Italic	기울임
 	Front Image	전면 이미지
 	Search settings…	설정 검색…
 	No matching settings	일치하는 설정 없음
+
+# Dynamic tip designer
+	Angle control	각도 제어
+	Apply tip and paint	끝 모양 적용 후 그리기
+	Brush Tip Designer	브러시 끝 모양 편집기
+	Clear tip	끝 모양 지우기
+	Design Tip…	끝 모양 디자인…
+	Draw brush tip	브러시 끝 모양 그리기
+	Drawing density	그리기 농도
+	Drawing radius	그리기 반경
+	Fixed spacing	고정 간격
+	Mask resolution	마스크 해상도
+	Paint	그리기
+	Pressure opacity	필압에 따른 불투명도
+	Pressure size	필압에 따른 크기
+	Save brush preset	브러시 사전 설정 저장
+	Scatter amount	분산량
+	Size variation	크기 변화
+	Undo tip edit	끝 모양 편집 실행 취소

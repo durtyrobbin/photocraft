@@ -312,6 +312,9 @@ fn section_list(app: &mut PhotocraftApp, ui: &mut egui::Ui, b: &mut BrushSetting
 }
 
 fn settings_tab(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
+    if ui.button(tl!("Design Tip…")).clicked() {
+        app.ui.tip_designer = crate::tip_designer::State::from_brush(&app.session.tools.brush);
+    }
     let t = Tokens::get(ui.ctx());
     let before = app.session.tools.brush.clone();
     let mut b = before.clone();

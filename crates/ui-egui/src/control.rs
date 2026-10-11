@@ -87,7 +87,8 @@ pub enum Outcome {
 /// field's value is validated before the first one is applied, so a typo, an unknown field, a
 /// bad value or a bad nested key can't reply with success while nothing — or only half of it —
 /// changed (#412).
-pub const UI_SET_FIELDS: [&str; 33] = [
+pub const UI_SET_FIELDS: [&str; 34] = [
+    "tipDesigner",
     "tool",
     "panels",
     "dock",
@@ -448,6 +449,7 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                     None => None,
                 };
                 let brush_section = uint_field(p, "brushSection")?;
+                let tip_designer = bool_field(p, "tipDesigner")?;
                 let brush_tab = uint_field(p, "brushTab")?;
                 let brushes_view = match p.get("brushesView") {
                     Some(v) => serde_json::from_value(v.clone()).map(Some).map_err(|e| format!("brushesView: {e} (list, grid)"))?,
@@ -637,6 +639,13 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 }
                 if let Some(size) = brush_size {
                     app.run("tools.setBrush", json!({"brush": {"size": size}})).map_err(|e| e.to_string())?;
+                }
+                if let Some(open) = tip_designer {
+                    if open {
+                        app.ui.tip_designer = crate::tip_designer::State::from_brush(&app.session.tools.brush);
+                    } else {
+                        app.ui.tip_designer.open = false;
+                    }
                 }
                 Ok(Value::Null)
             })();

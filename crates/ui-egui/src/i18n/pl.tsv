@@ -3471,3 +3471,22 @@ cameraRaw	Roughness	Chropowatość
 	Front Image	Obraz na wierzchu
 	Search settings…	Szukaj ustawień…
 	No matching settings	Brak pasujących ustawień
+
+# Dynamic tip designer
+	Angle control	Sterowanie kątem
+	Apply tip and paint	Zastosuj końcówkę i maluj
+	Brush Tip Designer	Projektant końcówki pędzla
+	Clear tip	Wyczyść końcówkę
+	Design Tip…	Zaprojektuj końcówkę…
+	Draw brush tip	Narysuj końcówkę pędzla
+	Drawing density	Gęstość rysowania
+	Drawing radius	Promień rysowania
+	Fixed spacing	Stały odstęp
+	Mask resolution	Rozdzielczość maski
+	Paint	Maluj
+	Pressure opacity	Krycie zależne od nacisku
+	Pressure size	Rozmiar zależny od nacisku
+	Save brush preset	Zapisz ustawienie pędzla
+	Scatter amount	Wielkość rozproszenia
+	Size variation	Zmienność rozmiaru
+	Undo tip edit	Cofnij edycję końcówki

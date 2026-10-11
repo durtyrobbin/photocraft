@@ -77,6 +77,26 @@ footprint. The 256-tile working-set and input/dab limits remain. Larger sizes fa
 explicitly with a suggestion to choose Brush; there is no silent mid-stroke quality
 change. Acceptance of a size is not a responsiveness claim.
 
+## Dynamic tip editor
+
+Open **Brush Settings → Design Tip…**, or `ui.set {"tipDesigner":true}`. Paint or
+erase the mask, adjust its 32–512 px resolution, and use local Undo (16 snapshots).
+Rotation, size, aspect, spacing, flow, noise, texture, scatter, pressure, shape
+variation, direction/tilt/barrel angle and brush projection reuse existing engine
+settings. Fixed spacing off uses the existing velocity/time spacing behavior.
+The actual stroke preview and mask display cache their textures until inputs change.
+Every mask cell participates in the editor's cache signature.
+
+**Apply tip and paint** sends `tools.setBrush`; **Save brush preset** also sends the
+existing `brush.presets.save`. The compact 16-bit GrayTile and existing preset format
+are reused without a new competing preset format. Editor draft state has version 1.
+Editing a tip changes no artwork pixels or document history. Resolution changes use
+nearest sampling; imported rectangular tips retain their aspect inside a square mask.
+Full texture and other advanced controls remain in the existing Brush Settings panel.
+New labels use the localization system, with entries in all 16 translation catalogs.
+The editor's native interaction, preset round trip and release-input regression are
+included in the 1,831 passing UI unit tests from the pre-splatter checkpoint.
+
 ## Measured CPU matrix
 
 All 96 baseline/live cases completed with exact Undo/Redo validation. The table gives
@@ -121,3 +141,18 @@ cargo xtask perf --quick
 Native Linux/Wayland/X11, macOS, physical Wacom/Windows pen input, physical GPU
 presentation and real pointer-to-display latency remain unqualified on this host.
 WASM compile success is not browser interaction qualification.
+
+## Remaining phases and publication
+
+The local reservoir currently retains sampled spatial color but uses a global pickup
+and depletion amount. Local pigment exchange and 16/32/64/sparse comparisons remain
+NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette knife, functional palette/rack, AI result comparison,
+guidance and provider integration remain NOT IMPLEMENTED in this phase. Advanced
+bristle simulation is BLOCKED by the unmet fast-mode performance qualification gate.
+
+Repository contributions are MIT OR Apache-2.0; third-party artwork needs permissive
+licenses and attribution. No third-party artwork, model weights or provider SDK is
+introduced here. Before publishing advanced palette, custom-bristle or AI components,
+report their final code/asset/model licensing and contribution implications and obtain
+the owner's explicit release approval. Local development does not authorize uploading
+document pixels to an external provider, publishing those components or merging main.

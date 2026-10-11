@@ -2737,3 +2737,22 @@ fontWeight	Italic	Курсив
 	Rasterize Layer Style	Растрировать стиль слоя
 	Search settings…	Поиск настроек…
 	No matching settings	Нет подходящих настроек
+
+# Dynamic tip designer
+	Angle control	Управление углом
+	Apply tip and paint	Применить кончик и рисовать
+	Brush Tip Designer	Редактор кончика кисти
+	Clear tip	Очистить кончик
+	Design Tip…	Создать кончик…
+	Draw brush tip	Нарисовать кончик кисти
+	Drawing density	Плотность рисования
+	Drawing radius	Радиус рисования
+	Fixed spacing	Фиксированный интервал
+	Mask resolution	Разрешение маски
+	Paint	Рисовать
+	Pressure opacity	Непрозрачность от нажима
+	Pressure size	Размер от нажима
+	Save brush preset	Сохранить набор кисти
+	Scatter amount	Величина рассеивания
+	Size variation	Изменение размера
+	Undo tip edit	Отменить правку кончика
