@@ -46,7 +46,7 @@ Audit complete; local PDF/PSD implementation and qualification are recorded in [
 
 ## Binder 2.1 audit and active qualification
 
-Source under qualification: local `eb674ed` plus working changes, upstream `334ae5779ceebbf7681d345b35dd66e79115e352`. `git merge-base --is-ancestor` succeeds for `6c7fea8`, `10e620d`, `0bacacf` and `3768025`. Authoritative import remains `io/pdf.rs`, `ui-egui/pdf_import_ui.rs`, `engine/jobs.rs::pdf_page_documents`; explicit placement remains `file_cmds::place_pdf_bytes`.
+Qualified implementation source: local `e63823a810cee95e0263f1c8351b491b3d74315b` (based on `eb674ed`), upstream `334ae5779ceebbf7681d345b35dd66e79115e352`. `git merge-base --is-ancestor` succeeds for `6c7fea8`, `10e620d`, `0bacacf` and `3768025`. Authoritative import remains `io/pdf.rs`, `ui-egui/pdf_import_ui.rs`, `engine/jobs.rs::pdf_page_documents`; explicit placement remains `file_cmds::place_pdf_bytes`.
 
 Existing: thumbnail virtualization/cache (32), 1–2400ppi resolution, Ctrl/Cmd toggling, Shift range, source-order deduplication, separate stable document IDs, read-only source status, prepare-all then insert tab set, cancellable jobs, target-bound Smart Objects and one placement history transaction. Demonstrated gaps: queue selected placement solely because any tab was active; picker lacked Select All/Clear Selection. Local patch adds explicit destination (Open defaults Separate Tabs, explicit Place defaults captured document) and selection buttons. No second page importer/writer. Twelve-page resolution/isolation/crop/Undo/Redo/binder regressions pass in release, including 72/144/300 ppi dimensions, stable IDs and source protection. Widget/visual and platform qualification are tracked in the linked report.
 

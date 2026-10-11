@@ -2,7 +2,7 @@
 
 ## Source and isolation
 
-Local integration branch: `universal-format-engine`, based on Binder 2.0 `376802580556965aaaf3c2a836676798c9e4e12d` and upstream `334ae5779ceebbf7681d345b35dd66e79115e352`, joined by `eb674ed`. This report describes the subsequent working patch, not an upstream release. The history contains `6c7fea8`, `10e620d`, `0bacacf` and `3768025`. PR #2011 and #2751 remain separate public contributions; neither was overwritten or published to. The original `pdf-binder-2` checkout, installed app and user documents remain untouched. Skyfuller1303 contributed the thumbnail previews, Smart Object placement and safety improvements in PR #2751 while retaining durtyrobbin's original commits and attribution. Its current head `c85f89d3f1e317227ec873e896b05b1cc4305334` is already an ancestor of this local branch; the public PR remains open and unmerged as checked on 2026-10-11. This patch does not replace that importer or publish another overlapping PR.
+Local integration branch: `universal-format-engine`, based on Binder 2.0 `376802580556965aaaf3c2a836676798c9e4e12d` and upstream `334ae5779ceebbf7681d345b35dd66e79115e352`, joined by `eb674ed`. Implementation commit: `e63823a810cee95e0263f1c8351b491b3d74315b` on the isolated local branch. This is not an upstream release. The history contains `6c7fea8`, `10e620d`, `0bacacf` and `3768025`. PR #2011 and #2751 remain separate public contributions; neither was overwritten or published to. The original `pdf-binder-2` checkout, installed app and user documents remain untouched. Skyfuller1303 contributed the thumbnail previews, Smart Object placement and safety improvements in PR #2751 while retaining durtyrobbin's original commits and attribution. Its current head `c85f89d3f1e317227ec873e896b05b1cc4305334` is already an ancestor of this local branch; the public PR remains open and unmerged as checked on 2026-10-11. This patch does not replace that importer or publish another overlapping PR.
 
 Storage: verified migrated `E:/PROJECTS/AIOS/projects/codex-c-resident/2026-10-09/make/work/photocraft-universal`. The original checkout migration receipt reports PASS; no development storage was created on C:.
 
@@ -39,7 +39,7 @@ Sources: [Adobe PDF import](https://helpx.adobe.com/photoshop/desktop/create-ope
 | Requirement | Classification | Evidence |
 |---|---|---|
 | Existing picker, page order, bounded thumbnails, Ctrl/Cmd/Shift, resolution | VERIFIED | Original implementation reused |
-| Explicit Tabs / Smart Objects / Layers and Select All/Clear Selection | IMPLEMENTED AND VERIFIED in workflow tests; final widget build pending | `pdf_workflow` now passes 11 tests; legacy picker retained |
+| Explicit Tabs / Smart Objects / Layers and Select All/Clear Selection | IMPLEMENTED AND VERIFIED | `pdf_workflow`: 11 passed; picker widgets: 3 passed, including Shift and small-window layouts; legacy picker retained |
 | Original third-party PDF layer reconstruction | PARTIAL | Independent layers supported for the validated OCG/Form/image profile; arbitrary third-party PDF operators are not reconstructed |
 | Twelve-page selection at 72/144/300 ppi | IMPLEMENTED AND VERIFIED | Pages 1, 3, 4, 7, deduplication, dimensions, independent IDs |
 | Source/document isolation; crop/paint/Undo/Redo | VERIFIED | `pdf_import_tabs`, `pdf_export`, `pdf_binder2` |
@@ -54,13 +54,13 @@ Sources: [Adobe PDF import](https://helpx.adobe.com/photoshop/desktop/create-ope
 | Linux/Wayland and macOS | BLOCKED in this Windows environment | No execution claimed |
 | Native corpus, panic hunt, layers, parity, quick performance | VERIFIED | All completed successfully; performance samples are not speedup claims |
 | WASM safe rejection and PDF export | VERIFIED | Real Node.js execution of the release no-unwind WASM module |
-| Final selector widgets, Clippy and WASM | Pending | Rechecking after the final owner-requested selector update |
+| Final selector widgets, Clippy and WASM | VERIFIED | Three picker widget tests, strict all-target Clippy and WASM UI check passed after the final selector update |
 
 ## Executed tests
 
 Release flags: `--release --locked --offline -j 4 --config profile.release.lto=false --config profile.release.codegen-units=16`; tests use `-- --test-threads=1`. Compiler/cache/output roots are on E:.
 
-`cargo test -p photocraft-ui-egui -p photocraft-io -p photocraft-engine --test pdf_workflow --test pdf_layers --test pdf --test pdf_import_tabs --test pdf_binder2 --test pdf_export` with those flags: **46 passed**, zero failed; one 24MP benchmark intentionally ignored in this functional run. Includes malformed/oversized PDFs, image/stream decoding limits, cancellation, physical page size and canvas crop regressions.
+`cargo test -p photocraft-ui-egui -p photocraft-io -p photocraft-engine --test pdf_workflow --test pdf_layers --test pdf --test pdf_import_tabs --test pdf_binder2 --test pdf_export` with those flags: **46 passed** at the earlier patch stage, zero failed; one 24MP benchmark intentionally ignored in this functional run. Includes malformed/oversized PDFs, image/stream decoding limits, cancellation, physical page size and canvas crop regressions.
 
 Strict Clippy for IO/engine/UI all targets passed. The subsequent owner-requested three-way selector has its own focused Clippy, widget and WASM rerun. Windows `cargo fmt --all` exceeded the command-length limit (error 206); per-changed-file rustfmt passed for all 26 changed Rust files. `git diff --check` also passed.
 
@@ -89,7 +89,7 @@ One 2048x2048 high-entropy RGBA layer exported as a 12,591,160-byte OCG PDF in 4
 Executed from the isolated checkout with the release environment described above:
 
 - `cargo xtask layers`, `cargo xtask wasm`, `cargo xtask parity`: passed.
-- `cargo xtask test-corpus -p io -p engine -- --test-threads=1`: passed with pinned verified corpora.
+- `cargo xtask test-corpus -p io -p engine -- --test-threads=1`: passed with pinned verified corpora: 97 test/doc-test executables, 1798 passed, 22 ignored, zero failed.
 - `cargo test -p photocraft-engine -p photocraft-io --features photocraft-engine/corpus,photocraft-io/corpus,photocraft-io/heif --test panic_hunt --release --locked --offline -j 4 -- --ignored --test-threads=1`: passed. The first runner invocation incorrectly requested nonexistent `photocraft-engine/heif` and failed before tests ran; the corrected command and both logs are retained.
 - `cargo xtask perf --quick`: passed; no baseline update. Existing unmeasured/over-budget scenarios remain documented by the tool.
 - Release `pdf_web_smoke.wasm`, processed with wasm-bindgen 0.2.129 and executed in Node.js: passed. Import/preview/OCG inspection reject safely without trapping; flat and OCG PDF export survive.
@@ -110,3 +110,7 @@ Portable marker and settings are beside that executable on E:. Three synthetic `
 The process subsequently exited; a later control connection was refused. Its saved UI state and logs contain no crash report, but the reason for closure was not established. The app is **not claimed to remain running**. No automatic relaunch or interaction with an installed app was performed. Binder selection/Shift behavior is verified by widget tests and the final offscreen binder, not a full live-window export test; ambient file commands were not routed around the control protocol's security gate.
 
 Final `ui-final` evidence includes 48 PNGs. Inspected the Layers picker and paired binder at 800x600 points/2x and the picker at 1000x750/1x. Content scrolls and primary actions fit. Queue plus first offscreen frame measured 324.5 / 1022.2 ms at 1000x750 (1x/2x), and 233.6 / 691.3 ms at 800x600 (1x/2x). These include harness rendering on a loaded host, not physical input-to-photon display latency. Earlier queue-only timings are retained separately.
+
+Final selector commands: `cargo test -p photocraft-ui-egui --test pdf_workflow --release --locked --offline -j 4 -- --test-threads=1` (11 passed) and `cargo test -p photocraft-ui-egui --lib pdf_import_ui --release --locked --offline -j 4 -- --test-threads=1` (3 passed). Final native capture generator: `cargo build -p photocraft-ui-egui --example pdf_import_demo --release --locked --offline -j 4`, then run that release example with the E: `ui-final` evidence folder.
+
+`cargo clippy -p photocraft-ui-egui --all-targets --locked --offline -j 4 -- -D warnings` and `cargo check -p photocraft-ui-egui --target wasm32-unknown-unknown --locked --offline -j 4` both passed after the final selector changes. No public PR or upstream branch was modified.
