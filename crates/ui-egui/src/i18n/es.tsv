@@ -2572,3 +2572,17 @@ fontWeight	Italic	Cursiva
 	Reset distribution	Restablecer distribución
 	Secondary droplets	Gotas secundarias
 	Use tip distribution	Usar distribución de la punta
+
+# Palette knife
+	Palette Knife	Espátula
+	Blade contact	Contacto de la hoja
+	Follow direction	Seguir dirección
+	Pressure contact	Contacto según presión
+	Softness	Suavidad
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-clic en el lienzo para cargar la punta
+	Clean Brush	Limpiar pincel
+	Clean pickup after stroke	Limpiar color recogido tras el trazo
+	Load Brush	Cargar pincel
+	Reload after stroke	Recargar tras el trazo

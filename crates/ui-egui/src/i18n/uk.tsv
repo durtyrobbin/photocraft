@@ -3598,3 +3598,15 @@ cameraRaw	Masking	Маскування
 	Reset distribution	Скинути розподіл
 	Secondary droplets	Вторинні краплі
 	Use tip distribution	Використати розподіл кінчика
+
+# Palette knife
+	Blade contact	Контакт леза
+	Follow direction	Стежити за напрямком
+	Pressure contact	Контакт за натиском
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-клацання на полотні завантажує фарбу в кінчик
+	Clean Brush	Очистити пензель
+	Clean pickup after stroke	Очистити підхоплену фарбу після мазка
+	Load Brush	Завантажити пензель
+	Reload after stroke	Завантажити знову після мазка

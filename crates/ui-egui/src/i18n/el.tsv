@@ -3600,3 +3600,15 @@ fontWeight	Thin	Πολύ λεπτά
 	Reset distribution	Επαναφορά κατανομής
 	Secondary droplets	Δευτερεύοντα σταγονίδια
 	Use tip distribution	Χρήση κατανομής μύτης
+
+# Palette knife
+	Blade contact	Επαφή λεπίδας
+	Follow direction	Ακολουθία κατεύθυνσης
+	Pressure contact	Επαφή με πίεση
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-κλικ στον καμβά για φόρτωση της μύτης
+	Clean Brush	Καθαρισμός πινέλου
+	Clean pickup after stroke	Καθαρισμός συλλογής μετά την πινελιά
+	Load Brush	Φόρτωση πινέλου
+	Reload after stroke	Επαναφόρτωση μετά την πινελιά

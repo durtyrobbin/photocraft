@@ -160,6 +160,7 @@ pub mod tiff_options_ui;
 mod timeline_ui;
 pub mod tip_designer;
 pub mod splatter_ui;
+pub mod knife_ui;
 mod titlebar;
 pub mod tone;
 mod tool_cursor;
@@ -1491,6 +1492,7 @@ impl eframe::App for PhotocraftApp {
         brush_panel::window(self, &ctx);
         tip_designer::window(self, &ctx);
         splatter_ui::window(self, &ctx);
+        knife_ui::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);
         type_panels_ui::windows(self, &ctx);

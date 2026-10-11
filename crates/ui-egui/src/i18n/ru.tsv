@@ -2779,3 +2779,17 @@ fontWeight	Italic	Курсив
 	Use tip distribution	Использовать распределение кончика
 	Distance	Расстояние
 	Spread	Разброс
+
+# Palette knife
+	Palette Knife	Мастихин
+	Blade contact	Контакт лезвия
+	Follow direction	Следовать направлению
+	Pressure contact	Контакт по нажиму
+	Softness	Мягкость
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-щелчок по холсту загружает краску в кончик
+	Clean Brush	Очистить кисть
+	Clean pickup after stroke	Очистить подхваченную краску после мазка
+	Load Brush	Загрузить кисть
+	Reload after stroke	Загрузить заново после мазка

@@ -2910,3 +2910,17 @@ fontWeight	Italic	Italique
 	Reset distribution	Réinitialiser la distribution
 	Secondary droplets	Gouttes secondaires
 	Use tip distribution	Utiliser la distribution de la pointe
+
+# Palette knife
+	Palette Knife	Couteau à palette
+	Blade contact	Contact de la lame
+	Follow direction	Suivre la direction
+	Pressure contact	Contact selon la pression
+	Softness	Douceur
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-clic sur la toile pour charger la pointe
+	Clean Brush	Nettoyer le pinceau
+	Clean pickup after stroke	Nettoyer le prélèvement après le trait
+	Load Brush	Charger le pinceau
+	Reload after stroke	Recharger après le trait

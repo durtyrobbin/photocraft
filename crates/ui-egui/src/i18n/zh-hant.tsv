@@ -2470,3 +2470,17 @@ fontWeight	Italic	斜體
 	Reset distribution	重設分佈
 	Secondary droplets	次級液滴
 	Use tip distribution	使用筆尖分佈
+
+# Palette knife
+	Palette Knife	調色刀
+	Blade contact	刀片接觸
+	Follow direction	跟隨方向
+	Pressure contact	壓力接觸
+	Softness	柔軟度
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	按住 Alt 按一下畫布以載入筆尖顏料
+	Clean Brush	清潔筆刷
+	Clean pickup after stroke	筆畫後清除拾取的顏色
+	Load Brush	載入筆刷
+	Reload after stroke	筆畫後重新載入

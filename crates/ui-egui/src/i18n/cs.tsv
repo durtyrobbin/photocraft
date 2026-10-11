@@ -2493,3 +2493,17 @@ fontWeight	Italic	Kurzíva
 	Reset distribution	Obnovit rozložení
 	Secondary droplets	Vedlejší kapky
 	Use tip distribution	Použít rozložení hrotu
+
+# Palette knife
+	Palette Knife	Malířská špachtle
+	Blade contact	Kontakt čepele
+	Follow direction	Sledovat směr
+	Pressure contact	Kontakt podle tlaku
+	Softness	Měkkost
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-kliknutím na plátno načtěte barvu do hrotu
+	Clean Brush	Vyčistit štětec
+	Clean pickup after stroke	Vyčistit nabranou barvu po tahu
+	Load Brush	Naplnit štětec
+	Reload after stroke	Znovu naplnit po tahu

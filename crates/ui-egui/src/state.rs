@@ -83,6 +83,7 @@ pub enum Tool {
     Pencil,
     MixerBrush,
     Splatter,
+    PaletteKnife,
     Eraser,
     BackgroundEraser,
     MagicEraser,
@@ -124,7 +125,7 @@ pub enum Tool {
 }
 
 impl Tool {
-    pub const ALL: [Tool; 56] = [
+    pub const ALL: [Tool; 57] = [
         Tool::Move,
         Tool::RectMarquee,
         Tool::EllipseMarquee,
@@ -143,6 +144,7 @@ impl Tool {
         Tool::Pencil,
         Tool::MixerBrush,
         Tool::Splatter,
+        Tool::PaletteKnife,
         Tool::Eraser,
         Tool::BackgroundEraser,
         Tool::MagicEraser,
@@ -194,6 +196,7 @@ impl Tool {
             Tool::Pencil => "Pencil Tool",
             Tool::MixerBrush => "Mixer Brush Tool",
             Tool::Splatter => "Flick / Splatter",
+            Tool::PaletteKnife => "Palette Knife",
             Tool::Eraser => "Eraser Tool",
             Tool::BackgroundEraser => "Background Eraser Tool",
             Tool::MagicEraser => "Magic Eraser Tool",
@@ -276,7 +279,7 @@ impl Tool {
             Tool::Move => 'V',
             Tool::RectMarquee | Tool::EllipseMarquee => 'M',
             Tool::Brush | Tool::Pencil | Tool::MixerBrush => 'B',
-            Tool::Splatter => '\0',
+            Tool::Splatter | Tool::PaletteKnife => '\0',
             Tool::Eraser | Tool::BackgroundEraser | Tool::MagicEraser => 'E',
             Tool::Eyedropper | Tool::Ruler | Tool::Note | Tool::Count => 'I',
             Tool::Lasso | Tool::PolygonLasso | Tool::MagneticLasso => 'L',
@@ -1032,6 +1035,8 @@ pub struct UiState {
     pub tip_designer: crate::tip_designer::State,
     #[serde(default)]
     pub splatter: crate::splatter_ui::State,
+    #[serde(default)]
+    pub knife: crate::knife_ui::State,
     /// Marquee options-bar mode: 0 new, 1 add, 2 subtract, 3 intersect (modifier keys override).
     #[serde(default)]
     pub selection_mode: u8,
@@ -1139,6 +1144,7 @@ impl Default for UiState {
             brushes_panel: Default::default(),
             tip_designer: Default::default(),
             splatter: Default::default(),
+            knife: Default::default(),
             selection_mode: 0,
             tool_options: ToolOptions::default(),
             polygon: Vec::new(),
@@ -1220,8 +1226,9 @@ mod tests {
         assert!(!Tool::RedEye.is_brushlike());
         assert_eq!(Tool::from_name("patternStamp"), Some(Tool::PatternStamp));
         assert_eq!(Tool::from_name("Pattern Stamp Tool"), Some(Tool::PatternStamp));
-        assert_eq!(Tool::ALL.len(), 56);
+        assert_eq!(Tool::ALL.len(), 57);
         assert_eq!(Tool::from_name("splatter"), Some(Tool::Splatter));
+        assert_eq!(Tool::from_name("paletteKnife"), Some(Tool::PaletteKnife));
         assert_eq!(Tool::from_name("Remove Tool"), Some(Tool::Remove));
         assert_eq!(Tool::Remove.key(), 'J');
         assert!(Tool::Remove.is_brushlike());

@@ -2531,3 +2531,17 @@ fontWeight	Italic	Kursiv
 	Reset distribution	Verteilung zurücksetzen
 	Secondary droplets	Nebentropfen
 	Use tip distribution	Spitzenverteilung verwenden
+
+# Palette knife
+	Palette Knife	Malmesser
+	Blade contact	Klingenkontakt
+	Follow direction	Richtung folgen
+	Pressure contact	Druckabhängiger Kontakt
+	Softness	Weichheit
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Mit Alt-Klick auf die Leinwand die Spitze laden
+	Clean Brush	Pinsel reinigen
+	Clean pickup after stroke	Aufgenommene Farbe nach dem Strich reinigen
+	Load Brush	Pinsel laden
+	Reload after stroke	Nach dem Strich neu laden

@@ -3511,3 +3511,15 @@ fontWeight	Italic	斜体
 	Reset distribution	分布をリセット
 	Secondary droplets	二次液滴
 	Use tip distribution	先端の分布を使用
+
+# Palette knife
+	Blade contact	刃の接触幅
+	Follow direction	方向に追従
+	Pressure contact	筆圧による接触
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	キャンバスをAltキーを押しながらクリックして筆先に絵の具を読み込む
+	Clean Brush	ブラシを洗浄
+	Clean pickup after stroke	ストローク後に拾った色を洗浄
+	Load Brush	ブラシに絵の具を補充
+	Reload after stroke	ストローク後に再補充

@@ -3670,3 +3670,15 @@ cameraRaw	Whites	Witten
 	Reset distribution	Verdeling herstellen
 	Secondary droplets	Secundaire druppels
 	Use tip distribution	Puntverdeling gebruiken
+
+# Palette knife
+	Blade contact	Bladcontact
+	Follow direction	Richting volgen
+	Pressure contact	Drukafhankelijk contact
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-klik op het canvas om de penseelpunt te laden
+	Clean Brush	Penseel reinigen
+	Clean pickup after stroke	Opgenomen verf na de streek reinigen
+	Load Brush	Penseel laden
+	Reload after stroke	Na de streek opnieuw laden

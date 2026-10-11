@@ -87,8 +87,9 @@ pub enum Outcome {
 /// field's value is validated before the first one is applied, so a typo, an unknown field, a
 /// bad value or a bad nested key can't reply with success while nothing — or only half of it —
 /// changed (#412).
-pub const UI_SET_FIELDS: [&str; 35] = [
+pub const UI_SET_FIELDS: [&str; 36] = [
     "splatter",
+    "knife",
     "tipDesigner",
     "tool",
     "panels",
@@ -451,6 +452,11 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 };
                 let brush_section = uint_field(p, "brushSection")?;
                 let tip_designer = bool_field(p, "tipDesigner")?;
+                let knife = p.get("knife").map(|value| {
+                    let state: crate::knife_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                    state.settings.validate()?;
+                    Ok::<_, String>(state)
+                }).transpose()?;
                 let splatter = p
                     .get("splatter")
                     .map(|value| {
@@ -657,6 +663,7 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                         app.ui.tip_designer.open = false;
                     }
                 }
+                if let Some(value) = knife { app.ui.knife = value; }
                 if let Some(value) = splatter {
                     app.ui.splatter = value;
                 }

@@ -3071,3 +3071,15 @@ fontWeight	Italic	기울임
 	Reset distribution	분포 초기화
 	Secondary droplets	보조 방울
 	Use tip distribution	끝 모양 분포 사용
+
+# Palette knife
+	Blade contact	날 접촉
+	Follow direction	방향 따르기
+	Pressure contact	필압 접촉
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt 키를 누르고 캔버스를 클릭하여 브러시 끝에 물감 담기
+	Clean Brush	브러시 씻기
+	Clean pickup after stroke	획 후 묻은 색 씻기
+	Load Brush	브러시에 물감 담기
+	Reload after stroke	획 후 다시 채우기

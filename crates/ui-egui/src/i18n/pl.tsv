@@ -3511,3 +3511,15 @@ cameraRaw	Roughness	Chropowatość
 	Reset distribution	Przywróć rozkład
 	Secondary droplets	Dodatkowe krople
 	Use tip distribution	Użyj rozkładu końcówki
+
+# Palette knife
+	Blade contact	Kontakt ostrza
+	Follow direction	Podążaj za kierunkiem
+	Pressure contact	Kontakt według nacisku
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-kliknięcie płótna nabiera farbę na końcówkę
+	Clean Brush	Wyczyść pędzel
+	Clean pickup after stroke	Wyczyść zebraną farbę po pociągnięciu
+	Load Brush	Nabierz farbę
+	Reload after stroke	Nabierz ponownie po pociągnięciu

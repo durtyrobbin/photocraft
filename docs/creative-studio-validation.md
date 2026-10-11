@@ -173,6 +173,35 @@ target/release/examples/splatter_probe.exe
 
 ## Functional and platform gates
 
+### Palette knife (functional checks under qualification)
+
+`paint.paletteKnife` uses a bounded 64² blade contact mask and the same incremental
+native-channel mixer transaction. Width (1–1024 px), angle, contact aspect, softness,
+seeded edge breakup, pressure contact/opacity, direction tracking and wet/mix/flow/load
+are explicit versioned settings. Alt-click samples the blade footprint. Sample All
+Layers defaults on; painting targets a separate selected layer. Clean disables automatic
+reload, and both clean-pickup and reload options are available in the scrollable window.
+No height-map or impasto shading is implemented.
+
+All four native interaction checks pass: actual mixed preview, exact preview/commit,
+sampling without paint, Escape/focus/tool cancellation and deferred release samples.
+The 1440×900 native screenshot comparison reports 46,707 changed pixels while drawing
+and zero difference between the live and committed canvas crop. Engine geometry and
+prepared replay/Undo checks pass. One clean-brush assertion initially compared sparse
+storage identity instead of pixels; its corrected pixel-value check awaits rerun.
+Clippy, layers, WASM and parity pass. The 24 MP fixed/directional blade benchmark is
+recorded separately when it completes. Open upstream #3003 was inspected and does not
+contain a palette-knife implementation; its vector/transform/picker work is untouched.
+The broad checks pass 1,213 engine tests with the repaired assertion excluded from
+that older binary. UI passes 1,836 tests but exposes two catalog checks: the README
+tool delimiter and five shared wet-paint labels missing in translation catalogs.
+Both source corrections are included; the next compiled suite must confirm them.
+
+```powershell
+cargo test -p photocraft-paint -p photocraft-engine -p photocraft-ui-egui --lib --release --locked --offline -j2 --config profile.release.lto=false --config profile.release.codegen-units=16 knife_ -- --test-threads=1
+target/release/examples/knife_probe.exe 6000 64 rapid directional
+```
+
 The mixer foundation unit/integration checks, live/committed screenshots and exact
 pixel comparison are described in `mixer-live.md`. The first broad native test run
 hit `0xc0000005` in concurrent `arbitrary_rotation_preview` tests on WARP. Both tests
@@ -200,7 +229,8 @@ WASM compile success is not browser interaction qualification.
 
 The local reservoir currently retains sampled spatial color but uses a global pickup
 and depletion amount. Local pigment exchange and 16/32/64/sparse comparisons remain
-NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette knife, functional palette/rack, AI result comparison,
+NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette
+knife is PARTIAL pending final qualification. Functional palette/rack, AI result comparison,
 guidance and provider integration remain NOT IMPLEMENTED in this phase. Advanced
 bristle simulation is BLOCKED by the unmet fast-mode performance qualification gate.
 

@@ -2897,3 +2897,17 @@ fontWeight	Italic	Miring
 	Reset distribution	Atur ulang distribusi
 	Secondary droplets	Tetesan sekunder
 	Use tip distribution	Gunakan distribusi ujung
+
+# Palette knife
+	Palette Knife	Pisau palet
+	Blade contact	Kontak bilah
+	Follow direction	Ikuti arah
+	Pressure contact	Kontak tekanan
+	Softness	Kelembutan
+
+# Shared wet paint controls
+	Alt-click the canvas to load the brush tip	Alt-klik kanvas untuk memuat ujung kuas
+	Clean Brush	Bersihkan kuas
+	Clean pickup after stroke	Bersihkan cat yang diambil setelah goresan
+	Load Brush	Muat kuas
+	Reload after stroke	Muat ulang setelah goresan

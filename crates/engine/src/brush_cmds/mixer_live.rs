@@ -276,6 +276,10 @@ impl LiveMixer {
 }
 
 pub(super) fn run(s: &mut Session, p: &Value) -> Result<Value> {
+    run_with_label(s, p, "Mixer Brush")
+}
+
+pub(crate) fn run_with_label(s: &mut Session, p: &Value, label: &str) -> Result<Value> {
     let cached = s.prepared_mixer.take().filter(|live| {
         s.active().is_some_and(|st| Arc::ptr_eq(&st.doc, &live.original) && (live.core.layer.is_none() || st.active_layer == live.core.layer))
             && s.tools.mixer == live.original_state
@@ -286,7 +290,7 @@ pub(super) fn run(s: &mut Session, p: &Value) -> Result<Value> {
         None => LiveMixer::begin(s, p)?,
     };
     let damage = live.bounds();
-    s.edit("Mixer Brush", |doc, _| {
+    s.edit(label, |doc, _| {
         *doc = (*live.doc).clone();
         Ok(())
     })?;
