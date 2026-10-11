@@ -2619,3 +2619,33 @@ fontWeight	Italic	Kursiv
 	Result must match the selection bounds or full canvas	Das Ergebnis muss den Auswahlgrenzen oder der gesamten Leinwand entsprechen
 	Select a result	Ergebnis auswählen
 	Select or import a result layer	Ergebnisebene auswählen oder importieren
+
+# Editable semantic guidance
+	AI Guidance	KI-Hinweise
+	Guidance	Hinweise
+	Select an unlocked guidance layer	Eine entsperrte Hinweisebene auswählen
+	Guidance stroke limit reached; draw a shorter stroke	Hinweisstrich-Limit erreicht; einen kürzeren Strich zeichnen
+	Guidance is separate from artwork pixels	Hinweise sind von den Bildpixeln getrennt
+	Show guidance	Hinweise anzeigen
+	New guidance layer	Neue Hinweisebene
+	Guidance layer	Hinweisebene
+	Delete guidance layer	Hinweisebene löschen
+	Draw guidance	Hinweise zeichnen
+	Pressure controls width	Druck steuert die Breite
+	Direction arrow	Richtungspfeil
+	Annotation	Anmerkung
+	Edit guidance stroke	Hinweisstrich bearbeiten
+	Apply brush settings to stroke	Pinseleinstellungen auf den Strich anwenden
+	Move stroke one document pixel	Strich um einen Dokumentpixel verschieben
+	Delete guidance stroke	Hinweisstrich löschen
+	Highlight	Lichtakzent
+	Shadow	Schatten
+	Fold direction	Faltenrichtung
+	Material boundary	Materialgrenze
+	Edge preservation	Kantenerhaltung
+	Texture direction	Texturrichtung
+	Depth cue	Tiefenhinweis
+	Reflection	Reflexion
+	Area to modify	Zu bearbeitender Bereich
+	Area to protect	Zu schützender Bereich
+	Locked	Gesperrt

@@ -279,11 +279,10 @@ pub fn export(doc: &Document, name_or_ext: &str, opts: &ExportOptions) -> Result
 }
 
 pub(crate) fn native_ai_warnings(doc: &Document) -> Vec<String> {
-    if doc.walk().iter().any(|(_, _, layer)| layer.ai_result.is_some()) {
-        vec!["AI result provenance is not preserved by this format; save .pcraft to retain it".into()]
-    } else {
-        Vec::new()
-    }
+    let mut warnings = Vec::new();
+    if doc.walk().iter().any(|(_, _, layer)| layer.ai_result.is_some()) { warnings.push("AI result provenance is not preserved by this format; save .pcraft to retain it".into()); }
+    if !doc.guidance.is_empty() { warnings.push("AI guidance is not preserved by this format; save .pcraft to retain editable guidance".into()); }
+    warnings
 }
 
 fn export_inner(doc: &Document, name_or_ext: &str, opts: &ExportOptions) -> Result<ExportResult, IoError> {

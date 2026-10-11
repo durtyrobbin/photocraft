@@ -2985,3 +2985,33 @@ fontWeight	Italic	Miring
 	Result must match the selection bounds or full canvas	Hasil harus sesuai dengan batas seleksi atau seluruh kanvas
 	Select a result	Pilih hasil
 	Select or import a result layer	Pilih atau impor lapisan hasil
+
+# Editable semantic guidance
+	AI Guidance	Panduan AI
+	Guidance	Panduan
+	Select an unlocked guidance layer	Pilih lapisan panduan yang tidak terkunci
+	Guidance stroke limit reached; draw a shorter stroke	Batas goresan panduan tercapai; gambar goresan yang lebih pendek
+	Guidance is separate from artwork pixels	Panduan terpisah dari piksel karya
+	Show guidance	Tampilkan panduan
+	New guidance layer	Lapisan panduan baru
+	Guidance layer	Lapisan panduan
+	Delete guidance layer	Hapus lapisan panduan
+	Draw guidance	Gambar panduan
+	Pressure controls width	Tekanan mengatur lebar
+	Direction arrow	Panah arah
+	Annotation	Anotasi
+	Edit guidance stroke	Edit goresan panduan
+	Apply brush settings to stroke	Terapkan pengaturan kuas ke goresan
+	Move stroke one document pixel	Geser goresan satu piksel dokumen
+	Delete guidance stroke	Hapus goresan panduan
+	Highlight	Sorotan
+	Shadow	Bayangan
+	Fold direction	Arah lipatan
+	Material boundary	Batas bahan
+	Edge preservation	Pelestarian tepi
+	Texture direction	Arah tekstur
+	Depth cue	Petunjuk kedalaman
+	Reflection	Pantulan
+	Area to modify	Area yang diubah
+	Area to protect	Area yang dilindungi
+	Locked	Terkunci

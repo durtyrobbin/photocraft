@@ -22,6 +22,7 @@ pub const TOP_MENUS: [&str; 10] = ["File", "Edit", "Image", "Layer", "Type", "Se
 /// UI-level commands (handled by the shell rather than the engine): id, label, menu, shortcut.
 pub const UI_COMMANDS: &[(&str, &str, &[&str], Option<&str>)] = &[
     ("window.aiResults", "AI Results", &["Window"], None),
+    ("window.aiGuidance", "AI Guidance", &["Window"], None),
     ("ui.symmetryTransform", "Transform Symmetry", &[], None),
     ("window.panel.group", "Change Panel Group", &[], None),
     ("window.panel.layout", "Change Panel Layout", &[], None),
@@ -320,6 +321,7 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
         "file.saveAs" => app.save_as(params.get("path").and_then(Value::as_str).map(str::to_string)),
         "view.zoomIn" | "view.zoomOut" | "view.fitOnScreen" | "view.actualPixels" => app.run(id, params),
         "window.aiResults" => { app.ui.ai_results.open = true; Ok(Value::Null) }
+        "window.aiGuidance" => { app.ui.guidance.open = true; Ok(Value::Null) }
         "window.newWindowForDocument" => {
             let doc = app.session.active_index().ok_or("no document")?;
             let wid = app.ui.alloc_id();
@@ -638,6 +640,7 @@ pub fn is_enabled(app: &PhotocraftApp, id: &str) -> bool {
         // "Custom…" is the full Proof Setup dialog.
         "view.proofSetup.custom" => app.session.active().is_some(),
         "window.aiResults" => true,
+        "window.aiGuidance" => true,
         "view.rulers" | "view.show.grid" | "view.show.guides" | "view.snap" | "view.lockGuides" => true,
         "edit.cut" if app.ui.text_edit.is_some() => crate::type_tool::selected_range(app).is_some(),
         // An image copied in another app can only be seen by reading the OS clipboard, which happens

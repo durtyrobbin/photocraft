@@ -87,11 +87,12 @@ pub enum Outcome {
 /// field's value is validated before the first one is applied, so a typo, an unknown field, a
 /// bad value or a bad nested key can't reply with success while nothing — or only half of it —
 /// changed (#412).
-pub const UI_SET_FIELDS: [&str; 39] = [
+pub const UI_SET_FIELDS: [&str; 40] = [
     "splatter",
     "knife",
     "artistPalette",
     "aiResults",
+    "guidance",
     "brushRack",
     "tipDesigner",
     "tool",
@@ -456,6 +457,12 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 let brush_section = uint_field(p, "brushSection")?;
                 let tip_designer = bool_field(p, "tipDesigner")?;
                 let brush_rack = p.get("brushRack").map(crate::brush_rack::parse).transpose()?;
+                let guidance = p.get("guidance").map(|value| {
+                    let state: crate::guidance_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                    state.validate()?;
+                    if state.drawing && (app.drag.is_some() || app.ui.transform.is_some()) { return Err("finish the current edit before drawing guidance".to_string()); }
+                    Ok::<_, String>(state)
+                }).transpose()?;
                 let ai_results = p.get("aiResults").map(|value| {
                     let state: crate::ai_results_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
                     state.validate()?;
@@ -681,6 +688,7 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 if let Some(value) = brush_rack { app.ui.brush_rack = value; }
                 if let Some(value) = artist_palette { app.ui.artist_palette = value; }
                 if let Some(value) = ai_results { app.ui.ai_results = value; }
+                if let Some(value) = guidance { app.ui.guidance = value; }
                 if let Some(value) = knife { app.ui.knife = value; }
                 if let Some(value) = splatter {
                     app.ui.splatter = value;

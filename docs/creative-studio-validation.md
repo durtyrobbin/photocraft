@@ -451,3 +451,12 @@ PARTIAL overall; tested native contracts VERIFIED. New bounded, root-top result 
 Broad tests: doc 57, engine 1229, format 30, paint 91, UI 1850 PASS; additional native-format integration and final focused pointer/color-mode guards PASS. Adversarial commands, Clippy, layers, WASM and parity PASS. Pinned corpus fixtures verified; full combined corpus regression pending.
 
 24MP cached comparison CPU updates mean 0.682–0.721 ms; worst p95 0.873/p99 1.556 ms. Cold harness/first four frames 1142.31 ms: remaining responsiveness limitation. Import 33.707 ms; Undo/Redo 0.043/0.037 ms; source/history exact. Peak sampled 375.92 MiB / 53.73% host CPU. No GPU, display FPS, real pen, Linux/Wayland or macOS claim. Provider regeneration and guidance remain separate phases. Source and full evidence: outputs/ai-result-qualification.md, ai-results.md, ai-result-benchmark/, ai-result-evidence/, ai-result-logs/ and sequential phase patch. No new commit without owner Git identity; no publication.
+
+
+## Phase 11 — editable semantic guidance
+
+PARTIAL overall; tested native contracts VERIFIED. Ten explicit semantics, copy-on-write native storage, bounded masks, editable layers/strokes, live preview and one-step Undo. Native pending/committed screenshots inspected; hidden guidance restores exact source pixels. Fixed held-Escape gesture leakage in both guidance and comparison, plus invalid-panel-text input ownership.
+
+Broad doc57/engine1234/format30/paint91 PASS. UI1856 passed plus one missing translation failed; after all16 catalog correction, localization32 PASS. Focused guidance engine4/UI9 and comparison5 PASS. Format hostile/legacy integration, panic_hunt, Clippy, layers, WASM, parity and pinned-corpus PASS. Quick perf command completed; existing budget and baseline limitations remain. Preserve initial failed logs.
+
+24MP synthetic guidance CPU means1.274/7.660ms at4096/65536points; worstp95 8.224/p99 8.938ms. Coldsetup487–528ms remains a cost. No physical input/display/GPU latency claim. Geometry-remap and individual point handles pending; providers separate. Details and reproduction: outputs/guidance-qualification.md, ai-guidance.md, guidance-evidence/, guidance-benchmark/, guidance-logs/. No commits without owner identity; no external pixels or publishing.

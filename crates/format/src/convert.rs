@@ -257,6 +257,7 @@ pub(crate) fn doc_m(d: &Document, sink: &mut dyn Sink) -> DocM {
         last_document_state: d.last_document_state.as_ref().map(|c| comp_m(c, sink)),
         measurement: d.measurement.clone(),
         notes: d.notes.clone(),
+        guidance: d.guidance.clone(),
         text_styles: d.text_styles.clone(),
         slices: d.slices.clone(),
     }
@@ -525,6 +526,7 @@ impl Loader<'_> {
     }
 
     pub(crate) fn document(&mut self, m: &DocM) -> Result<Document> {
+        m.guidance.validate().map_err(FormatError::corrupt)?;
         // Reserve every stored id before allocating identities missing from older bundles. If an
         // id is implausibly large, remap the whole document while retaining shared contents groups.
         if self.preserve_ids {
@@ -615,6 +617,7 @@ impl Loader<'_> {
             last_document_state,
             measurement: m.measurement.clone(),
             notes: m.notes.clone(),
+            guidance: m.guidance.clone(),
             text_styles: m.text_styles.clone(),
             slices,
         })

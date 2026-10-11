@@ -87,6 +87,8 @@ pub struct DocM {
     /// Note tool annotations.
     #[serde(default)]
     pub notes: Vec<photocraft_doc::Note>,
+    #[serde(default, skip_serializing_if = "photocraft_doc::guidance::Guidance::is_empty")]
+    pub guidance: photocraft_doc::guidance::Guidance,
     /// Character and paragraph styles.
     #[serde(default)]
     pub text_styles: photocraft_doc::TextStyles,

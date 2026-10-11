@@ -2581,3 +2581,33 @@ fontWeight	Italic	Kurzíva
 	Result must match the selection bounds or full canvas	Výsledek musí odpovídat hranicím výběru nebo celému plátnu
 	Select a result	Vybrat výsledek
 	Select or import a result layer	Vyberte nebo importujte vrstvu výsledku
+
+# Editable semantic guidance
+	AI Guidance	Pokyny AI
+	Guidance	Pokyny
+	Select an unlocked guidance layer	Vyberte odemčenou vrstvu pokynů
+	Guidance stroke limit reached; draw a shorter stroke	Byl dosažen limit tahu pokynu; nakreslete kratší tah
+	Guidance is separate from artwork pixels	Pokyny jsou oddělené od obrazových bodů ilustrace
+	Show guidance	Zobrazit pokyny
+	New guidance layer	Nová vrstva pokynů
+	Guidance layer	Vrstva pokynů
+	Delete guidance layer	Smazat vrstvu pokynů
+	Draw guidance	Kreslit pokyny
+	Pressure controls width	Tlak ovládá šířku
+	Direction arrow	Směrová šipka
+	Annotation	Poznámka
+	Edit guidance stroke	Upravit tah pokynu
+	Apply brush settings to stroke	Použít nastavení štětce na tah
+	Move stroke one document pixel	Posunout tah o jeden obrazový bod dokumentu
+	Delete guidance stroke	Smazat tah pokynu
+	Highlight	Světlo
+	Shadow	Stín
+	Fold direction	Směr záhybu
+	Material boundary	Hranice materiálu
+	Edge preservation	Zachování hran
+	Texture direction	Směr textury
+	Depth cue	Hloubkový pokyn
+	Reflection	Odraz
+	Area to modify	Oblast k úpravě
+	Area to protect	Chráněná oblast
+	Locked	Zamčeno

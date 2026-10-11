@@ -573,6 +573,7 @@ fn doc_pixels_equal(a: &Document, b: &Document) -> bool {
         last_document_state: _,
         measurement: _,
         notes: _,
+        guidance: _, // Semantic guidance never composites into artwork pixels.
         text_styles: _,
         slices: _,
         variables: _,

@@ -3752,3 +3752,30 @@ cameraRaw	Whites	Witten
 	Result must match the selection bounds or full canvas	Het resultaat moet overeenkomen met de selectiegrenzen of het volledige canvas
 	Select a result	Een resultaat selecteren
 	Select or import a result layer	Een resultaatlaag selecteren of importeren
+
+# Editable semantic guidance
+	AI Guidance	AI-aanwijzingen
+	Guidance	Aanwijzingen
+	Select an unlocked guidance layer	Selecteer een ontgrendelde aanwijzingslaag
+	Guidance stroke limit reached; draw a shorter stroke	Limiet voor aanwijzingsstreek bereikt; teken een kortere streek
+	Guidance is separate from artwork pixels	Aanwijzingen staan los van de afbeeldingspixels
+	Show guidance	Aanwijzingen tonen
+	New guidance layer	Nieuwe aanwijzingslaag
+	Guidance layer	Aanwijzingslaag
+	Delete guidance layer	Aanwijzingslaag verwijderen
+	Draw guidance	Aanwijzingen tekenen
+	Pressure controls width	Druk bepaalt de breedte
+	Direction arrow	Richtingspijl
+	Annotation	Annotatie
+	Edit guidance stroke	Aanwijzingsstreek bewerken
+	Apply brush settings to stroke	Penseelinstellingen op streek toepassen
+	Move stroke one document pixel	Streek één documentpixel verplaatsen
+	Delete guidance stroke	Aanwijzingsstreek verwijderen
+	Fold direction	Richting van de plooi
+	Material boundary	Materiaalgrens
+	Edge preservation	Randbehoud
+	Texture direction	Textuurrichting
+	Depth cue	Diepteaanwijzing
+	Reflection	Reflectie
+	Area to modify	Te wijzigen gebied
+	Area to protect	Te beschermen gebied

@@ -3595,3 +3595,31 @@ cameraRaw	Roughness	Chropowatość
 	Result must match the selection bounds or full canvas	Wynik musi odpowiadać granicom zaznaczenia lub całemu płótnu
 	Select a result	Wybierz wynik
 	Select or import a result layer	Wybierz lub importuj warstwę wyniku
+
+# Editable semantic guidance
+	AI Guidance	Wskazówki AI
+	Guidance	Wskazówki
+	Select an unlocked guidance layer	Wybierz odblokowaną warstwę wskazówek
+	Guidance stroke limit reached; draw a shorter stroke	Osiągnięto limit kreski wskazówki; narysuj krótszą kreskę
+	Guidance is separate from artwork pixels	Wskazówki są oddzielone od pikseli ilustracji
+	Show guidance	Pokaż wskazówki
+	New guidance layer	Nowa warstwa wskazówek
+	Guidance layer	Warstwa wskazówek
+	Delete guidance layer	Usuń warstwę wskazówek
+	Draw guidance	Rysuj wskazówki
+	Pressure controls width	Nacisk steruje szerokością
+	Direction arrow	Strzałka kierunku
+	Annotation	Adnotacja
+	Edit guidance stroke	Edytuj kreskę wskazówki
+	Apply brush settings to stroke	Zastosuj ustawienia pędzla do kreski
+	Move stroke one document pixel	Przesuń kreskę o jeden piksel dokumentu
+	Delete guidance stroke	Usuń kreskę wskazówki
+	Fold direction	Kierunek fałdy
+	Material boundary	Granica materiału
+	Edge preservation	Zachowanie krawędzi
+	Texture direction	Kierunek tekstury
+	Depth cue	Wskazówka głębi
+	Reflection	Odbicie
+	Area to modify	Obszar do zmiany
+	Area to protect	Obszar chroniony
+	Locked	Zablokowana

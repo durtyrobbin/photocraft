@@ -2867,3 +2867,33 @@ fontWeight	Italic	Курсив
 	Result must match the selection bounds or full canvas	Результат должен соответствовать границам выделения или всему холсту
 	Select a result	Выбрать результат
 	Select or import a result layer	Выберите или импортируйте слой результата
+
+# Editable semantic guidance
+	AI Guidance	Указания для ИИ
+	Guidance	Указания
+	Select an unlocked guidance layer	Выберите незаблокированный слой указаний
+	Guidance stroke limit reached; draw a shorter stroke	Достигнут предел штриха указания; нарисуйте более короткий штрих
+	Guidance is separate from artwork pixels	Указания хранятся отдельно от пикселей рисунка
+	Show guidance	Показать указания
+	New guidance layer	Новый слой указаний
+	Guidance layer	Слой указаний
+	Delete guidance layer	Удалить слой указаний
+	Draw guidance	Рисовать указания
+	Pressure controls width	Нажим управляет шириной
+	Direction arrow	Стрелка направления
+	Annotation	Аннотация
+	Edit guidance stroke	Изменить штрих указания
+	Apply brush settings to stroke	Применить настройки кисти к штриху
+	Move stroke one document pixel	Сдвинуть штрих на один пиксель документа
+	Delete guidance stroke	Удалить штрих указания
+	Highlight	Блик
+	Shadow	Тень
+	Fold direction	Направление складки
+	Material boundary	Граница материала
+	Edge preservation	Сохранение краёв
+	Texture direction	Направление текстуры
+	Depth cue	Указание глубины
+	Reflection	Отражение
+	Area to modify	Область изменения
+	Area to protect	Защищённая область
+	Locked	Заблокирован

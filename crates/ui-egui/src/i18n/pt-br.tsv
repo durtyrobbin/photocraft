@@ -3006,3 +3006,33 @@ fontWeight	Italic	Itálico
 	Result must match the selection bounds or full canvas	O resultado deve corresponder aos limites da seleção ou à tela inteira
 	Select a result	Selecionar um resultado
 	Select or import a result layer	Selecionar ou importar uma camada de resultado
+
+# Editable semantic guidance
+	AI Guidance	Orientações de IA
+	Guidance	Orientações
+	Select an unlocked guidance layer	Selecione uma camada de orientação desbloqueada
+	Guidance stroke limit reached; draw a shorter stroke	Limite do traço de orientação atingido; desenhe um traço menor
+	Guidance is separate from artwork pixels	As orientações são separadas dos pixels da arte
+	Show guidance	Mostrar orientações
+	New guidance layer	Nova camada de orientação
+	Guidance layer	Camada de orientação
+	Delete guidance layer	Excluir camada de orientação
+	Draw guidance	Desenhar orientações
+	Pressure controls width	A pressão controla a largura
+	Direction arrow	Seta de direção
+	Annotation	Anotação
+	Edit guidance stroke	Editar traço de orientação
+	Apply brush settings to stroke	Aplicar configurações do pincel ao traço
+	Move stroke one document pixel	Mover o traço um pixel do documento
+	Delete guidance stroke	Excluir traço de orientação
+	Highlight	Realce
+	Shadow	Sombra
+	Fold direction	Direção da dobra
+	Material boundary	Limite do material
+	Edge preservation	Preservação de bordas
+	Texture direction	Direção da textura
+	Depth cue	Indicação de profundidade
+	Reflection	Reflexo
+	Area to modify	Área a modificar
+	Area to protect	Área a proteger
+	Locked	Bloqueado

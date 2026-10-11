@@ -2624,6 +2624,8 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
         crate::pixel_grid::paint(app, &painter, &xf, idx, output, visible_doc_rect(&xf));
     }
 
+    crate::guidance_ui::paint(app, &painter, &xf, idx);
+
     // View › Show › Layer Edges: drawn at this depth, but only once this frame's tool events are
     // in (`layer_edges_rect`), so a press that Auto-Selects a layer outlines that layer.
     let layer_edges = painter.add(egui::Shape::Noop);
@@ -2809,7 +2811,9 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
     // box is only drawn and driven on the primary canvas.
     let transform_owns_pointer = primary && app.ui.transform.is_some() && temporary.is_none() && !middle;
     let hand_pan = tool == Tool::Hand && !transform_owns_pointer;
-    if hand_pan && response.dragged() {
+    if app.canvas_input_blocked_until_release {
+        // An inspection/guidance mode cancelled this press. Its release cannot start paint.
+    } else if hand_pan && response.dragged() {
         let d = xf.unmap_vec(response.drag_delta()) / (view.zoom / ppp);
         view.center[0] -= d.x;
         view.center[1] -= d.y;
@@ -2817,6 +2821,8 @@ pub fn canvas_view(app: &mut PhotocraftApp, ui: &mut egui::Ui, idx: usize, rect:
         ctx.set_cursor_icon(crate::tool_cursor::hand(&ctx, true));
     } else if primary && comparing {
         crate::ai_results_ui::pointer(app, ui, rect, &response);
+    } else if primary && crate::guidance_ui::active(app, idx) {
+        crate::guidance_ui::pointer(app, ui, &xf, &response, idx);
     } else if primary {
         let mods = ui.input(|i| i.modifiers);
         // An ⌥-click the window manager took never arrives; say so (alt_grab.rs).
@@ -3999,8 +4005,13 @@ fn tool_move(app: &mut PhotocraftApp, x: f64, y: f64, pressure: f32, mods: egui:
 
 /// Tool state machine. Shared by mouse input and automation.
 pub fn tool_event(app: &mut PhotocraftApp, ev: ToolEvent, mods: egui::Modifiers) {
+    if app.canvas_input_blocked_until_release {
+        if matches!(ev, ToolEvent::Up { .. }) { app.canvas_input_blocked_until_release = false; }
+        return;
+    }
     // Document-coordinate automation must not bypass the comparison canvas.
     if app.session.active_index().is_some_and(|idx| crate::ai_results_ui::active(app, idx)) { return; }
+    if crate::guidance_ui::tool_event(app, ev) { return; }
     if crate::symmetry_ui::pointer(app, ev, crate::workspace_ui::sticky_mods(app, mods)) {
         return;
     }

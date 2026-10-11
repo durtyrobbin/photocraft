@@ -3682,3 +3682,31 @@ cameraRaw	Masking	Маскування
 	Result must match the selection bounds or full canvas	Результат має відповідати межам виділення або всьому полотну
 	Select a result	Вибрати результат
 	Select or import a result layer	Виберіть або імпортуйте шар результату
+
+# Editable semantic guidance
+	AI Guidance	Вказівки для ШІ
+	Guidance	Вказівки
+	Select an unlocked guidance layer	Виберіть незаблокований шар вказівок
+	Guidance stroke limit reached; draw a shorter stroke	Досягнуто межі штриха вказівки; намалюйте коротший штрих
+	Guidance is separate from artwork pixels	Вказівки зберігаються окремо від пікселів малюнка
+	Show guidance	Показати вказівки
+	New guidance layer	Новий шар вказівок
+	Guidance layer	Шар вказівок
+	Delete guidance layer	Видалити шар вказівок
+	Draw guidance	Малювати вказівки
+	Pressure controls width	Натиск керує шириною
+	Direction arrow	Стрілка напрямку
+	Annotation	Анотація
+	Edit guidance stroke	Редагувати штрих вказівки
+	Apply brush settings to stroke	Застосувати налаштування пензля до штриха
+	Move stroke one document pixel	Зсунути штрих на один піксель документа
+	Delete guidance stroke	Видалити штрих вказівки
+	Fold direction	Напрямок складки
+	Material boundary	Межа матеріалу
+	Edge preservation	Збереження країв
+	Texture direction	Напрямок текстури
+	Depth cue	Вказівка глибини
+	Reflection	Відображення
+	Area to modify	Область зміни
+	Area to protect	Захищена область
+	Locked	Заблоковано

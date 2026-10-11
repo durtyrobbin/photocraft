@@ -503,6 +503,7 @@ impl PcraftWriter {
     fn prepare(&mut self, doc: &Document, opts: &SaveOptions) -> Result<Prepared> {
         self.hash_cache.retain(|_, (w, _)| w.strong_count() > 0);
         convert::check_nesting(&doc.layers)?;
+        doc.guidance.validate().map_err(FormatError::corrupt)?;
         for (_, _, layer) in doc.walk() {
             if let Some(result) = &layer.ai_result { result.validate().map_err(FormatError::corrupt)?; }
         }

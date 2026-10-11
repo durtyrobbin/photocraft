@@ -163,6 +163,7 @@ pub mod splatter_ui;
 pub mod knife_ui;
 pub mod artist_palette;
 pub mod ai_results_ui;
+pub mod guidance_ui;
 pub mod brush_rack;
 mod studio_persist;
 mod titlebar;
@@ -414,6 +415,8 @@ pub struct PhotocraftApp {
     /// canvas state is shared (`canvas::GPU_OUTPUT`).
     canvases: HashMap<(DocId, u32), canvas::CanvasCache>,
     pub(crate) ai_result_caches: Vec<ai_results_ui::Cache>,
+    pub(crate) guidance_pending: Option<guidance_ui::Pending>,
+    pub(crate) canvas_input_blocked_until_release: bool,
     /// Navigator textures belong to open documents, not the lifetime of the egui context.
     navigator_textures: HashMap<DocId, canvas::NavigatorCache>,
     /// Display profile readings (#569).
@@ -631,6 +634,8 @@ impl PhotocraftApp {
             services,
             canvases: HashMap::new(),
             ai_result_caches: Vec::new(),
+            guidance_pending: None,
+            canvas_input_blocked_until_release: false,
             navigator_textures: HashMap::new(),
             monitors: Default::default(),
             checker: None,
@@ -1386,6 +1391,8 @@ impl eframe::App for PhotocraftApp {
             jobs_ui::tick(self, ctx);
             #[cfg(not(target_arch = "wasm32"))]
             filter_preview_worker::discard_closed(self);
+            if self.canvas_input_blocked_until_release && !ctx.input(|i| i.pointer.primary_down() || i.pointer.primary_released()) { self.canvas_input_blocked_until_release = false; }
+            guidance_ui::tick(self, ctx);
             ai_results_ui::shortcuts(self, ctx);
             shortcuts::handle(self, ctx);
         }
@@ -1503,6 +1510,7 @@ impl eframe::App for PhotocraftApp {
         brush_rack::window(self, &ctx);
         artist_palette::window(self, &ctx);
         ai_results_ui::window(self, &ctx);
+        guidance_ui::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);
         type_panels_ui::windows(self, &ctx);

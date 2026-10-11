@@ -1149,6 +1149,7 @@ fn build() -> Vec<CommandSpec> {
     v.extend(crate::knife_cmds::specs());
     v.extend(crate::palette_cmds::specs());
     v.extend(crate::ai_result_cmds::specs());
+    v.extend(crate::guidance_cmds::specs());
     v.extend(crate::brush_preset_cmds::specs());
     v.extend(crate::eraser_cmds::specs());
     v.extend(crate::preset_import_cmds::specs());

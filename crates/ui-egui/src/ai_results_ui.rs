@@ -83,7 +83,6 @@ pub fn selected(app: &PhotocraftApp, idx: usize) -> Option<LayerId> {
 }
 pub fn active(app: &PhotocraftApp, idx: usize) -> bool {
     app.ui.ai_results.enabled
-        && app.ui.ai_results.validate().is_ok()
         && selected(app, idx).is_some()
         && app.drag.is_none()
         && app.ui.transform.is_none()
@@ -200,6 +199,7 @@ pub fn shortcuts(app: &mut PhotocraftApp, ctx: &egui::Context) {
         }
     }
     if ctx.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+        app.canvas_input_blocked_until_release |= ctx.input(|i| i.pointer.primary_down() || i.pointer.primary_released());
         app.ui.ai_results.enabled = false;
     }
 }

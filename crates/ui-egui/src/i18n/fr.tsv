@@ -2998,3 +2998,33 @@ fontWeight	Italic	Italique
 	Result must match the selection bounds or full canvas	Le résultat doit correspondre aux limites de la sélection ou à toute la zone de travail
 	Select a result	Sélectionner un résultat
 	Select or import a result layer	Sélectionner ou importer un calque de résultat
+
+# Editable semantic guidance
+	AI Guidance	Guidage IA
+	Guidance	Guidage
+	Select an unlocked guidance layer	Sélectionnez un calque de guidage déverrouillé
+	Guidance stroke limit reached; draw a shorter stroke	Limite du trait de guidage atteinte ; dessinez un trait plus court
+	Guidance is separate from artwork pixels	Le guidage est séparé des pixels de l’illustration
+	Show guidance	Afficher le guidage
+	New guidance layer	Nouveau calque de guidage
+	Guidance layer	Calque de guidage
+	Delete guidance layer	Supprimer le calque de guidage
+	Draw guidance	Dessiner le guidage
+	Pressure controls width	La pression contrôle la largeur
+	Direction arrow	Flèche de direction
+	Annotation	Annotation
+	Edit guidance stroke	Modifier le trait de guidage
+	Apply brush settings to stroke	Appliquer les réglages du pinceau au trait
+	Move stroke one document pixel	Déplacer le trait d’un pixel du document
+	Delete guidance stroke	Supprimer le trait de guidage
+	Highlight	Éclairage
+	Shadow	Ombre
+	Fold direction	Direction du pli
+	Material boundary	Limite de matière
+	Edge preservation	Préservation des contours
+	Texture direction	Direction de texture
+	Depth cue	Indice de profondeur
+	Reflection	Reflet
+	Area to modify	Zone à modifier
+	Area to protect	Zone à protéger
+	Locked	Verrouillé

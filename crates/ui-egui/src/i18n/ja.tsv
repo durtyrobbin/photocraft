@@ -3595,3 +3595,31 @@ fontWeight	Italic	斜体
 	Result must match the selection bounds or full canvas	結果は選択範囲の境界またはキャンバス全体と一致する必要があります
 	Select a result	結果を選択
 	Select or import a result layer	結果レイヤーを選択または読み込む
+
+# Editable semantic guidance
+	AI Guidance	AIガイダンス
+	Guidance	ガイダンス
+	Select an unlocked guidance layer	ロック解除されたガイダンスレイヤーを選択してください
+	Guidance stroke limit reached; draw a shorter stroke	ガイダンスの線の上限に達しました。短い線を描いてください
+	Guidance is separate from artwork pixels	ガイダンスは作品のピクセルとは別に保存されます
+	Show guidance	ガイダンスを表示
+	New guidance layer	新規ガイダンスレイヤー
+	Guidance layer	ガイダンスレイヤー
+	Delete guidance layer	ガイダンスレイヤーを削除
+	Draw guidance	ガイダンスを描く
+	Pressure controls width	筆圧で幅を調整
+	Direction arrow	方向矢印
+	Annotation	注釈
+	Edit guidance stroke	ガイダンスの線を編集
+	Apply brush settings to stroke	ブラシ設定を線に適用
+	Move stroke one document pixel	線をドキュメントの1ピクセル分移動
+	Delete guidance stroke	ガイダンスの線を削除
+	Fold direction	折り目の方向
+	Material boundary	素材の境界
+	Edge preservation	エッジの保持
+	Texture direction	テクスチャの方向
+	Depth cue	奥行きの手掛かり
+	Reflection	反射
+	Area to modify	変更する領域
+	Area to protect	保護する領域
+	Locked	ロック

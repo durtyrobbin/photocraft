@@ -2650,3 +2650,33 @@ fontWeight	Italic	Corsivo
 	Result must match the selection bounds or full canvas	Il risultato deve corrispondere ai limiti della selezione o all’intera tela
 	Select a result	Seleziona un risultato
 	Select or import a result layer	Seleziona o importa un livello del risultato
+
+# Editable semantic guidance
+	AI Guidance	Guida IA
+	Guidance	Guida
+	Select an unlocked guidance layer	Seleziona un livello guida sbloccato
+	Guidance stroke limit reached; draw a shorter stroke	Limite del tratto guida raggiunto; disegna un tratto più breve
+	Guidance is separate from artwork pixels	La guida è separata dai pixel dell’illustrazione
+	Show guidance	Mostra guida
+	New guidance layer	Nuovo livello guida
+	Guidance layer	Livello guida
+	Delete guidance layer	Elimina livello guida
+	Draw guidance	Disegna guida
+	Pressure controls width	La pressione controlla la larghezza
+	Direction arrow	Freccia di direzione
+	Annotation	Annotazione
+	Edit guidance stroke	Modifica tratto guida
+	Apply brush settings to stroke	Applica impostazioni del pennello al tratto
+	Move stroke one document pixel	Sposta il tratto di un pixel del documento
+	Delete guidance stroke	Elimina tratto guida
+	Highlight	Luce
+	Shadow	Ombra
+	Fold direction	Direzione della piega
+	Material boundary	Confine del materiale
+	Edge preservation	Conservazione dei bordi
+	Texture direction	Direzione della trama
+	Depth cue	Indicazione di profondità
+	Reflection	Riflesso
+	Area to modify	Area da modificare
+	Area to protect	Area da proteggere
+	Locked	Bloccato

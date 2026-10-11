@@ -3682,3 +3682,30 @@ fontWeight	Thin	Πολύ λεπτά
 	Result must match the selection bounds or full canvas	Το αποτέλεσμα πρέπει να ταιριάζει στα όρια επιλογής ή σε ολόκληρο τον καμβά
 	Select a result	Επιλογή αποτελέσματος
 	Select or import a result layer	Επιλογή ή εισαγωγή επιπέδου αποτελέσματος
+
+# Editable semantic guidance
+	AI Guidance	Οδηγίες AI
+	Guidance	Οδηγίες
+	Select an unlocked guidance layer	Επιλέξτε ένα ξεκλείδωτο επίπεδο οδηγιών
+	Guidance stroke limit reached; draw a shorter stroke	Συμπληρώθηκε το όριο πινελιάς οδηγιών· σχεδιάστε μικρότερη πινελιά
+	Guidance is separate from artwork pixels	Οι οδηγίες είναι ξεχωριστές από τα εικονοστοιχεία του έργου
+	Show guidance	Εμφάνιση οδηγιών
+	New guidance layer	Νέο επίπεδο οδηγιών
+	Guidance layer	Επίπεδο οδηγιών
+	Delete guidance layer	Διαγραφή επιπέδου οδηγιών
+	Draw guidance	Σχεδίαση οδηγιών
+	Pressure controls width	Η πίεση ελέγχει το πλάτος
+	Direction arrow	Βέλος κατεύθυνσης
+	Annotation	Σχόλιο
+	Edit guidance stroke	Επεξεργασία πινελιάς οδηγιών
+	Apply brush settings to stroke	Εφαρμογή ρυθμίσεων πινέλου στην πινελιά
+	Move stroke one document pixel	Μετακίνηση πινελιάς κατά ένα εικονοστοιχείο εγγράφου
+	Delete guidance stroke	Διαγραφή πινελιάς οδηγιών
+	Fold direction	Κατεύθυνση πτυχής
+	Material boundary	Όριο υλικού
+	Edge preservation	Διατήρηση ακμών
+	Texture direction	Κατεύθυνση υφής
+	Depth cue	Ένδειξη βάθους
+	Reflection	Αντανάκλαση
+	Area to modify	Περιοχή τροποποίησης
+	Area to protect	Περιοχή προστασίας

@@ -2588,3 +2588,33 @@ fontWeight	Italic	斜体
 	Result must match the selection bounds or full canvas	结果必须与选区边界或整个画布匹配
 	Select a result	选择结果
 	Select or import a result layer	选择或导入结果图层
+
+# Editable semantic guidance
+	AI Guidance	AI 引导
+	Guidance	引导
+	Select an unlocked guidance layer	选择未锁定的引导图层
+	Guidance stroke limit reached; draw a shorter stroke	已达到引导笔画上限；请绘制较短的笔画
+	Guidance is separate from artwork pixels	引导与作品像素分开保存
+	Show guidance	显示引导
+	New guidance layer	新建引导图层
+	Guidance layer	引导图层
+	Delete guidance layer	删除引导图层
+	Draw guidance	绘制引导
+	Pressure controls width	压力控制宽度
+	Direction arrow	方向箭头
+	Annotation	注释
+	Edit guidance stroke	编辑引导笔画
+	Apply brush settings to stroke	将画笔设置应用到笔画
+	Move stroke one document pixel	将笔画移动一个文档像素
+	Delete guidance stroke	删除引导笔画
+	Highlight	高光
+	Shadow	阴影
+	Fold direction	褶皱方向
+	Material boundary	材质边界
+	Edge preservation	边缘保留
+	Texture direction	纹理方向
+	Depth cue	深度提示
+	Reflection	反射
+	Area to modify	要修改的区域
+	Area to protect	要保护的区域
+	Locked	已锁定

@@ -67,7 +67,11 @@ fn result_comparison_native_divider_keys_and_navigation_never_paint_or_recompose
     h.state_mut().ui.views[0].rotation = 23.0;
     h.run_steps(2);
     assert_eq!(textures(h.state_mut(), &ctx, 0, None).unwrap(), old, "pan/zoom/rotation must reuse comparison textures");
+    h.drag_at(start);
+    h.run_steps(1);
     h.key_press(egui::Key::Escape);
+    h.run_steps(1);
+    h.drop_at(start);
     h.run_steps(2);
     assert!(!h.state().ui.ai_results.enabled);
     assert!(Arc::ptr_eq(&h.state().session.active().unwrap().doc, &doc));
@@ -123,4 +127,18 @@ fn result_comparison_document_coordinate_tool_events_cannot_paint() {
     assert_eq!(n, app.session.active().unwrap().history.past_len());
     assert!(app.drag.is_none());
     assert!(app.live_stroke.is_none());
+}
+
+#[test]
+fn result_comparison_invalid_import_text_never_releases_canvas_to_paint() {
+    let mut app = app();
+    app.ui.ai_results.provider.clear();
+    app.ui.ai_results.prompt = "x".repeat(8001);
+    let before = app.session.active().unwrap().doc.clone();
+    assert!(active(&app, 0));
+    for event in [crate::canvas::ToolEvent::Down { x: 50.0, y: 50.0, pressure: 1.0 }, crate::canvas::ToolEvent::Up { x: 50.0, y: 50.0 }] {
+        crate::canvas::tool_event(&mut app, event, egui::Modifiers::NONE);
+    }
+    assert!(Arc::ptr_eq(&before, &app.session.active().unwrap().doc));
+    assert!(app.drag.is_none());
 }

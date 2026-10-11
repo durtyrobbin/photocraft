@@ -9,6 +9,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod ai_result;
+pub mod guidance;
 pub mod adjust;
 pub mod advanced;
 pub mod analysis;
@@ -821,6 +822,8 @@ pub struct Document {
     pub measurement: Measurement,
     /// Note tool annotations (PSD `Anno`).
     pub notes: Vec<Note>,
+    /// Editable semantic intent; excluded from the artwork compositor.
+    pub guidance: guidance::Guidance,
     /// Character and paragraph styles (Window › Character Styles / Paragraph Styles).
     pub text_styles: TextStyles,
     /// Web slices (Slice tool, layer-based slices; PSD resource 1050). Auto slices are derived.
@@ -862,6 +865,7 @@ impl Document {
             last_document_state: None,
             measurement: Measurement::default(),
             notes: Vec::new(),
+            guidance: guidance::Guidance::default(),
             text_styles: TextStyles::default(),
             slices: Slices::default(),
             variables: Variables::default(),
