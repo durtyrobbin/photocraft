@@ -3610,3 +3610,21 @@ cameraRaw	Masking	Маскування
 	Clean pickup after stroke	Очистити підхоплену фарбу після мазка
 	Load Brush	Завантажити пензель
 	Reload after stroke	Завантажити знову після мазка
+
+# Artist palette
+	Artist Palette	Палітра художника
+	Deposit	Нанести
+	Pick up paint	Набрати фарбу
+	Deposit canvas load	Нанести зразок із полотна
+	Palette mixing surface	Поверхня змішування палітри
+	RYB interpretation	Інтерпретація RYB
+	Approximate artist hue wheel	Наближене художнє коло кольорів
+	Complementary	Доповняльні
+	Analogous	Аналогові
+	Triadic	Тріадні
+	Split-complementary	Розділено-доповняльні
+	Save palette	Зберегти палітру
+	Load palette	Завантажити палітру
+	Use current image as skin	Використати поточне зображення як оформлення
+	Wood skin	Дерев’яне оформлення
+	Drag a foreground color here; Alt-click to pick up paint	Перетягніть сюди основний колір; Alt-клацання набирає фарбу

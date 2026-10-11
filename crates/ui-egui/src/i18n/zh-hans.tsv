@@ -2514,3 +2514,21 @@ fontWeight	Italic	斜体
 	Clean pickup after stroke	笔划后清除拾取的颜色
 	Load Brush	加载画笔
 	Reload after stroke	笔划后重新加载
+
+# Artist palette
+	Artist Palette	艺术家调色板
+	Deposit	放置颜料
+	Pick up paint	拾取颜料
+	Deposit canvas load	放置画布采样
+	Palette mixing surface	调色板混色表面
+	RYB interpretation	RYB 解释
+	Approximate artist hue wheel	近似艺术家色相环
+	Complementary	互补色
+	Analogous	相近色
+	Triadic	三角色
+	Split-complementary	分裂互补色
+	Save palette	保存调色板
+	Load palette	加载调色板
+	Use current image as skin	将当前图像用作外观
+	Wood skin	木纹外观
+	Drag a foreground color here; Alt-click to pick up paint	将前景色拖到这里；按住 Alt 单击以拾取颜料

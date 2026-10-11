@@ -3612,3 +3612,21 @@ fontWeight	Thin	Πολύ λεπτά
 	Clean pickup after stroke	Καθαρισμός συλλογής μετά την πινελιά
 	Load Brush	Φόρτωση πινέλου
 	Reload after stroke	Επαναφόρτωση μετά την πινελιά
+
+# Artist palette
+	Artist Palette	Παλέτα ζωγράφου
+	Deposit	Εναπόθεση
+	Pick up paint	Λήψη χρώματος
+	Deposit canvas load	Εναπόθεση δείγματος καμβά
+	Palette mixing surface	Επιφάνεια ανάμειξης παλέτας
+	RYB interpretation	Ερμηνεία RYB
+	Approximate artist hue wheel	Προσεγγιστικός καλλιτεχνικός χρωματικός κύκλος
+	Complementary	Συμπληρωματικά
+	Analogous	Αναλογικά
+	Triadic	Τριαδικά
+	Split-complementary	Διαιρεμένα συμπληρωματικά
+	Save palette	Αποθήκευση παλέτας
+	Load palette	Φόρτωση παλέτας
+	Use current image as skin	Χρήση τρέχουσας εικόνας ως εμφάνιση
+	Wood skin	Ξύλινη εμφάνιση
+	Drag a foreground color here; Alt-click to pick up paint	Σύρετε εδώ χρώμα προσκηνίου· Alt-κλικ για λήψη χρώματος

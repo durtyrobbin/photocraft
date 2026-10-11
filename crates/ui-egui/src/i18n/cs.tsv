@@ -2507,3 +2507,21 @@ fontWeight	Italic	Kurzíva
 	Clean pickup after stroke	Vyčistit nabranou barvu po tahu
 	Load Brush	Naplnit štětec
 	Reload after stroke	Znovu naplnit po tahu
+
+# Artist palette
+	Artist Palette	Malířská paleta
+	Deposit	Nanést
+	Pick up paint	Nabrat barvu
+	Deposit canvas load	Nanést vzorek z plátna
+	Palette mixing surface	Plocha pro míchání barev
+	RYB interpretation	Interpretace RYB
+	Approximate artist hue wheel	Přibližný malířský kruh odstínů
+	Complementary	Doplňkové
+	Analogous	Analogické
+	Triadic	Triadické
+	Split-complementary	Dělené doplňkové
+	Save palette	Uložit paletu
+	Load palette	Načíst paletu
+	Use current image as skin	Použít aktuální obrázek jako vzhled
+	Wood skin	Dřevěný vzhled
+	Drag a foreground color here; Alt-click to pick up paint	Přetáhněte sem barvu popředí; Alt-kliknutím naberte barvu

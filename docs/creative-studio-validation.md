@@ -227,10 +227,40 @@ WASM compile success is not browser interaction qualification.
 
 ## Remaining phases and publication
 
+### Artist palette and persistent studio settings (PARTIAL: qualification pending)
+
+The floating **Artist Palette** is shown with Mixer Brush and can be moved, resized
+or hidden. Its 256² RGBA16 paint surface uses the existing stamp/mixer kernels,
+with an oval contact mask and thumb hole. Deposit, Mix, spatial Pickup, Clear,
+16-step local Undo, eight named paint presets and canvas-load deposition are engine
+commands (`palette.*`). These edits do not change artwork or document Undo.
+Drag the toolbar foreground chip onto the palette, or Alt-click the canvas and
+choose **Deposit canvas load** to retain the sampled spatial variation.
+
+Paint is stored in SDR sRGB. Document composite profiles are converted on deposit
+and pickup through the existing CMS; HDR/out-of-gamut components are clipped to the
+palette's 0..1 range. Palette display goes through the monitor transform. The wheel
+extracts hue markers from actual paint and reports approximate complementary,
+analogous, triadic and split-complementary relationships. RYB is an explicitly
+approximate piecewise hue interpretation; it never changes chosen paint colors.
+
+**Use current image as skin** captures the active image as bounded decorative artwork;
+open a local photo/texture first. **Wood skin** restores the original procedural wood.
+Artwork is separate from the paint surface and has no effect on mixing or pickup.
+Native window placement, tool controls, palette paint/skin/presets, knife settings,
+splatter settings and tip-editor drafts now use the existing preferences lifecycle.
+Saving is deferred while the pointer is down and serializes only changed state.
+This closes the earlier distinction between UI-state serialization and restart persistence.
+
+New checks cover native controls, exact preset/restore paint, source preservation,
+floating selections, linear-profile conversion, spatial load, hostile input and restart
+round trips. Clippy passes; release runtime and visual checks are pending. The palette
+probe reports CPU costs separately from document size and physical display latency.
+
 The local reservoir currently retains sampled spatial color but uses a global pickup
 and depletion amount. Local pigment exchange and 16/32/64/sparse comparisons remain
 NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette
-knife is PARTIAL pending final qualification. Functional palette/rack, AI result comparison,
+knife and artist palette are PARTIAL pending final qualification. Brush rack, AI result comparison,
 guidance and provider integration remain NOT IMPLEMENTED in this phase. Advanced
 bristle simulation is BLOCKED by the unmet fast-mode performance qualification gate.
 

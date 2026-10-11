@@ -19,6 +19,7 @@ pub mod background_cmds;
 pub mod brush_cmds;
 pub mod splatter_cmds;
 pub mod knife_cmds;
+pub mod palette_cmds;
 pub mod brush_key_cmds;
 pub mod brush_preset_cmds;
 pub mod build_info;
@@ -265,6 +266,7 @@ pub struct ToolState {
     pub presets_rev: u64,
     /// Mixer Brush paint carried between strokes.
     pub mixer: photocraft_paint::mixer::MixerState,
+    pub artist_palette: palette_cmds::Palette,
     /// The coalescing key of the running `tools.setBrush` gesture and the brush before it, so the
     /// gesture journals as one call ([`brush_cmds::coalesce_journal`]).
     pub brush_gesture: Option<(String, photocraft_paint::BrushSettings)>,
@@ -314,6 +316,7 @@ impl Default for ToolState {
             presets: photocraft_paint::presets::builtin(),
             presets_rev: 0,
             mixer: Default::default(),
+            artist_palette: Default::default(),
             brush_gesture: None,
             current_preset: None,
             mask_targeted: false,

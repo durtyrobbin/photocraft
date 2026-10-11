@@ -397,7 +397,8 @@ fn color_chips(app: &mut PhotocraftApp, ui: &mut egui::Ui, two_columns: bool) {
     }
     // Photoshop: clicking a chip opens the Color Picker for that colour.
     let bg_resp = ui.interact(bg, ui.id().with("bgchip"), Sense::click());
-    let fg_resp = ui.interact(fg, ui.id().with("fgchip"), Sense::click());
+    let fg_resp = ui.interact(fg, ui.id().with("fgchip"), Sense::click_and_drag());
+    fg_resp.dnd_set_drag_payload(crate::artist_palette::ColorDrag(app.session.tools.foreground));
     if fg_resp.on_hover_text(tl!("Set foreground color")).clicked() {
         crate::color_picker_ui::open(app, "foreground");
     } else if bg_resp.on_hover_text(tl!("Set background color")).clicked() {
@@ -980,6 +981,7 @@ pub fn options_bar(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
                         }
                         widgets::vline(ui, 22.0);
                         widgets::checkbox(ui, &mut b.mixer.sample_all_layers, tl!("Sample All Layers"));
+                        if ui.button(tl!("Artist Palette")).clicked() { app.ui.artist_palette.open = true; }
                         ui.menu_button(tl!("Paint Load"), |ui| {
                             ui.label(tl!("Alt-click the canvas to load the brush tip"));
                             if ui.button(tl!("Load Brush")).clicked() { let _ = app.run("brush.mixer.load", json!({})); }

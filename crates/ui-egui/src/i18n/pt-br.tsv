@@ -2932,3 +2932,21 @@ fontWeight	Italic	Itálico
 	Clean pickup after stroke	Limpar tinta recolhida após o traço
 	Load Brush	Carregar pincel
 	Reload after stroke	Recarregar após o traço
+
+# Artist palette
+	Artist Palette	Paleta do artista
+	Deposit	Depositar
+	Pick up paint	Recolher tinta
+	Deposit canvas load	Depositar amostra da tela
+	Palette mixing surface	Superfície de mistura da paleta
+	RYB interpretation	Interpretação RYB
+	Approximate artist hue wheel	Círculo artístico aproximado de matizes
+	Complementary	Complementares
+	Analogous	Análogos
+	Triadic	Triádicos
+	Split-complementary	Complementares divididos
+	Save palette	Salvar paleta
+	Load palette	Carregar paleta
+	Use current image as skin	Usar imagem atual como aparência
+	Wood skin	Aparência de madeira
+	Drag a foreground color here; Alt-click to pick up paint	Arraste a cor frontal para cá; Alt-clique para recolher tinta

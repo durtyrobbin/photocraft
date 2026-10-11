@@ -2911,3 +2911,21 @@ fontWeight	Italic	Miring
 	Clean pickup after stroke	Bersihkan cat yang diambil setelah goresan
 	Load Brush	Muat kuas
 	Reload after stroke	Muat ulang setelah goresan
+
+# Artist palette
+	Artist Palette	Palet seniman
+	Deposit	Oleskan
+	Pick up paint	Ambil cat
+	Deposit canvas load	Oleskan sampel kanvas
+	Palette mixing surface	Permukaan pencampuran palet
+	RYB interpretation	Interpretasi RYB
+	Approximate artist hue wheel	Roda rona seniman perkiraan
+	Complementary	Komplementer
+	Analogous	Analog
+	Triadic	Triadik
+	Split-complementary	Komplementer terpisah
+	Save palette	Simpan palet
+	Load palette	Muat palet
+	Use current image as skin	Gunakan gambar saat ini sebagai tampilan
+	Wood skin	Tampilan kayu
+	Drag a foreground color here; Alt-click to pick up paint	Seret warna depan ke sini; Alt-klik untuk mengambil cat

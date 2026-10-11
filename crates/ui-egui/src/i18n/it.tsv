@@ -2576,3 +2576,21 @@ fontWeight	Italic	Corsivo
 	Clean pickup after stroke	Pulisci colore raccolto dopo il tratto
 	Load Brush	Carica pennello
 	Reload after stroke	Ricarica dopo il tratto
+
+# Artist palette
+	Artist Palette	Tavolozza dell’artista
+	Deposit	Deposita
+	Pick up paint	Preleva pittura
+	Deposit canvas load	Deposita campione della tela
+	Palette mixing surface	Superficie di miscelazione della tavolozza
+	RYB interpretation	Interpretazione RYB
+	Approximate artist hue wheel	Ruota artistica dei toni approssimata
+	Complementary	Complementari
+	Analogous	Analoghi
+	Triadic	Triadici
+	Split-complementary	Complementari divisi
+	Save palette	Salva tavolozza
+	Load palette	Carica tavolozza
+	Use current image as skin	Usa immagine corrente come rivestimento
+	Wood skin	Rivestimento in legno
+	Drag a foreground color here; Alt-click to pick up paint	Trascina qui il colore di primo piano; Alt-clic per prelevare pittura

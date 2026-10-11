@@ -2924,3 +2924,21 @@ fontWeight	Italic	Italique
 	Clean pickup after stroke	Nettoyer le prélèvement après le trait
 	Load Brush	Charger le pinceau
 	Reload after stroke	Recharger après le trait
+
+# Artist palette
+	Artist Palette	Palette d’artiste
+	Deposit	Déposer
+	Pick up paint	Prélever la peinture
+	Deposit canvas load	Déposer le prélèvement de la toile
+	Palette mixing surface	Surface de mélange de la palette
+	RYB interpretation	Interprétation RYB
+	Approximate artist hue wheel	Cercle artistique des teintes approximatif
+	Complementary	Complémentaires
+	Analogous	Analogues
+	Triadic	Triadiques
+	Split-complementary	Complémentaires divisées
+	Save palette	Enregistrer la palette
+	Load palette	Charger la palette
+	Use current image as skin	Utiliser l’image actuelle comme habillage
+	Wood skin	Habillage bois
+	Drag a foreground color here; Alt-click to pick up paint	Glissez ici la couleur de premier plan ; Alt-clic pour prélever la peinture

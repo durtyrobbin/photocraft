@@ -3083,3 +3083,21 @@ fontWeight	Italic	기울임
 	Clean pickup after stroke	획 후 묻은 색 씻기
 	Load Brush	브러시에 물감 담기
 	Reload after stroke	획 후 다시 채우기
+
+# Artist palette
+	Artist Palette	화가 팔레트
+	Deposit	물감 놓기
+	Pick up paint	물감 집기
+	Deposit canvas load	캔버스 샘플 놓기
+	Palette mixing surface	팔레트 혼합 표면
+	RYB interpretation	RYB 해석
+	Approximate artist hue wheel	근사 화가 색상환
+	Complementary	보색
+	Analogous	유사색
+	Triadic	삼각 배색
+	Split-complementary	분할 보색
+	Save palette	팔레트 저장
+	Load palette	팔레트 불러오기
+	Use current image as skin	현재 이미지를 외형으로 사용
+	Wood skin	나무 외형
+	Drag a foreground color here; Alt-click to pick up paint	전경색을 여기로 드래그. Alt 클릭하여 물감 집기

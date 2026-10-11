@@ -3682,3 +3682,21 @@ cameraRaw	Whites	Witten
 	Clean pickup after stroke	Opgenomen verf na de streek reinigen
 	Load Brush	Penseel laden
 	Reload after stroke	Na de streek opnieuw laden
+
+# Artist palette
+	Artist Palette	Kunstenaarspalet
+	Deposit	Aanbrengen
+	Pick up paint	Verf opnemen
+	Deposit canvas load	Canvasmonster aanbrengen
+	Palette mixing surface	Mengvlak van het palet
+	RYB interpretation	RYB-interpretatie
+	Approximate artist hue wheel	Benaderde artistieke kleurencirkel
+	Complementary	Complementair
+	Analogous	Analoog
+	Triadic	Triadisch
+	Split-complementary	Gesplitst complementair
+	Save palette	Palet opslaan
+	Load palette	Palet laden
+	Use current image as skin	Huidige afbeelding als uiterlijk gebruiken
+	Wood skin	Houten uiterlijk
+	Drag a foreground color here; Alt-click to pick up paint	Sleep de voorgrondkleur hierheen; Alt-klik om verf op te nemen

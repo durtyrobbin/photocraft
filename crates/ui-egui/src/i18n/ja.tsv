@@ -3523,3 +3523,21 @@ fontWeight	Italic	斜体
 	Clean pickup after stroke	ストローク後に拾った色を洗浄
 	Load Brush	ブラシに絵の具を補充
 	Reload after stroke	ストローク後に再補充
+
+# Artist palette
+	Artist Palette	アーティストパレット
+	Deposit	絵の具を置く
+	Pick up paint	絵の具を拾う
+	Deposit canvas load	キャンバスの採取色を置く
+	Palette mixing surface	パレットの混色面
+	RYB interpretation	RYB解釈
+	Approximate artist hue wheel	近似的な画家用色相環
+	Complementary	補色
+	Analogous	類似色
+	Triadic	三色配色
+	Split-complementary	分裂補色
+	Save palette	パレットを保存
+	Load palette	パレットを読み込む
+	Use current image as skin	現在の画像を外観に使用
+	Wood skin	木目の外観
+	Drag a foreground color here; Alt-click to pick up paint	描画色をここにドラッグ。Altクリックで絵の具を拾う

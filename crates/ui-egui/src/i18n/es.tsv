@@ -2586,3 +2586,21 @@ fontWeight	Italic	Cursiva
 	Clean pickup after stroke	Limpiar color recogido tras el trazo
 	Load Brush	Cargar pincel
 	Reload after stroke	Recargar tras el trazo
+
+# Artist palette
+	Artist Palette	Paleta de artista
+	Deposit	Depositar
+	Pick up paint	Recoger pintura
+	Deposit canvas load	Depositar muestra del lienzo
+	Palette mixing surface	Superficie de mezcla de la paleta
+	RYB interpretation	Interpretación RYB
+	Approximate artist hue wheel	Círculo artístico de tonos aproximado
+	Complementary	Complementarios
+	Analogous	Análogos
+	Triadic	Triádicos
+	Split-complementary	Complementarios divididos
+	Save palette	Guardar paleta
+	Load palette	Cargar paleta
+	Use current image as skin	Usar imagen actual como superficie
+	Wood skin	Superficie de madera
+	Drag a foreground color here; Alt-click to pick up paint	Arrastra aquí el color frontal; Alt-clic para recoger pintura

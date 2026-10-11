@@ -2793,3 +2793,21 @@ fontWeight	Italic	Курсив
 	Clean pickup after stroke	Очистить подхваченную краску после мазка
 	Load Brush	Загрузить кисть
 	Reload after stroke	Загрузить заново после мазка
+
+# Artist palette
+	Artist Palette	Палитра художника
+	Deposit	Нанести
+	Pick up paint	Набрать краску
+	Deposit canvas load	Нанести образец с холста
+	Palette mixing surface	Поверхность смешивания палитры
+	RYB interpretation	Интерпретация RYB
+	Approximate artist hue wheel	Приближённый художественный цветовой круг
+	Complementary	Дополнительные
+	Analogous	Аналоговые
+	Triadic	Триадные
+	Split-complementary	Раздельно-дополнительные
+	Save palette	Сохранить палитру
+	Load palette	Загрузить палитру
+	Use current image as skin	Использовать текущее изображение как оформление
+	Wood skin	Деревянное оформление
+	Drag a foreground color here; Alt-click to pick up paint	Перетащите сюда основной цвет; Alt-щелчок набирает краску

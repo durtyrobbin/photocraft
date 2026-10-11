@@ -3523,3 +3523,21 @@ cameraRaw	Roughness	Chropowatość
 	Clean pickup after stroke	Wyczyść zebraną farbę po pociągnięciu
 	Load Brush	Nabierz farbę
 	Reload after stroke	Nabierz ponownie po pociągnięciu
+
+# Artist palette
+	Artist Palette	Paleta artysty
+	Deposit	Nałóż
+	Pick up paint	Nabierz farbę
+	Deposit canvas load	Nałóż próbkę z płótna
+	Palette mixing surface	Powierzchnia mieszania palety
+	RYB interpretation	Interpretacja RYB
+	Approximate artist hue wheel	Przybliżone malarskie koło barw
+	Complementary	Dopełniające
+	Analogous	Analogiczne
+	Triadic	Triadyczne
+	Split-complementary	Rozdzielone dopełniające
+	Save palette	Zapisz paletę
+	Load palette	Wczytaj paletę
+	Use current image as skin	Użyj bieżącego obrazu jako wyglądu
+	Wood skin	Wygląd drewna
+	Drag a foreground color here; Alt-click to pick up paint	Przeciągnij tu kolor pierwszego planu; Alt-kliknięcie nabiera farbę

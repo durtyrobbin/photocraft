@@ -161,6 +161,8 @@ mod timeline_ui;
 pub mod tip_designer;
 pub mod splatter_ui;
 pub mod knife_ui;
+pub mod artist_palette;
+mod studio_persist;
 mod titlebar;
 pub mod tone;
 mod tool_cursor;
@@ -1493,6 +1495,7 @@ impl eframe::App for PhotocraftApp {
         tip_designer::window(self, &ctx);
         splatter_ui::window(self, &ctx);
         knife_ui::window(self, &ctx);
+        artist_palette::window(self, &ctx);
         preset_panels::windows(self, &ctx);
         gradient_ui::editor_window(self, &ctx);
         type_panels_ui::windows(self, &ctx);
@@ -1520,6 +1523,7 @@ impl eframe::App for PhotocraftApp {
         // remembered once the pointer is up. Here, after every panel, rather than in the
         // picker's own code: the control channel can set it while the picker is closed.
         brush_picker::persist(self, &ctx);
+        studio_persist::persist(self, &ctx);
         self.automation_input = false;
         native_menu::sync(self, &ctx);
         if screen_picker::busy(&ctx) {

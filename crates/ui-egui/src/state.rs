@@ -1037,6 +1037,8 @@ pub struct UiState {
     pub splatter: crate::splatter_ui::State,
     #[serde(default)]
     pub knife: crate::knife_ui::State,
+    #[serde(default)]
+    pub artist_palette: crate::artist_palette::State,
     /// Marquee options-bar mode: 0 new, 1 add, 2 subtract, 3 intersect (modifier keys override).
     #[serde(default)]
     pub selection_mode: u8,
@@ -1145,6 +1147,7 @@ impl Default for UiState {
             tip_designer: Default::default(),
             splatter: Default::default(),
             knife: Default::default(),
+            artist_palette: Default::default(),
             selection_mode: 0,
             tool_options: ToolOptions::default(),
             polygon: Vec::new(),

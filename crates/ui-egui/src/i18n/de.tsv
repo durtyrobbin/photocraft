@@ -2545,3 +2545,21 @@ fontWeight	Italic	Kursiv
 	Clean pickup after stroke	Aufgenommene Farbe nach dem Strich reinigen
 	Load Brush	Pinsel laden
 	Reload after stroke	Nach dem Strich neu laden
+
+# Artist palette
+	Artist Palette	Künstlerpalette
+	Deposit	Auftragen
+	Pick up paint	Farbe aufnehmen
+	Deposit canvas load	Leinwandprobe auftragen
+	Palette mixing surface	Mischfläche der Palette
+	RYB interpretation	RYB-Interpretation
+	Approximate artist hue wheel	Angenäherter künstlerischer Farbkreis
+	Complementary	Komplementär
+	Analogous	Analog
+	Triadic	Triadisch
+	Split-complementary	Geteilt komplementär
+	Save palette	Palette speichern
+	Load palette	Palette laden
+	Use current image as skin	Aktuelles Bild als Oberfläche verwenden
+	Wood skin	Holzoberfläche
+	Drag a foreground color here; Alt-click to pick up paint	Vordergrundfarbe hierher ziehen; Alt-Klick nimmt Farbe auf
