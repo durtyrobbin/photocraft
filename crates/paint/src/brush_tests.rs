@@ -1151,3 +1151,59 @@ fn half_coverage_radius_is_the_tips_50_percent_contour() {
     assert_eq!(half_coverage_radius(10.5, 1.0), 10.5);
     assert!(half_coverage_radius(10.5, f32::NAN).is_finite());
 }
+
+#[test]
+fn cropped_contact_is_pixel_and_reservoir_exact_for_the_uniform_mixer() {
+    use crate::mixer::{MixerSettings, MixerState, apply_mixer_dab_region};
+    use crate::retouch::Region;
+    use crate::{BrushContext, BrushSettings, GrayTile, Stroke, StrokePoint, TipShape};
+    use photocraft_color::{ColorMode, PixelFormat, SampleType};
+    use photocraft_geom::Rect;
+    use photocraft_raster::Surface;
+    for mode in [ColorMode::Rgb, ColorMode::Grayscale, ColorMode::Cmyk, ColorMode::Lab] {
+        for depth in [SampleType::U8, SampleType::U16, SampleType::F32] {
+            for angle in [0.0, 31.0, 90.0] {
+                for projection in [1.0, 0.4] {
+                    for opacity in [0.0, 0.7] {
+                        let b = BrushSettings {
+                            size: 64.0,
+                            roundness: 0.08,
+                            angle,
+                            pressure_size: false,
+                            tip: TipShape::Sampled(GrayTile::from_fn(32, 32, |x, y| if (x + y) % 5 == 0 { 0.0 } else { 1.0 })),
+                            ..Default::default()
+                        };
+                        let ctx = BrushContext::new(&b);
+                        let mut dab = crate::dabs(&Stroke { brush: b, points: vec![StrokePoint::new(64.0, 64.0, 1.0)] })[0];
+                        dab.proj_scale = projection;
+                        dab.proj_angle = 0.57;
+                        dab.alpha *= opacity;
+                        let fp = ctx.footprint(&dab, 0);
+                        let contact = fp.contact_rect();
+                        assert!(contact.is_empty() || contact.intersect(&fp.rect) == contact);
+                        let fmt = PixelFormat::new(mode, depth, true);
+                        let mut source = Surface::new(fmt);
+                        source.fill_rect(Rect::new(0, 0, 64, 128), &photocraft_raster::from_rgba(&fmt, [0.1, 0.8, 0.2, 0.6]));
+                        source.fill_rect(Rect::new(64, 0, 128, 128), &photocraft_raster::from_rgba(&fmt, [0.2, 0.1, 0.8, 0.9]));
+                        let mut original = Region::read(&source, fp.rect);
+                        let mut cropped = Region::read(&source, contact);
+                        let sample = Region::read(&source, fp.rect);
+                        let sample_crop = sample.crop(contact);
+                        let m = MixerSettings { wet: 0.8, mix: 0.9, load: 0.4, flow: 0.8, ..Default::default() };
+                        let mut old = MixerState::default();
+                        old.load([0.9, 0.2, 0.05, 1.0]);
+                        let mut new = old.clone();
+                        apply_mixer_dab_region(&mut original, &fp, fmt, Some(&sample), &m, &mut old, false);
+                        apply_mixer_dab_region(&mut cropped, &fp, fmt, Some(&sample_crop), &m, &mut new, false);
+                        let mut out = source.clone();
+                        cropped.write(&mut out);
+                        let mut expected = source.clone();
+                        original.write(&mut expected);
+                        assert_eq!(out.read_region(fp.rect), expected.read_region(fp.rect));
+                        assert_eq!(old, new);
+                    }
+                }
+            }
+        }
+    }
+}

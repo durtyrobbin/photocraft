@@ -89,6 +89,28 @@ pub struct Footprint {
 }
 
 impl Footprint {
+    /// Smallest rectangle containing positive contact. A dense footprint can enclose a
+    /// thin rotated blade; composing its empty margins costs far more than this scan.
+    pub fn contact_rect(&self) -> Rect {
+        let width = self.rect.width() as usize;
+        if width == 0 || self.rect.is_empty() {
+            return Rect::EMPTY;
+        }
+        let mut bounds = Rect::EMPTY;
+        for (y, row) in self.cov.chunks(width).take(self.rect.height() as usize).enumerate() {
+            if let Some(first) = row.iter().position(|c| *c > 0.0) {
+                let last = row.iter().rposition(|c| *c > 0.0).unwrap_or(first);
+                // Indices belong to the rectangle by construction. i64 arithmetic avoids
+                // overflow even for a direct caller with a rectangle crossing i32::MIN.
+                let x0 = (i64::from(self.rect.x0) + first as i64) as i32;
+                let x1 = (i64::from(self.rect.x0) + last as i64 + 1).min(i64::from(self.rect.x1)) as i32;
+                let y0 = (i64::from(self.rect.y0) + y as i64) as i32;
+                bounds = bounds.union(&Rect::new(x0, y0, x1, y0.saturating_add(1)));
+            }
+        }
+        bounds
+    }
+
     #[inline]
     pub fn at(&self, x: i32, y: i32) -> f32 {
         self.cov[(y - self.rect.y0) as usize * self.rect.width() as usize + (x - self.rect.x0) as usize]

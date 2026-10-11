@@ -406,3 +406,39 @@ opening, source preservation and hostile artwork. The compact-menu failure was
 in the test's assumption that an action menu stays open. Source improvements and
 original failed logs remain independently recorded. The full subsequent suite
 will include this corrected regression; no ignored tests were enabled or hidden.
+
+## Contact-area optimization qualification
+
+Paired release CPU engine runs on a 6000 × 4000 dense three-layer fixture; 97 synthetic pressure samples per stroke. Timings are mean / p95 / p99 update milliseconds. These are not display frame times or physical pointer latency.
+
+| Width / travel / blade | Before | After | Mean speedup |
+|---|---|---|---|
+| 64 / slow / fixed | 4.882 / 7.027 / 10.842 | 0.820 / 1.352 / 2.860 | 5.95× |
+| 64 / slow / directional | 5.043 / 7.296 / 10.888 | 1.501 / 2.564 / 2.984 | 3.36× |
+| 64 / rapid / fixed | 20.311 / 22.216 / 23.567 | 3.081 / 4.017 / 5.364 | 6.59× |
+| 64 / rapid / directional | 20.479 / 22.635 / 24.945 | 5.205 / 6.914 / 7.707 | 3.93× |
+| 256 / slow / fixed | 21.344 / 39.555 / 41.817 | 2.812 / 4.793 / 6.394 | 7.59× |
+| 256 / slow / directional | 21.617 / 39.893 / 43.299 | 5.474 / 9.086 / 10.910 | 3.95× |
+| 256 / rapid / fixed | 85.897 / 99.870 / 102.476 | 11.128 / 14.598 / 15.819 | 7.72× |
+| 256 / rapid / directional | 85.986 / 101.312 / 102.679 | 19.389 / 27.699 / 27.874 | 4.43× |
+| 1024 / slow / fixed | 75.808 / 193.227 / 214.491 | 12.391 / 36.695 / 37.269 | 6.12× |
+| 1024 / slow / directional | 75.939 / 193.951 / 212.760 | 22.268 / 69.184 / 82.307 | 3.41× |
+| 1024 / rapid / fixed | 301.543 / 385.835 / 402.359 | 49.725 / 73.947 / 76.722 | 6.06× |
+| 1024 / rapid / directional | 301.652 / 387.161 / 400.553 | 85.510 / 137.234 / 139.581 | 3.53× |
+
+All 24 runs preserve exact live/commit output, underlying source pixels, and Undo/Redo. Compiler/test contention was not observed by the 100 ms process sampler. Each binary hash and complete process measurements are retained in `contact-benchmarks/process.json`.
+
+Before process peak: 367.71 MiB; host CPU 39.03% across eight logical processors. This includes fixture construction and verification; sampling can miss short peaks.
+After process peak: 221.85 MiB; host CPU 19.65% across eight logical processors. This includes fixture construction and verification; sampling can miss short peaks.
+
+The improvement removes empty footprint work without changing blade spacing, contact, or output. Sampled/narrow/projected uniform-reservoir tips use positive-contact bounds. Ordinary round tips keep the original path. Local pigment grids keep full-footprint depletion semantics.
+
+Functional correctness is VERIFIED by the pixel/transaction tests and native screenshots. Performance remains PARTIAL: large rapid blades still exceed a 16.67 ms update budget, even before display cost. Advanced bristle simulation remains BLOCKED by the performance gate.
+
+Native offscreen CPU-canvas screenshots show 46,707 changed canvas pixels before release and zero live/committed pixel differences in the inspected crop. This is not physical display or tablet qualification.
+
+Final source qualification: 1,223 engine, 91 paint and 1,847 UI tests PASS; 22 pre-existing tests remain ignored. Adversarial `panic_hunt`, Clippy with warnings denied, dependency layers and WASM checks PASS. The workspace quick performance command completed successfully, but its cross-machine baseline comparison is skipped (saved Apple M4 Pro baseline versus this Windows/i7/RTX host). Quick mode does not enforce full-size budgets. Several layout and bevel interactions remain over their displayed budgets; retain the raw reports rather than describing this as an overall performance PASS.
+
+The workspace quick examples used the NVIDIA GeForce RTX 2070 SUPER for supported compositor scenarios. This adds GPU regression-execution evidence for those existing examples. It does not qualify new Mixer/Knife physical presentation latency, peak GPU utilization or real tablet input. The separate knife screenshots continue to use a CPU canvas on WARP.
+
+See the task deliverable `contact-reproduction.md` for exact commands; all raw logs, paired binaries hashes and native scripts are retained. No commit identity was supplied, so patch trees are not represented as commit IDs.

@@ -36,6 +36,8 @@ struct Core {
     tiles: BTreeSet<(i32, i32)>,
     state: MixerState,
     settings: MixerSettings,
+    #[cfg(test)]
+    crop_contact: bool,
     layer: Option<LayerId>,
     params: Value,
     selection: Option<Surface>,
@@ -55,13 +57,30 @@ impl Core {
         for dab in dabs {
             let index = self.count;
             self.count += 1;
-            let r = self.ctx.dab_rect(dab, false);
-            if r.is_empty() {
+            let full = self.ctx.dab_rect(dab, false);
+            if full.is_empty() {
                 continue;
             }
-            let full = self.ctx.dab_rect(dab, false);
             if u64::from(full.width()).saturating_mul(u64::from(full.height())) > 4_194_304 {
                 return Err(bad(CMD, "Mixer Brush footprint exceeds 4194304 pixels"));
+            }
+            // Dense round tips already have a tight square: retain their original ordering
+            // and skip the contact scan. Thin/sampled tips have much larger empty margins.
+            let crop_contact = self.settings.reservoir_grid == 0
+                && (self.ctx.brush.tip.bitmap().is_some() || dab.roundness < 0.75 || dab.proj_scale < 0.75);
+            #[cfg(test)]
+            let crop_contact = crop_contact && self.crop_contact;
+            // Local-cell depletion measures zero-contact pixels inside the full footprint;
+            // keep that separately qualified model unchanged.
+            let footprint = crop_contact.then(|| self.ctx.footprint(dab, index));
+            let r = footprint.as_ref().map_or(full, |fp| fp.contact_rect());
+            if r.is_empty() {
+                // A zero-contact dab can still drain the uniform reservoir.
+                if let Some(fp) = footprint {
+                    let mut empty = Region::new(Rect::EMPTY, self.pre.channels());
+                    apply_mixer_dab_region(&mut empty, &fp, self.pre.format(), None, &self.settings, &mut self.state, self.lock);
+                }
+                continue;
             }
             // Float working tiles avoid repeated integer-depth quantization. Initialize only
             // touched tiles, keeping unchanged source tiles shared by the document snapshots.
@@ -88,7 +107,7 @@ impl Core {
                 }
                 sample
             });
-            let fp = self.ctx.footprint(dab, index);
+            let fp = footprint.unwrap_or_else(|| self.ctx.footprint(dab, index));
             let mut region = Region::read(&self.work, r);
             apply_mixer_dab_region(&mut region, &fp, self.pre.format(), sample.as_ref(), &self.settings, &mut self.state, self.lock);
             region.write(&mut self.work);
@@ -129,6 +148,10 @@ pub struct LiveMixer {
 }
 
 impl LiveMixer {
+    #[cfg(test)]
+    pub(crate) fn use_full_contact_bounds_for_test(&mut self) {
+        self.core.crop_contact = false;
+    }
     pub fn begin(s: &Session, p: &Value) -> Result<Self> {
         has_paintable(s).map_err(EngineError::Other)?;
         if p.get("points").and_then(Value::as_array).is_some_and(|v| v.len() > 65_536) {
@@ -192,6 +215,8 @@ impl LiveMixer {
             tiles: BTreeSet::new(),
             state: state.clone(),
             settings,
+            #[cfg(test)]
+            crop_contact: true,
             layer,
             params: p.clone(),
             selection,

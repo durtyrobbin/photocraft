@@ -324,3 +324,49 @@ fn local_pigment_carried_cells_replay_without_depending_on_current_tool_load() {
     assert!(*s.active().unwrap().doc == *after);
     assert_eq!(s.tools.mixer, carried);
 }
+
+#[test]
+fn trimmed_live_contact_matches_full_bounds_with_masks_blending_and_selection() {
+    use photocraft_color::BlendMode;
+    use photocraft_doc::LayerMask;
+    for fmt in [PixelFormat::RGBA8, PixelFormat::RGBA16, PixelFormat::RGBA32F] {
+        for all in [false, true] {
+            let mut s = fixture(fmt);
+            s.edit("Masked source fixture", |doc, _| {
+                let mut mask = LayerMask::reveal_all();
+                mask.surface.fill_rect(Rect::new(0, 0, 192, 96), &[0.65]);
+                doc.layers[1].mask = Some(mask);
+                doc.layers[1].opacity = 0.7;
+                doc.layers[1].blend = BlendMode::Multiply;
+                Ok(())
+            })
+            .unwrap();
+            s.execute("select.rect", json!({"x":24,"y":20,"width":140,"height":60})).unwrap();
+            let original = s.active().unwrap().doc.clone();
+            s.execute("brush.mixer.load", json!({"color":"#ce7b25"})).unwrap();
+            let original_load = s.tools.mixer.clone();
+            let b = crate::knife_cmds::Settings { width: 48.0, contact: 0.18, angle: 31.0, softness: 0.3, breakup: 0.2, ..Default::default() }.brush().unwrap();
+            let p = json!({"points":[[36,38,0.7]],"brush":b,"sampleAllLayers":all,"cleanAfterStroke":false,"loadAfterStroke":false});
+            let mut trimmed = LiveMixer::begin(&s, &p).unwrap();
+            let mut reference = LiveMixer::begin(&s, &p).unwrap();
+            reference.use_full_contact_bounds_for_test();
+            let rect = Rect::new(0, 0, 192, 96);
+            for point in [StrokePoint::new(62.0, 48.0, 1.0), StrokePoint::new(94.0, 62.0, 0.3), StrokePoint::new(140.0, 42.0, 0.8)] {
+                trimmed.push(&[point]).unwrap();
+                reference.push(&[point]).unwrap();
+                assert_eq!(trimmed.doc.layers[2].surface().unwrap().read_region(rect), reference.doc.layers[2].surface().unwrap().read_region(rect));
+                assert_eq!(trimmed.doc.layers[..2], original.layers[..2]);
+            }
+            let params = trimmed.prepare_commit(&mut s).unwrap();
+            s.execute("paint.mixerBrush", params).unwrap();
+            let pixels = target(&s).read_region(rect);
+            let carried = s.tools.mixer.clone();
+            s.execute("edit.undo", json!({})).unwrap();
+            s.tools.mixer = original_load;
+            let params = reference.prepare_commit(&mut s).unwrap();
+            s.execute("paint.mixerBrush", params).unwrap();
+            assert_eq!(target(&s).read_region(rect), pixels);
+            assert_eq!(s.tools.mixer, carried);
+        }
+    }
+}
