@@ -1,0 +1,32 @@
+{
+  "recordedAtUtc": "2026-10-11T16:07:24.556357Z",
+  "original": {
+    "profile": "development",
+    "arguments": "--safe-gpu --in-window-menus",
+    "softwareRendererEvidence": [
+      "2026-10-11T15:49:43.938Z WARN  [main] egui_wgpu: Software rasterizer detected - loss of performance expected. backend: Dx12, device_type: Cpu, name: \"Microsoft Basic Render Driver\", driver: \"10.0.26100.9278\", vendor: Unknown (0x1414), device: 0x8C, subgroup_size: 4..=4, transient_saves_memory: Some(false), limit_bucket: None"
+    ]
+  },
+  "interim": {
+    "profile": "development",
+    "arguments": "--in-window-menus",
+    "gpuCanvasEvidence": [
+      "2026-10-11T16:05:25.752Z INFO  [main] photocraft_ui_egui::gpu_canvas: gpu canvas: target Bgra8Unorm, max texture 32768, tile 8192, 16F canvas Budget"
+    ],
+    "pid": 17964
+  },
+  "optimizedBuild": {
+    "status": "built-and-launched",
+    "profile": "release",
+    "lto": false,
+    "codegenUnits": 16,
+    "sha256": "F53ED10C95008A96C393BBA5939F05A33A76282667CA29A9E209DBB51ECF97C3",
+    "adapterEvidence": [
+      "2026-10-11T16:23:06.017Z DEBUG [main] egui_wgpu: wgpu adapter: backend: Vulkan, device_type: DiscreteGpu, name: \"NVIDIA GeForce RTX 2070 SUPER\", driver: \"NVIDIA\", driver_info: \"591.86\", vendor: NVIDIA (0x10DE), device: 0x1E84, pci_bus_id: \"0000:02:00.0\", subgroup_size: 32..=32, transient_saves_memory: Some(false), limit_bucket: None",
+      "2026-10-11T16:23:07.893Z INFO  [main] photocraft_ui_egui::gpu_canvas: gpu canvas: target Bgra8Unorm, max texture 32768, tile 8192, 16F canvas Budget"
+    ],
+    "pid": 42104
+  },
+  "measuredSpeedup": null,
+  "paintingAlgorithmChanged": false
+}

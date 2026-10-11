@@ -1,0 +1,8 @@
+The synthetic source image, procedural loaded-paint capture, JSON fixtures and
+benchmark data are original PhotoCraft studio test materials, MIT OR Apache-2.0.
+
+owner-manual-test.png was supplied by durtyrobbin on 2026-10-11 with permission to
+use it alongside the requested local commits. It shows PhotoCraft's interface,
+the synthetic test artwork, and the owner's painting gestures. No broader license
+for the owner's added marks is asserted here. Preserve this attribution and obtain
+the required release approval before distributing the owner-supplied screenshot.

@@ -1,0 +1,473 @@
+[
+  [
+    "engine.execute",
+    {
+      "command": "file.new",
+      "params": {
+        "name": "Mixer Brush \u2014 live layer study",
+        "width": 960,
+        "height": 540,
+        "background": "#eadfd0"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "layer.new.layer",
+      "params": {
+        "name": "Source colors \u2014 preserved"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "select.rect",
+      "params": {
+        "x": 120,
+        "y": 100,
+        "width": 240,
+        "height": 250
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "edit.fill",
+      "params": {
+        "color": "#175baf"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "select.rect",
+      "params": {
+        "x": 360,
+        "y": 100,
+        "width": 240,
+        "height": 250
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "edit.fill",
+      "params": {
+        "color": "#e6b526"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "select.rect",
+      "params": {
+        "x": 600,
+        "y": 100,
+        "width": 240,
+        "height": 250
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "edit.fill",
+      "params": {
+        "color": "#bb493b"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "select.deselect",
+      "params": {}
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "layer.new.layer",
+      "params": {
+        "name": "Mixer paint \u2014 initially empty"
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "tools.setColors",
+      "params": {
+        "foreground": "#f4e6ca"
+      }
+    }
+  ],
+  [
+    "ui.set",
+    {
+      "tool": "mixerBrush",
+      "fit": true
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "tools.setBrush",
+      "params": {
+        "brush": {
+          "aliased": false,
+          "angle": 0.0,
+          "background": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "buildUp": false,
+          "buildUpRate": 20.0,
+          "color": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "colorDynamics": {
+            "brightnessJitter": 0.0,
+            "enabled": false,
+            "fgBg": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "hueJitter": 0.0,
+            "perTip": true,
+            "purity": 0.0,
+            "saturationJitter": 0.0
+          },
+          "dualBrush": {
+            "angle": 0.0,
+            "bothAxes": false,
+            "count": 1,
+            "enabled": false,
+            "flip": false,
+            "hardness": 1.0,
+            "mode": "multiply",
+            "roundness": 1.0,
+            "scatter": 0.0,
+            "size": 20.0,
+            "spacing": 0.25,
+            "tip": "round"
+          },
+          "erase": false,
+          "flipX": false,
+          "flipY": false,
+          "flow": 1.0,
+          "hardness": 1.0,
+          "locks": {
+            "buildUp": false,
+            "colorDynamics": false,
+            "dualBrush": false,
+            "noise": false,
+            "pose": false,
+            "protectTexture": false,
+            "scattering": false,
+            "shapeDynamics": false,
+            "smoothing": false,
+            "texture": false,
+            "transfer": false,
+            "wetEdges": false
+          },
+          "mixer": {
+            "cleanAfterStroke": false,
+            "flow": 1.0,
+            "load": 1.0,
+            "mix": 0.0,
+            "reloadAfterStroke": false,
+            "reservoirGrid": 0,
+            "sampleAllLayers": false,
+            "wet": 0.0
+          },
+          "mode": "Normal",
+          "noise": false,
+          "opacity": 1.0,
+          "pose": {
+            "enabled": false,
+            "overridePressure": false,
+            "overrideRotation": false,
+            "overrideTilt": false,
+            "pressure": 1.0,
+            "rotation": 0.0,
+            "tiltX": 0.0,
+            "tiltY": 0.0
+          },
+          "pressureOpacity": false,
+          "pressureSize": false,
+          "protectTexture": false,
+          "roundness": 0.699999988079071,
+          "scattering": {
+            "bothAxes": false,
+            "count": 1,
+            "countJitter": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "enabled": false,
+            "scatter": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            }
+          },
+          "seed": 42,
+          "shapeDynamics": {
+            "angle": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "brushProjection": false,
+            "enabled": false,
+            "flipXJitter": false,
+            "flipYJitter": false,
+            "roundness": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "size": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "tiltScale": 0.0
+          },
+          "size": 64.0,
+          "smoothing": {
+            "adjustForZoom": true,
+            "amount": 0.0,
+            "catchUp": true,
+            "catchUpOnEnd": true,
+            "pulledString": false
+          },
+          "spacing": 0.30000001192092896,
+          "spacingEnabled": true,
+          "texture": {
+            "brightness": 0.0,
+            "contrast": 0.0,
+            "depth": 1.0,
+            "depthJitter": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "eachTip": false,
+            "enabled": false,
+            "invert": false,
+            "mode": "multiply",
+            "pattern": {
+              "procedural": {
+                "seed": 1,
+                "size": 128,
+                "style": "paper"
+              }
+            },
+            "scale": 1.0
+          },
+          "tip": {
+            "sampled": {
+              "data": "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",
+              "height": 64,
+              "width": 64
+            }
+          },
+          "transfer": {
+            "enabled": false,
+            "flow": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "mix": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "opacity": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            },
+            "wetness": {
+              "control": "off",
+              "fadeSteps": 25,
+              "jitter": 0.0,
+              "minimum": 0.0
+            }
+          },
+          "wetEdges": false
+        }
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "palette.deposit",
+      "params": {
+        "points": [
+          [
+            116,
+            96
+          ]
+        ],
+        "color": [
+          1,
+          0.1,
+          0.1,
+          1
+        ],
+        "size": 48
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "palette.deposit",
+      "params": {
+        "points": [
+          [
+            140,
+            96
+          ]
+        ],
+        "color": [
+          0.1,
+          0.2,
+          1,
+          1
+        ],
+        "size": 48
+      }
+    }
+  ],
+  [
+    "engine.execute",
+    {
+      "command": "palette.pickup",
+      "params": {
+        "x": 128,
+        "y": 96,
+        "size": 40
+      }
+    }
+  ],
+  [
+    "ui.pointer",
+    {
+      "events": [
+        {
+          "kind": "down",
+          "x": 210,
+          "y": 220,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 290,
+          "y": 230,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 370,
+          "y": 250,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 460,
+          "y": 270,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 560,
+          "y": 240,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 660,
+          "y": 210,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 750,
+          "y": 230,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 775,
+          "y": 300,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 750,
+          "y": 395,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 650,
+          "y": 425,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 540,
+          "y": 420,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 430,
+          "y": 405,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 320,
+          "y": 420,
+          "pressure": 1.0
+        },
+        {
+          "kind": "move",
+          "x": 220,
+          "y": 410,
+          "pressure": 1.0
+        }
+      ]
+    }
+  ]
+]

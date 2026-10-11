@@ -1,0 +1,5 @@
+Original PhotoCraft sampled bristle mask and loaded-paint settings.
+Author: PhotoCraft studio implementation for durtyrobbin.
+Source: crates/engine/examples/loaded_paint_probe.rs, using the procedural mask
+already present in crates/ui-egui/src/brush_rack.rs.
+License: MIT OR Apache-2.0, under the repository's LICENSE-MIT and LICENSE-APACHE.
