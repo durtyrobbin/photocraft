@@ -22,6 +22,7 @@ fn valid_state(state: &MixerState) -> bool {
     state.amount.is_finite()
         && state.reservoir.as_ref().is_none_or(valid_color)
         && state.pickup.as_ref().is_none_or(valid_color)
+        && state.local.as_ref().is_none_or(|v| v.valid())
         && state.spatial.as_ref().is_none_or(|colors| colors.len() == 4096 && colors.iter().all(valid_color))
 }
 
@@ -141,6 +142,7 @@ impl LiveMixer {
         }
         let bm = &brush.mixer;
         let settings = MixerSettings {
+            reservoir_grid: bm.reservoir_grid,
             wet: pct(p, "wet", bm.wet * 100.0),
             load: pct(p, "load", bm.load * 100.0),
             mix: pct(p, "mix", bm.mix * 100.0),
@@ -152,6 +154,13 @@ impl LiveMixer {
         let initial_state = if let Some(value) = p.get("mixerState") {
             if value.get("spatial").and_then(Value::as_array).is_some_and(|v| v.len() != 4096) {
                 return Err(bad(CMD, "spatial reservoir must contain exactly 4096 colors"));
+            }
+            if let Some(local) = value.get("local").filter(|v| !v.is_null()) {
+                let side =
+                    local.get("side").and_then(Value::as_u64).filter(|v| [16, 32, 64].contains(v)).ok_or_else(|| bad(CMD, "invalid local reservoir size"))?;
+                if local.get("cells").and_then(Value::as_array).is_none_or(|v| v.len() != (side * side) as usize) {
+                    return Err(bad(CMD, "local reservoir cell count does not match its size"));
+                }
             }
             serde_json::from_value::<MixerState>(value.clone()).map_err(|e| bad(CMD, e.to_string()))?
         } else {

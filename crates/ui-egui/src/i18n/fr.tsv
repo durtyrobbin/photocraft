@@ -2965,3 +2965,7 @@ fontWeight	Italic	Italique
 	Replace with current brush	Remplacer par le pinceau actuel
 	Use current image as artwork	Utiliser l’image actuelle comme illustration
 	Choose brush by name	Choisir un pinceau par nom
+
+# Bounded local pigment
+	Local pigment reservoir	Réservoir local de pigment
+	Uniform	Uniforme

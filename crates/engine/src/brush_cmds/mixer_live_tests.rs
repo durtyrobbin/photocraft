@@ -240,3 +240,87 @@ fn mixer_large_tip_retains_off_canvas_paint_and_commits_the_live_result() {
     s.execute("edit.undo", json!({})).unwrap();
     assert_eq!(*s.active().unwrap().doc, *source);
 }
+
+#[test]
+fn local_pigment_live_commit_replay_undo_and_selection_are_exact() {
+    for grid in [16, 32, 64] {
+        let mut s = fixture(PixelFormat::RGBA16);
+        s.execute("select.rect", json!({"x":24,"y":24,"width":128,"height":40})).unwrap();
+        let before = s.active().unwrap().doc.clone();
+        let params = json!({"points":[[36,48,0.8]],"brush":{"size":48,"hardness":0.3,"pressureSize":false,"mixer":{"reservoirGrid":grid}},"wet":100,"mix":80,"load":20,"cleanAfterStroke":false,"loadAfterStroke":false});
+        s.execute("brush.mixer.load", json!({"color":"#60d020"})).unwrap();
+        let mut live = LiveMixer::begin(&s, &params).unwrap();
+        let points = [StrokePoint::new(60.0, 48.0, 0.6), StrokePoint::new(108.0, 48.0, 1.0), StrokePoint::new(148.0, 48.0, 0.8)];
+        for point in points {
+            live.push(&[point]).unwrap();
+        }
+        let shown = live.doc.clone();
+        let recorded = live.prepare_commit(&mut s).unwrap();
+        s.execute("paint.mixerBrush", recorded.clone()).unwrap();
+        let painted = s.active().unwrap().doc.clone();
+        assert!(*shown == *painted, "live pixels match commit");
+        assert!(s.tools.mixer.local.as_ref().unwrap().valid());
+        assert_eq!(target(&s).rgba(80, 12)[3], 0.0);
+        assert_eq!(before.layers[0], painted.layers[0]);
+        assert_eq!(before.layers[1], painted.layers[1]);
+        let state = s.tools.mixer.clone();
+        s.execute("edit.undo", json!({})).unwrap();
+        assert!(*s.active().unwrap().doc == *before);
+        s.execute("paint.mixerBrush", recorded).unwrap();
+        assert!(*s.active().unwrap().doc == *painted);
+        assert_eq!(s.tools.mixer, state);
+        s.execute("edit.undo", json!({})).unwrap();
+        s.execute("edit.redo", json!({})).unwrap();
+        assert!(*s.active().unwrap().doc == *painted);
+    }
+}
+#[test]
+fn local_pigment_rejects_bad_grids_and_replay_state_atomically() {
+    let mut s = fixture(PixelFormat::RGBA8);
+    let before = s.active().unwrap().doc.clone();
+    for grid in [1, 17, 128, u32::MAX] {
+        assert!(s.execute("paint.mixerBrush", json!({"points":[[20,20]],"brush":{"mixer":{"reservoirGrid":grid}}})).is_err());
+    }
+    for local in [json!({"side":u32::MAX,"cells":[]}), json!({"side":64,"cells":[]}), json!({"side":16,"cells":null})] {
+        assert!(s.execute("paint.mixerBrush", json!({"points":[[20,20]],"mixerState":{"local":local}})).is_err());
+    }
+    assert!(std::sync::Arc::ptr_eq(&before, &s.active().unwrap().doc));
+}
+#[test]
+fn local_pigment_preset_round_trip_and_sampling_replace_old_cells() {
+    let mut s = fixture(PixelFormat::RGBA8);
+    s.execute("tools.setBrush", json!({"size":48,"pressureSize":false,"mixer":{"reservoirGrid":32}})).unwrap();
+    s.execute("brush.presets.save", json!({"name":"Local pigment study"})).unwrap();
+    s.execute("tools.setBrush", json!({"mixer":{"reservoirGrid":16}})).unwrap();
+    s.execute("tools.setBrush", json!({"preset":"Local pigment study"})).unwrap();
+    assert_eq!(s.tools.brush.mixer.reservoir_grid, 32);
+    s.execute("paint.mixerBrush", json!({"points":[[64,48],[96,48]],"cleanAfterStroke":false,"loadAfterStroke":false})).unwrap();
+    assert!(s.tools.mixer.local.is_some());
+    s.execute("brush.mixer.sample", json!({"points":[[64,48]]})).unwrap();
+    assert!(s.tools.mixer.local.is_none());
+    assert!(s.tools.mixer.spatial.is_some());
+}
+
+#[test]
+fn local_pigment_carried_cells_replay_without_depending_on_current_tool_load() {
+    let mut s = fixture(PixelFormat::RGBA16);
+    let params = json!({"points":[[36,48],[88,48]],"brush":{"size":48,"pressureSize":false,"mixer":{"reservoirGrid":32}},"cleanAfterStroke":false,"loadAfterStroke":false});
+    s.execute("paint.mixerBrush", params.clone()).unwrap();
+    let before = s.active().unwrap().doc.clone();
+    let mut params = params;
+    params["points"] = json!([[88, 48], [132, 56], [156, 48]]);
+    let live = LiveMixer::begin(&s, &params).unwrap();
+    let shown = live.doc.clone();
+    let recorded = live.prepare_commit(&mut s).unwrap();
+    assert_eq!(recorded["mixerState"]["local"]["side"], 32);
+    s.execute("paint.mixerBrush", recorded.clone()).unwrap();
+    let after = s.active().unwrap().doc.clone();
+    let carried = s.tools.mixer.clone();
+    assert!(*after == *shown);
+    s.execute("edit.undo", json!({})).unwrap();
+    assert!(*s.active().unwrap().doc == *before);
+    s.execute("brush.mixer.load", json!({"color":"#ff00ff"})).unwrap();
+    s.execute("paint.mixerBrush", recorded).unwrap();
+    assert!(*s.active().unwrap().doc == *after);
+    assert_eq!(s.tools.mixer, carried);
+}

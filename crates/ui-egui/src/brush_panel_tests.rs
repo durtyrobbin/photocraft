@@ -877,3 +877,23 @@ fn hand_tool_offers_scale_buttons_and_requests_the_right_view() {
     assert!(h.state().ui.views[0].fill_pending);
     assert!(!h.state().ui.views[0].fit_pending);
 }
+
+#[test]
+fn local_pigment_resolution_is_an_explicit_persisted_native_control() {
+    use egui_kittest::kittest::Queryable;
+    let mut h = app_harness();
+    h.state_mut().ui.tool = crate::state::Tool::MixerBrush;
+    h.run_steps(3);
+    for (side, label) in [(16, "16 × 16"), (32, "32 × 32"), (64, "64 × 64"), (0, "Uniform")] {
+        if h.query_by_label(label).is_none() {
+            h.get_by_label("Paint Load").click();
+            h.run_steps(2);
+        }
+        h.get_by_label(label).click();
+        h.run_steps(3);
+        assert_eq!(h.state().session.tools.brush.mixer.reservoir_grid, side);
+        let (command, p) = last_journal(h.state()).unwrap();
+        assert_eq!(command, "tools.setBrush");
+        assert_eq!(p["brush"]["mixer"]["reservoirGrid"], side);
+    }
+}

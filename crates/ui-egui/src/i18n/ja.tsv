@@ -3564,3 +3564,6 @@ fontWeight	Italic	斜体
 	Replace with current brush	現在のブラシで置き換え
 	Use current image as artwork	現在の画像をブラシ外観に使用
 	Choose brush by name	名前でブラシを選択
+
+# Bounded local pigment
+	Local pigment reservoir	局所顔料リザーバー

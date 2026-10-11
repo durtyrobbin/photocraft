@@ -2525,3 +2525,7 @@ fontWeight	Italic	斜體
 	Replace with current brush	替換為目前畫筆
 	Use current image as artwork	將目前影像用作畫筆外觀
 	Choose brush by name	依名稱選擇畫筆
+
+# Bounded local pigment
+	Local pigment reservoir	局部顏料儲存
+	Uniform	均勻

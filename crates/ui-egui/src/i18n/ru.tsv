@@ -2834,3 +2834,7 @@ fontWeight	Italic	Курсив
 	Replace with current brush	Заменить текущей кистью
 	Use current image as artwork	Использовать текущее изображение как иллюстрацию
 	Choose brush by name	Выбрать кисть по названию
+
+# Bounded local pigment
+	Local pigment reservoir	Локальный резервуар пигмента
+	Uniform	Однородный

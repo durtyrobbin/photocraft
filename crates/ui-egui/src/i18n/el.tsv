@@ -3653,3 +3653,6 @@ fontWeight	Thin	Πολύ λεπτά
 	Replace with current brush	Αντικατάσταση με τρέχον πινέλο
 	Use current image as artwork	Χρήση τρέχουσας εικόνας ως εικονογράφηση
 	Choose brush by name	Επιλογή πινέλου κατά όνομα
+
+# Bounded local pigment
+	Local pigment reservoir	Τοπική δεξαμενή χρωστικής

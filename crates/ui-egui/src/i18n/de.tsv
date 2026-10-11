@@ -2586,3 +2586,7 @@ fontWeight	Italic	Kursiv
 	Replace with current brush	Durch aktuellen Pinsel ersetzen
 	Use current image as artwork	Aktuelles Bild als Illustration verwenden
 	Choose brush by name	Pinsel nach Namen wählen
+
+# Bounded local pigment
+	Local pigment reservoir	Lokaler Pigmentspeicher
+	Uniform	Gleichmäßig

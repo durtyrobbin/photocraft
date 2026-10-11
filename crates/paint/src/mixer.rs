@@ -20,6 +20,8 @@ pub const PICKUP_RATE: f32 = 0.25;
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default, rename_all = "camelCase")]
 pub struct MixerSettings {
+    /// 0 preserves legacy uniform pickup; 16/32/64 selects bounded local pigment cells.
+    pub reservoir_grid: u32,
     pub wet: f32,
     pub load: f32,
     pub mix: f32,
@@ -32,7 +34,7 @@ pub struct MixerSettings {
 
 impl Default for MixerSettings {
     fn default() -> Self {
-        Self { wet: 0.5, load: 0.5, mix: 0.5, flow: 1.0, sample_all_layers: true, clean_after_stroke: true, reload_after_stroke: true }
+        Self { reservoir_grid: 0, wet: 0.5, load: 0.5, mix: 0.5, flow: 1.0, sample_all_layers: true, clean_after_stroke: true, reload_after_stroke: true }
     }
 }
 
@@ -48,18 +50,25 @@ pub struct MixerState {
     pub pickup: Option<[f32; 4]>,
     /// A bounded 64 x 64 spatial load in tip-local coordinates. Empty cells carry no paint.
     pub spatial: Option<Vec<[f32; 4]>>,
+    pub local: Option<crate::pigment::Reservoir>,
 }
 
 impl MixerState {
     /// Load the reservoir with a colour (full).
     pub fn load(&mut self, color: [f32; 4]) {
         self.spatial = None;
+        self.local = None;
         self.reservoir = Some(color);
         self.amount = 1.0;
     }
     /// Clean the brush (drop the picked-up colour).
     pub fn clean(&mut self) {
         self.pickup = None;
+        if let Some(local) = &mut self.local {
+            for cell in &mut local.cells {
+                cell.pickup = None;
+            }
+        }
     }
 }
 
@@ -147,6 +156,11 @@ pub fn apply_mixer_dab_region(
     state: &mut MixerState,
     lock_transparency: bool,
 ) {
+    if m.reservoir_grid != 0 {
+        crate::pigment::apply(work, fp, fmt, sample, m, state, lock_transparency);
+        return;
+    }
+    state.local = None;
     let n = fmt.channels();
     let a = alpha_index(&fmt);
     let nc = fmt.mode.color_channels();

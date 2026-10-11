@@ -984,6 +984,8 @@ pub fn options_bar(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
                         if ui.button(tl!("Artist Palette")).clicked() { app.ui.artist_palette.open = true; }
                         ui.menu_button(tl!("Paint Load"), |ui| {
                             ui.label(tl!("Alt-click the canvas to load the brush tip"));
+                            ui.label(tl!("Local pigment reservoir"));
+                            ui.horizontal(|ui| { for (side,label) in [(0,tl!("Uniform")),(16,"16 × 16"),(32,"32 × 32"),(64,"64 × 64")] { ui.selectable_value(&mut b.mixer.reservoir_grid,side,label); } });
                             if ui.button(tl!("Load Brush")).clicked() { let _ = app.run("brush.mixer.load", json!({})); }
                             if ui.button(tl!("Clean Brush")).clicked() {
                                 let _ = app.run("brush.mixer.clean", json!({}));
@@ -996,9 +998,23 @@ pub fn options_bar(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
                             let state = &app.session.tools.mixer;
                             let mut buffer = photocraft_compose::Buffer::transparent(photocraft_geom::Rect::new(0, 0, 32, 32));
                             for (i, pixel) in buffer.px.iter_mut().enumerate() {
-                                *pixel = state.spatial.as_ref().and_then(|v| v.get((i / 32) * 128 + (i % 32) * 2)).copied()
-                                    .or(state.reservoir).unwrap_or([0.0; 4]);
-                                pixel[3] *= state.amount;
+                                if let Some(cell) = state.local.as_ref().filter(|g| [16, 32, 64].contains(&g.side)).and_then(|g| {
+                                    let x = (i % 32) * g.side as usize / 32;
+                                    let y = (i / 32) * g.side as usize / 32;
+                                    g.cells.get(y * g.side as usize + x)
+                                }) {
+                                    let pickup = b.mixer.mix * b.mixer.wet;
+                                    let loaded = cell.amount * cell.loaded[3].clamp(0.0, 1.0) * (1.0 - pickup);
+                                    let pickup = if cell.pickup.is_some() { pickup } else { 0.0 };
+                                    let sum = loaded + pickup;
+                                    let color = cell.pickup.unwrap_or([0.0; 4]);
+                                    for (k, value) in pixel.iter_mut().take(3).enumerate() { *value = (cell.loaded[k] * loaded + color[k] * pickup) / sum.max(1e-6); }
+                                    pixel[3] = sum.clamp(0.0, 1.0);
+                                } else {
+                                    *pixel = state.spatial.as_ref().and_then(|v| v.get((i / 32) * 128 + (i % 32) * 2)).copied()
+                                        .or(state.reservoir).unwrap_or([0.0; 4]);
+                                    pixel[3] *= state.amount;
+                                }
                             }
                             let display = app.session.active().and_then(|st| app.session.color.canvas_display_for(&st.doc, app.session.color.main_display).ok());
                             let image = display.map_or_else(|| buffer.to_rgba8(), |display| display.to_rgba8(&buffer));

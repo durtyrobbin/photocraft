@@ -88,6 +88,7 @@ impl Settings {
                 ..Default::default()
             },
             mixer: photocraft_paint::mixer::MixerSettings {
+                reservoir_grid: 0,
                 wet: self.wet,
                 mix: self.mix,
                 flow: self.flow,

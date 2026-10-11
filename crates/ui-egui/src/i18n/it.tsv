@@ -2617,3 +2617,7 @@ fontWeight	Italic	Corsivo
 	Replace with current brush	Sostituisci con pennello corrente
 	Use current image as artwork	Usa immagine corrente come illustrazione
 	Choose brush by name	Scegli pennello per nome
+
+# Bounded local pigment
+	Local pigment reservoir	Serbatoio locale di pigmento
+	Uniform	Uniforme

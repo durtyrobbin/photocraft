@@ -146,6 +146,9 @@ pub fn merge_brush(base: &BrushSettings, patch: &Value, cmd: &str) -> Result<Bru
 /// Rejects brush sizes and Scatter amounts outside their documented ranges, before a brush is
 /// stored or painted with.
 pub(crate) fn validate_brush(brush: &BrushSettings, cmd: &str) -> Result<()> {
+    if ![0, 16, 32, 64].contains(&brush.mixer.reservoir_grid) {
+        return Err(bad(cmd, "reservoirGrid must be 0, 16, 32 or 64"));
+    }
     let max = photocraft_paint::MAX_BRUSH_SIZE;
     if !brush.size.is_finite() || brush.size > max {
         return Err(bad(cmd, format!("brush size must be finite and at most {max} px")));
@@ -897,7 +900,7 @@ pub fn specs() -> Vec<CommandSpec> {
         spec!(
             "paint.mixerBrush",
             "Mixer Brush",
-            r##"{"points":[…] (max 65536 samples, 2048px per segment),"brush":{…}?,"preset":name?,"size":0.5..1024 px?,"wet":0..100=brush.mixer.wet,"load":0..100=brush.mixer.load,"mix":0..100=brush.mixer.mix,"flow":0..100=brush.mixer.flow,"color":"#rrggbb"?=foreground,"sampleAllLayers":bool=brush.mixer.sampleAllLayers,"cleanAfterStroke":bool=brush.mixer.cleanAfterStroke,"loadAfterStroke":bool=brush.mixer.reloadAfterStroke,"seed":u64?,"mixerState":{reservoir,amount,pickup,spatial} (optional captured replay state; spatial is null or 4096 RGBA colors)}"##,
+            r##"{"points":[…] (max 65536 samples, 2048px per segment),"brush":{…}?,"preset":name?,"size":0.5..1024 px?,"wet":0..100=brush.mixer.wet,"load":0..100=brush.mixer.load,"mix":0..100=brush.mixer.mix,"flow":0..100=brush.mixer.flow,"color":"#rrggbb"?=foreground,"sampleAllLayers":bool=brush.mixer.sampleAllLayers,"cleanAfterStroke":bool=brush.mixer.cleanAfterStroke,"loadAfterStroke":bool=brush.mixer.reloadAfterStroke,"seed":u64?,"mixerState":{reservoir,amount,pickup,spatial,local} (optional captured replay state; spatial is null or 4096 RGBA colors; local is null or a bounded 16/32/64 grid); brush.mixer.reservoirGrid:0|16|32|64=0}"##,
             has_paintable,
             mixer_brush,
             true

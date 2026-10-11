@@ -2627,3 +2627,6 @@ fontWeight	Italic	Cursiva
 	Replace with current brush	Reemplazar con pincel actual
 	Use current image as artwork	Usar imagen actual como ilustración
 	Choose brush by name	Elegir pincel por nombre
+
+# Bounded local pigment
+	Local pigment reservoir	Depósito local de pigmento

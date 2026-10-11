@@ -3651,3 +3651,6 @@ cameraRaw	Masking	Маскування
 	Replace with current brush	Замінити поточним пензлем
 	Use current image as artwork	Використати поточне зображення як ілюстрацію
 	Choose brush by name	Вибрати пензель за назвою
+
+# Bounded local pigment
+	Local pigment reservoir	Локальний резервуар пігменту

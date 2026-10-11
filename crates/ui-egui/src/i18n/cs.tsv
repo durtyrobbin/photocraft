@@ -2548,3 +2548,7 @@ fontWeight	Italic	Kurzíva
 	Replace with current brush	Nahradit aktuálním štětcem
 	Use current image as artwork	Použít aktuální obrázek jako ilustraci
 	Choose brush by name	Vybrat štětec podle názvu
+
+# Bounded local pigment
+	Local pigment reservoir	Lokální zásobník pigmentu
+	Uniform	Rovnoměrný

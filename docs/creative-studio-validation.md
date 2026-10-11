@@ -257,9 +257,10 @@ floating selections, linear-profile conversion, spatial load, hostile input and 
 round trips. Clippy passes; release runtime and visual checks are pending. The palette
 probe reports CPU costs separately from document size and physical display latency.
 
-The local reservoir currently retains sampled spatial color but uses a global pickup
-and depletion amount. Local pigment exchange and 16/32/64/sparse comparisons remain
-NOT IMPLEMENTED. Splatter is functionally VERIFIED with performance PARTIAL. Palette
+The local reservoir now has explicit 16/32/64 cell modes with local pickup and
+uneven depletion. See `pigment-reservoir.md` for the measured 32-case matrix,
+visual comparison and native before/live/commit verification. Sparse zones are
+not implemented; large-tip performance remains below target. Splatter is functionally VERIFIED with performance PARTIAL. Palette
 knife, artist palette and brush rack are PARTIAL pending final qualification. AI result comparison,
 guidance and provider integration remain NOT IMPLEMENTED in this phase. Advanced
 bristle simulation is BLOCKED by the unmet fast-mode performance qualification gate.
