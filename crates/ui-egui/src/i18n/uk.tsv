@@ -3710,3 +3710,45 @@ cameraRaw	Masking	Маскування
 	Area to modify	Область зміни
 	Area to protect	Захищена область
 	Locked	Заблоковано
+
+# Upstream provider interface, PR #2878
+	API key	Ключ API
+	Describe what to generate in the selection, or leave it empty to continue the image through it.	Опишіть, що створити у виділеній області, або залиште поле порожнім, щоб зображення продовжилося крізь неї.
+	Generative AI	Генеративний ШІ
+	Generative AI Settings…	Налаштування генеративного ШІ…
+	Generative AI needs the desktop app.	Генеративний ШІ доступний лише в настільному застосунку.
+	Generative Fill uses {name} ({model}).	Генеративна заливка використовує {name} ({model}).
+	Generative Fill…	Генеративна заливка…
+	Get a Gemini API key from Google AI Studio	Отримати ключ API Gemini у Google AI Studio
+	No API key is saved for {provider}.	Для {provider} не збережено ключа API.
+	Nothing is sent until you run Generative Fill. Each time you do, PhotoCraft sends the selected area and the image around it, a black-and-white mask of the selection, and your prompt to Google (generativelanguage.googleapis.com) with your API key. Google's Gemini API terms and privacy policy apply, and its usage is billed to your key. Results carry Google's SynthID watermark.	Нічого не надсилається, доки ви не запустите генеративну заливку. Під час кожного запуску PhotoCraft надсилає до Google (generativelanguage.googleapis.com) виділену область разом із зображенням навколо неї, чорно-білу маску виділення та ваш опис, а також ваш ключ API. Діють умови використання та політика конфіденційності Gemini API від Google, а використання оплачується за вашим ключем. Результати мають водяний знак SynthID від Google.
+	Off. Set up a provider with your own API key to use Generative Fill.	Вимкнено. Щоб користуватися генеративною заливкою, налаштуйте постачальника з власним ключем API.
+	Paste your Gemini API key	Вставте ключ API Gemini
+	Prompt (optional)	Опис (необов’язково)
+	Provider	Постачальник
+	Remove Key	Видалити ключ
+	Saved (paste to replace)	Збережено (вставте новий, щоб замінити)
+	The selected area, the image around it and the prompt are sent to {name} ({model}).	Виділена область, зображення навколо неї та опис надсилаються до {name} ({model}).
+	What is sent, and to whom	Що надсилається і кому
+	Your key is kept in {store}, never in PhotoCraft's settings files.	Ваш ключ зберігається в {store} і ніколи не потрапляє до файлів налаштувань PhotoCraft.
+	the macOS Keychain	зв’язці ключів macOS
+	Windows Credential Manager	диспетчері облікових даних Windows
+	memory until PhotoCraft quits	пам’яті до закриття PhotoCraft
+
+# Studio provider review and local configuration
+	Configure providers directly in the native app.	Налаштуйте провайдерів безпосередньо в застосунку.
+	Context	Контекст
+	Context pixels	Пікселі контексту
+	Endpoint	Адреса сервісу
+	External generation requires direct native confirmation.	Зовнішня генерація потребує прямого підтвердження в застосунку.
+	Generate sends this regional image, masks, prompt and guidance to the displayed external provider. Charges and its data terms apply. Confirm directly for this request only.	Кнопка «Створити» надсилає цю область, маски, запит і вказівки показаному зовнішньому провайдеру. Діють його тарифи й умови обробки даних. Підтвердьте безпосередньо лише цей запит.
+	Input size	Розмір вхідного зображення
+	Local endpoint only. No model availability or output quality has been verified.	Лише локальна адреса. Доступність моделі та якість результату не перевірено.
+	Prompt	Запит
+	Regenerate selected result	Повторно створити вибраний результат
+	Review request	Перевірити запит
+	Review the request before generating.	Перевірте запит перед генерацією.
+	Selection and protection limit the result. Visible guidance and annotations are included. Regeneration uses current artwork and guidance with the selected result hidden.	Виділення й захист обмежують результат. Видимі вказівки та анотації включаються до запиту. Повторна генерація використовує поточний малюнок і вказівки з прихованим вибраним результатом.
+	Steps	Кроки
+	The request changed. Review it again.	Запит змінився. Перевірте його ще раз.
+	Off. Configure a local or external provider to use Generative Fill.	Вимкнено. Налаштуйте локального або зовнішнього провайдера для генеративного заповнення.

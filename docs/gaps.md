@@ -1,6 +1,6 @@
 # Where PhotoCraft falls short of Photoshop
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-10 · **Change:** major (first version: every known shortfall ranked, from the 2026-10-10 re-measure) · **Target:** Adobe Photoshop 2026
+> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-11 · **Change:** minor (unpublished studio provider qualification; historical parity estimates unchanged) · **Target:** Adobe Photoshop 2026
 
 Every known shortfall against Photoshop 2026 (27.11.0), one entry each, ranked by user impact
 on the way to beta. This is the work list agents pick from: take the highest-ranked entry that
@@ -100,6 +100,15 @@ what an agent can't finish alone.
 - **Estimate:** 120–200 h.
 
 ### G15. AI and generative features
+
+**Local branch qualification, 2026-10-11:** the studio work now adapts upstream
+#2878 into bounded regional provider jobs with per-request remote consent, separate
+result layers, editable typed guidance and native comparison. Windows synthetic
+contract tests pass; live model/backend availability, artist quality and other
+native platforms remain unqualified. See [provider scope](generative-ai.md) and
+[phase evidence](creative-studio-validation.md). This unpublished work adds no
+Photoshop parity points and does not revise the historical estimates below.
+
 - **Missing:** Generative Fill and Expand, Generative Upscale, Neural Filters, Sky Replacement,
   Super Zoom, ML Select Subject/Sky. There is no ML runtime (AUTO-219-7). Classical substitutes
   exist (GrabCut/max-flow selection, Remove tool by non-local patch completion).
@@ -211,5 +220,6 @@ what an agent can't finish alone.
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-11 | minor | Recorded unpublished regional provider/guidance/result contracts; no live model, hardware or Photoshop parity claim, and no change to historical estimates |
 | 2026-10-10 | minor | Checked against the alpha gate (no alpha blockers); #2374 marked closed |
 | 2026-10-10 | major | First version, from the full re-measure against Photoshop 2026 27.11.0 and the open issues |

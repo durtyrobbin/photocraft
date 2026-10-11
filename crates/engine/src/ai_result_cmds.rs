@@ -68,6 +68,12 @@ fn bytes(p: &Value) -> Result<Vec<u8>> {
 /// Decode first with allocation limits, then preserve the image's channel model,
 /// depth, alpha and ICC conversion into the current document.
 pub(crate) fn decode_into_document(bytes: &[u8], doc: &Document, area: Rect) -> Result<Surface> {
+    decode_result(bytes, doc, Some(area)).map(|(surface, _)| surface)
+}
+pub(crate) fn decode_provider_into_document(bytes: &[u8], doc: &Document) -> Result<(Surface, Rect)> {
+    decode_result(bytes, doc, None)
+}
+fn decode_result(bytes: &[u8], doc: &Document, requested: Option<Rect>) -> Result<(Surface, Rect)> {
     if !matches!(doc.mode, ColorMode::Rgb | ColorMode::Grayscale | ColorMode::Cmyk | ColorMode::Lab) {
         return Err(bad("result import supports RGB, Grayscale, CMYK and Lab; convert a copy of this document before importing"));
     }
@@ -84,9 +90,10 @@ pub(crate) fn decode_into_document(bytes: &[u8], doc: &Document, area: Rect) -> 
     if !img.warnings.is_empty() {
         return Err(bad("result is incomplete or contains unsupported additional frames"));
     }
-    if img.dimensions() != (area.width(), area.height()) {
+    if requested.is_some_and(|area| img.dimensions() != (area.width(), area.height())) {
         return Err(bad("result dimensions must match the requested region"));
     }
+    let area = requested.unwrap_or_else(|| Rect::from_xywh(0, 0, img.width(), img.height()));
     let (mode, layout) = match img.layout() {
         ChannelLayout::Rgb | ChannelLayout::Rgba => (ColorMode::Rgb, ChannelLayout::Rgba),
         ChannelLayout::Gray | ChannelLayout::GrayA => (ColorMode::Grayscale, ChannelLayout::GrayA),
@@ -114,7 +121,7 @@ pub(crate) fn decode_into_document(bytes: &[u8], doc: &Document, area: Rect) -> 
     let transform =
         photocraft_cms::Transform::new(&profile, &crate::color_cmds::document_profile(doc), photocraft_cms::Intent::RelativeColorimetric, true).map_err(bad)?;
     let converted = crate::color_cmds::convert_surface(&surface, mode, fmt, &transform);
-    Ok(if converted.format() == fmt { converted } else { converted.convert(fmt) })
+    Ok((if converted.format() == fmt { converted } else { converted.convert(fmt) }, area))
 }
 
 /// Hash the actual current input region and selection without retaining a second
@@ -195,6 +202,7 @@ fn import(s: &mut Session, p: &Value) -> Result<Value> {
         input_digest: "0".repeat(64),
         result_digest: "0".repeat(64),
         recipe,
+        generation: None,
     };
     record.validate().map_err(bad)?;
     let doc = st.doc.clone();

@@ -21,6 +21,8 @@ pub const TOP_MENUS: [&str; 10] = ["File", "Edit", "Image", "Layer", "Type", "Se
 
 /// UI-level commands (handled by the shell rather than the engine): id, label, menu, shortcut.
 pub const UI_COMMANDS: &[(&str, &str, &[&str], Option<&str>)] = &[
+    (crate::genai_ui::SETTINGS, "Generative AI Settings…", &[], None),
+    ("ui.regenerateAiResult", "Regenerate selected result", &[], None),
     ("window.aiResults", "AI Results", &["Window"], None),
     ("window.aiGuidance", "AI Guidance", &["Window"], None),
     ("ui.symmetryTransform", "Transform Symmetry", &[], None),
@@ -204,6 +206,7 @@ pub(crate) fn invoke_unguarded(app: &mut PhotocraftApp, ctx: &egui::Context, id:
     if let Some(r) = crate::plugin_ui::menu(app, id, &params) {
         return r;
     }
+    if let Some(r) = crate::genai_ui::menu(app, id, &params) { return r; }
     if id == "window.panel.brushes" {
         // Window › Brushes opens the Brush Settings window on its presets tab.
         app.ui.panels.brush_settings = true;
@@ -960,6 +963,7 @@ pub fn menu_items(app: &PhotocraftApp) -> Vec<MenuItem> {
     if !prefs.menus.hidden.is_empty() {
         items.retain(|i| !prefs.menus.hidden.contains(&i.id));
     }
+    if !crate::genai_ui::menu_visible(app) { items.retain(|i| i.id != photocraft_engine::genai_cmds::FILL); }
     if prefs.interface.show_menu_colors {
         for it in &mut items {
             it.color = prefs.menus.colors.get(&it.id).cloned();

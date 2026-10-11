@@ -457,28 +457,44 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                 let brush_section = uint_field(p, "brushSection")?;
                 let tip_designer = bool_field(p, "tipDesigner")?;
                 let brush_rack = p.get("brushRack").map(crate::brush_rack::parse).transpose()?;
-                let guidance = p.get("guidance").map(|value| {
-                    let state: crate::guidance_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
-                    state.validate()?;
-                    if state.drawing && (app.drag.is_some() || app.ui.transform.is_some()) { return Err("finish the current edit before drawing guidance".to_string()); }
-                    Ok::<_, String>(state)
-                }).transpose()?;
-                let ai_results = p.get("aiResults").map(|value| {
-                    let state: crate::ai_results_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
-                    state.validate()?;
-                    if state.enabled && (app.drag.is_some() || app.ui.transform.is_some()) { return Err("finish the current edit before comparing".to_string()); }
-                    Ok::<_, String>(state)
-                }).transpose()?;
-                let artist_palette = p.get("artistPalette").map(|value| {
-                    let state: crate::artist_palette::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
-                    state.validate()?;
-                    Ok::<_, String>(state)
-                }).transpose()?;
-                let knife = p.get("knife").map(|value| {
-                    let state: crate::knife_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
-                    state.settings.validate()?;
-                    Ok::<_, String>(state)
-                }).transpose()?;
+                let guidance = p
+                    .get("guidance")
+                    .map(|value| {
+                        let state: crate::guidance_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                        state.validate()?;
+                        if state.drawing && (app.drag.is_some() || app.ui.transform.is_some()) {
+                            return Err("finish the current edit before drawing guidance".to_string());
+                        }
+                        Ok::<_, String>(state)
+                    })
+                    .transpose()?;
+                let ai_results = p
+                    .get("aiResults")
+                    .map(|value| {
+                        let state: crate::ai_results_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                        state.validate()?;
+                        if state.enabled && (app.drag.is_some() || app.ui.transform.is_some()) {
+                            return Err("finish the current edit before comparing".to_string());
+                        }
+                        Ok::<_, String>(state)
+                    })
+                    .transpose()?;
+                let artist_palette = p
+                    .get("artistPalette")
+                    .map(|value| {
+                        let state: crate::artist_palette::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                        state.validate()?;
+                        Ok::<_, String>(state)
+                    })
+                    .transpose()?;
+                let knife = p
+                    .get("knife")
+                    .map(|value| {
+                        let state: crate::knife_ui::State = serde::Deserialize::deserialize(value).map_err(|e| e.to_string())?;
+                        state.settings.validate()?;
+                        Ok::<_, String>(state)
+                    })
+                    .transpose()?;
                 let splatter = p
                     .get("splatter")
                     .map(|value| {
@@ -685,11 +701,21 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
                         app.ui.tip_designer.open = false;
                     }
                 }
-                if let Some(value) = brush_rack { app.ui.brush_rack = value; }
-                if let Some(value) = artist_palette { app.ui.artist_palette = value; }
-                if let Some(value) = ai_results { app.ui.ai_results = value; }
-                if let Some(value) = guidance { app.ui.guidance = value; }
-                if let Some(value) = knife { app.ui.knife = value; }
+                if let Some(value) = brush_rack {
+                    app.ui.brush_rack = value;
+                }
+                if let Some(value) = artist_palette {
+                    app.ui.artist_palette = value;
+                }
+                if let Some(value) = ai_results {
+                    app.ui.ai_results = value;
+                }
+                if let Some(value) = guidance {
+                    app.ui.guidance = value;
+                }
+                if let Some(value) = knife {
+                    app.ui.knife = value;
+                }
                 if let Some(value) = splatter {
                     app.ui.splatter = value;
                 }
@@ -796,6 +822,11 @@ fn dispatch(app: &mut PhotocraftApp, ctx: &egui::Context, req: &ControlRequest) 
         }
         "ui.dialog.confirm" | "ui.dialog.apply" => match u("dialog") {
             Some(id) => {
+                // Provider confirmation must remain a direct native action even in
+                // test/embedded shells that have no automation policy hook installed.
+                if app.ui.dialogs.iter().find(|d| d.id == id).is_some_and(|d| crate::genai_ui::owns(&d.fields)) {
+                    return err("provider dialogs require direct native confirmation; automation can review but cannot confirm them");
+                }
                 let command = app.ui.dialogs.iter().find(|dialog| dialog.id == id).and_then(|dialog| {
                     if req.method == "ui.dialog.apply" {
                         dialog.fields.get("values").map(|values| ("prefs.set".to_string(), json!({"path": "", "value": values})))

@@ -205,7 +205,7 @@ pub fn drop_floating(s: &mut Session) -> Result<Value> {
 
 /// Commands that leave a floating piece floating: its own, and ones that don't touch documents.
 fn keeps_floating(id: &str) -> bool {
-    matches!(id, "ai.result.get" | "guidance.get" | "guidance.mask" | "select.float" | "select.drop" | "brush.mixer.sample" | "brush.mixer.load" | "brush.mixer.clean")
+    matches!(id, "ai.edit.review" | "ai.result.get" | "guidance.get" | "guidance.mask" | "select.float" | "select.drop" | "brush.mixer.sample" | "brush.mixer.load" | "brush.mixer.clean")
         || ["view.", "window.", "help.", "prefs.", "palette."].iter().any(|p| id.starts_with(p))
 }
 

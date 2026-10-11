@@ -3,6 +3,11 @@
 This branch contains independently scoped local work. It is not a completed studio
 or a release. Original PhotoCraft additions do not change Photoshop parity counts.
 
+Current local delivery: Phase 12 now includes regional providers, editable guidance
+and result comparison. Read the latest phase entries for current qualification;
+earlier pending checks and failures remain dated historical evidence. See
+`generative-ai.md` for provider scope and the accompanying output qualification reports.
+
 ## Source and upstream coordination
 
 The mixer foundation started from `29f1ff9e90f2581ea2964e3276d85c71ab7e79a0`.
@@ -460,3 +465,12 @@ PARTIAL overall; tested native contracts VERIFIED. Ten explicit semantics, copy-
 Broad doc57/engine1234/format30/paint91 PASS. UI1856 passed plus one missing translation failed; after all16 catalog correction, localization32 PASS. Focused guidance engine4/UI9 and comparison5 PASS. Format hostile/legacy integration, panic_hunt, Clippy, layers, WASM, parity and pinned-corpus PASS. Quick perf command completed; existing budget and baseline limitations remain. Preserve initial failed logs.
 
 24MP synthetic guidance CPU means1.274/7.660ms at4096/65536points; worstp95 8.224/p99 8.938ms. Coldsetup487–528ms remains a cost. No physical input/display/GPU latency claim. Geometry-remap and individual point handles pending; providers separate. Details and reproduction: outputs/guidance-qualification.md, ai-guidance.md, guidance-evidence/, guidance-benchmark/, guidance-logs/. No commits without owner identity; no external pixels or publishing.
+
+
+## Phase 12 — regional provider integration
+
+PARTIAL overall; tested synthetic provider contracts VERIFIED. Reuses texjer's #2878 ImageProvider/HttpTransport and native services. Numeric-loopback WebUI plus optional Gemini; bounded regional worker preparation, explicit typed guidance, direct native one-request external consent, nondestructive masked result placement, regeneration and frozen provenance. No real model or external pixels.
+
+Broad doc57/engine1243/format30/genai16/paint91 PASS. UI1861 passed with one missing Strength translation; corrected localization32 and providerUI5 PASS. Focused engine9, native transport3, format integrations, panic_hunt, Clippy, layers, WASM, parity and pinned corpus PASS. Initial failures preserved. Native settings/review screenshots inspected down to1280×720. Dense24MP regional preparation/placement timings and exact source/Undo checks are in outputs/provider-qualification.md and provider-benchmark/. Quick performance command completed with the existing cross-platform-baseline/budget limitations; no blanket performance PASS.
+
+Local WebUI supports protection/modification masks, rejects unsupported descriptive semantics. Real model quality, physical hardware, other platforms, guidance remapping and current-main integration remain open. H remains blocked by large-brush performance. Source, licensing/contribution record, reproducible commands and logs are packaged; no commits without owner identity and no publication.

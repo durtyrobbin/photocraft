@@ -64,6 +64,8 @@ pub struct AiResult {
     pub input_digest: String,
     pub result_digest: String,
     pub recipe: EditRecipe,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub generation: Option<GenerationRecord>,
 }
 impl AiResult {
     pub fn validate(&self) -> Result<(), String> {
@@ -85,6 +87,49 @@ impl AiResult {
         {
             return Err("AI endpoint provenance must not contain credentials, queries or fragments".into());
         }
+        if let Some(g) = &self.generation {
+            g.validate()?;
+            if self.origin == ResultOrigin::Imported || self.recipe.region.intersect(&g.context) != self.recipe.region {
+                return Err("Generated context does not match its result".into());
+            }
+        }
         self.recipe.validate()
+    }
+}
+
+/// Immutable evidence of the actual bounded provider request. Editable guidance remains
+/// in the document; this digest and the sent annotations preserve the generated intent.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct GenerationRecord {
+    pub context: Rect,
+    pub input_size: [u32; 2],
+    pub guidance_digest: String,
+    pub semantics: Vec<String>,
+    pub annotations: Vec<String>,
+    pub decoded_size: [u32; 2],
+}
+impl GenerationRecord {
+    pub fn validate(&self) -> Result<(), String> {
+        let semantics = ["highlight", "shadow", "foldDirection", "materialBoundary", "edgePreservation", "textureDirection", "depthCue", "reflection"];
+        let mut seen = std::collections::BTreeSet::new();
+        if self.context.is_empty()
+            || self.context.x0 < 0
+            || self.context.y0 < 0
+            || self.context.width() > 2048
+            || self.context.height() > 2048
+            || self.input_size.iter().any(|&v| v == 0 || v > 2048)
+            || self.decoded_size.iter().any(|&v| v == 0 || v > 4096)
+            || self.guidance_digest.len() != 64
+            || !self.guidance_digest.bytes().all(|b| b.is_ascii_hexdigit())
+            || self.semantics.len() > 8
+            || self.semantics.iter().any(|s| !semantics.contains(&s.as_str()) || !seen.insert(s))
+            || self.annotations.len() > 2048
+            || self.annotations.iter().any(|s| s.len() > 1100)
+            || self.annotations.iter().map(String::len).sum::<usize>() > 32768
+        {
+            return Err("Invalid generated request provenance".into());
+        }
+        Ok(())
     }
 }

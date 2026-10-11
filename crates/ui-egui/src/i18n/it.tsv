@@ -2680,3 +2680,47 @@ fontWeight	Italic	Corsivo
 	Area to modify	Area da modificare
 	Area to protect	Area da proteggere
 	Locked	Bloccato
+
+# Upstream provider interface, PR #2878
+	API key	Chiave API
+	Describe what to generate in the selection, or leave it empty to continue the image through it.	Descrivi cosa generare nella selezione, oppure lascia vuoto per proseguire l’immagine al suo interno.
+	Generative AI	IA generativa
+	Generative AI Settings…	Impostazioni IA generativa…
+	Generative AI needs the desktop app.	L’IA generativa richiede l’app desktop.
+	Generative Fill uses {name} ({model}).	Il riempimento generativo usa {name} ({model}).
+	Generative Fill…	Riempimento generativo…
+	Get a Gemini API key from Google AI Studio	Ottieni una chiave API Gemini da Google AI Studio
+	No API key is saved for {provider}.	Nessuna chiave API salvata per {provider}.
+	Nothing is sent until you run Generative Fill. Each time you do, PhotoCraft sends the selected area and the image around it, a black-and-white mask of the selection, and your prompt to Google (generativelanguage.googleapis.com) with your API key. Google's Gemini API terms and privacy policy apply, and its usage is billed to your key. Results carry Google's SynthID watermark.	Non viene inviato nulla finché non esegui il riempimento generativo. Ogni volta che lo fai, PhotoCraft invia a Google (generativelanguage.googleapis.com) l’area selezionata e l’immagine circostante, una maschera in bianco e nero della selezione e la tua descrizione, con la tua chiave API. Si applicano i termini e l’informativa sulla privacy dell’API Gemini di Google, e l’uso viene addebitato sulla tua chiave. I risultati recano la filigrana SynthID di Google.
+	Off. Set up a provider with your own API key to use Generative Fill.	Disattivato. Configura un fornitore con la tua chiave API per usare il riempimento generativo.
+	Paste your Gemini API key	Incolla la tua chiave API Gemini
+	Prompt (optional)	Descrizione (facoltativa)
+	Provider	Fornitore
+	Remove Key	Rimuovi chiave
+	Saved (paste to replace)	Salvata (incolla per sostituirla)
+	The selected area, the image around it and the prompt are sent to {name} ({model}).	L’area selezionata, l’immagine circostante e la descrizione vengono inviate a {name} ({model}).
+	What is sent, and to whom	Cosa viene inviato, e a chi
+	Your key is kept in {store}, never in PhotoCraft's settings files.	La tua chiave è conservata in {store}, mai nei file di impostazioni di PhotoCraft.
+	the macOS Keychain	il Portachiavi di macOS
+	Windows Credential Manager	Gestione credenziali di Windows
+	memory until PhotoCraft quits	memoria finché PhotoCraft non viene chiuso
+
+# Studio provider review and local configuration
+	Configure providers directly in the native app.	Configura i fornitori direttamente nell’app nativa.
+	Context	Contesto
+	Context pixels	Pixel di contesto
+	Endpoint	Endpoint
+	External generation requires direct native confirmation.	La generazione esterna richiede una conferma diretta nell’app nativa.
+	Generate sends this regional image, masks, prompt and guidance to the displayed external provider. Charges and its data terms apply. Confirm directly for this request only.	Genera invia questa regione, le maschere, le istruzioni e le guide al fornitore esterno visualizzato. Si applicano le sue tariffe e condizioni sui dati. Conferma direttamente solo questa richiesta.
+	Input size	Dimensioni di ingresso
+	Local endpoint only. No model availability or output quality has been verified.	Solo endpoint locale. La disponibilità del modello e la qualità del risultato non sono state verificate.
+	Prompt	Istruzioni
+	Regenerate selected result	Rigenera il risultato selezionato
+	Review request	Esamina richiesta
+	Review the request before generating.	Esamina la richiesta prima di generare.
+	Selection and protection limit the result. Visible guidance and annotations are included. Regeneration uses current artwork and guidance with the selected result hidden.	La selezione e la protezione limitano il risultato. Sono incluse le guide visibili e le annotazioni. La rigenerazione usa l’immagine e le guide attuali nascondendo il risultato selezionato.
+	Steps	Passaggi
+	The request changed. Review it again.	La richiesta è cambiata. Esaminala di nuovo.
+	Off. Configure a local or external provider to use Generative Fill.	Disattivato. Configura un fornitore locale o esterno per usare il riempimento generativo.
+
+	Strength	Intensità

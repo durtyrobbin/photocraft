@@ -320,6 +320,9 @@ pub fn window(app: &mut PhotocraftApp, ctx: &egui::Context) {
                         state.enabled = false;
                     }
                 });
+                if ui.add_enabled(app.session.image_provider().is_some(), egui::Button::new(tl!("Regenerate selected result"))).clicked() {
+                    let r=crate::genai_ui::menu(app,"ui.regenerateAiResult",&json!({})).unwrap_or_else(||Err("generation unavailable".into())); report(app,r);
+                }
                 ui.add_enabled_ui(app.drag.is_none() && app.ui.transform.is_none(), |ui| {
                     ui.checkbox(&mut state.enabled, tl!("Compare on canvas"));
                 });

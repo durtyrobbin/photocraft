@@ -3623,3 +3623,45 @@ fontWeight	Italic	斜体
 	Area to modify	変更する領域
 	Area to protect	保護する領域
 	Locked	ロック
+
+# Upstream provider interface, PR #2878
+	API key	API キー
+	Describe what to generate in the selection, or leave it empty to continue the image through it.	選択範囲に生成する内容を入力してください。空のままにすると、周囲の画像を選択範囲の中へ続けます。
+	Generative AI	生成 AI
+	Generative AI Settings…	生成 AI の設定…
+	Generative AI needs the desktop app.	生成 AI はデスクトップアプリでのみ使えます。
+	Generative Fill uses {name} ({model}).	生成塗りつぶしは {name}（{model}）を使用します。
+	Generative Fill…	生成塗りつぶし…
+	Get a Gemini API key from Google AI Studio	Google AI Studio で Gemini API キーを取得
+	No API key is saved for {provider}.	{provider} の API キーは保存されていません。
+	Nothing is sent until you run Generative Fill. Each time you do, PhotoCraft sends the selected area and the image around it, a black-and-white mask of the selection, and your prompt to Google (generativelanguage.googleapis.com) with your API key. Google's Gemini API terms and privacy policy apply, and its usage is billed to your key. Results carry Google's SynthID watermark.	生成塗りつぶしを実行するまで、何も送信されません。実行するたびに、PhotoCraft は選択範囲とその周囲の画像、選択範囲の白黒マスク、入力した説明文を、API キーとともに Google（generativelanguage.googleapis.com）へ送信します。Google の Gemini API の利用規約とプライバシーポリシーが適用され、利用料金はお使いのキーに請求されます。結果には Google の SynthID 透かしが入ります。
+	Off. Set up a provider with your own API key to use Generative Fill.	オフです。生成塗りつぶしを使うには、ご自身の API キーでプロバイダーを設定してください。
+	Paste your Gemini API key	Gemini API キーを貼り付け
+	Prompt (optional)	説明文（省略可）
+	Provider	プロバイダー
+	Remove Key	キーを削除
+	Saved (paste to replace)	保存済み（貼り付けると置き換え）
+	The selected area, the image around it and the prompt are sent to {name} ({model}).	選択範囲、その周囲の画像、説明文が {name}（{model}）に送信されます。
+	What is sent, and to whom	送信される内容と送信先
+	Your key is kept in {store}, never in PhotoCraft's settings files.	キーは {store} に保管され、PhotoCraft の設定ファイルには保存されません。
+	the macOS Keychain	macOS のキーチェーン
+	Windows Credential Manager	Windows 資格情報マネージャー
+	memory until PhotoCraft quits	PhotoCraft を終了するまでのメモリ
+
+# Studio provider review and local configuration
+	Configure providers directly in the native app.	プロバイダーはネイティブアプリで直接設定してください。
+	Context	コンテキスト
+	Context pixels	周辺領域のピクセル数
+	Endpoint	接続先
+	External generation requires direct native confirmation.	外部生成にはネイティブアプリでの直接の確認が必要です。
+	Generate sends this regional image, masks, prompt and guidance to the displayed external provider. Charges and its data terms apply. Confirm directly for this request only.	「生成」を押すと、この領域、マスク、プロンプト、ガイダンスが表示中の外部プロバイダーに送信されます。料金とデータ利用条件が適用されます。このリクエストに限り、直接確認してください。
+	Input size	入力サイズ
+	Local endpoint only. No model availability or output quality has been verified.	ローカル接続先のみ。モデルの利用可否と出力品質は未検証です。
+	Prompt	プロンプト
+	Regenerate selected result	選択した結果を再生成
+	Review request	リクエストを確認
+	Review the request before generating.	生成前にリクエストを確認してください。
+	Selection and protection limit the result. Visible guidance and annotations are included. Regeneration uses current artwork and guidance with the selected result hidden.	選択範囲と保護領域が結果を制限します。表示中のガイダンスと注釈が含まれます。再生成では選択した結果を非表示にし、現在の作品とガイダンスを使用します。
+	Steps	ステップ数
+	The request changed. Review it again.	リクエストが変更されました。再度確認してください。
+	Off. Configure a local or external provider to use Generative Fill.	無効です。生成塗りつぶしを使用するにはローカルまたは外部プロバイダーを設定してください。

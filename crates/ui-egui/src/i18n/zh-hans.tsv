@@ -2618,3 +2618,47 @@ fontWeight	Italic	斜体
 	Area to modify	要修改的区域
 	Area to protect	要保护的区域
 	Locked	已锁定
+
+# Upstream provider interface, PR #2878
+	API key	API 密钥
+	Describe what to generate in the selection, or leave it empty to continue the image through it.	描述要在选区中生成的内容，留空则让周围的图像在选区中自然延续。
+	Generative AI	生成式 AI
+	Generative AI Settings…	生成式 AI 设置…
+	Generative AI needs the desktop app.	生成式 AI 需要桌面版应用。
+	Generative Fill uses {name} ({model}).	生成式填充使用 {name}（{model}）。
+	Generative Fill…	生成式填充…
+	Get a Gemini API key from Google AI Studio	在 Google AI Studio 获取 Gemini API 密钥
+	No API key is saved for {provider}.	尚未为 {provider} 保存 API 密钥。
+	Nothing is sent until you run Generative Fill. Each time you do, PhotoCraft sends the selected area and the image around it, a black-and-white mask of the selection, and your prompt to Google (generativelanguage.googleapis.com) with your API key. Google's Gemini API terms and privacy policy apply, and its usage is billed to your key. Results carry Google's SynthID watermark.	在你运行生成式填充之前，不会发送任何内容。每次运行时，PhotoCraft 会将选中的区域及其周围的图像、选区的黑白蒙版以及你的描述，连同你的 API 密钥一起发送给 Google（generativelanguage.googleapis.com）。Google Gemini API 的条款和隐私政策适用，用量计入你的密钥。生成结果带有 Google 的 SynthID 水印。
+	Off. Set up a provider with your own API key to use Generative Fill.	已关闭。请用你自己的 API 密钥设置服务提供方，以使用生成式填充。
+	Paste your Gemini API key	粘贴你的 Gemini API 密钥
+	Prompt (optional)	描述（可选）
+	Provider	服务提供方
+	Remove Key	移除密钥
+	Saved (paste to replace)	已保存（粘贴即可替换）
+	The selected area, the image around it and the prompt are sent to {name} ({model}).	选中的区域、其周围的图像和描述会发送给 {name}（{model}）。
+	What is sent, and to whom	发送什么，发送给谁
+	Your key is kept in {store}, never in PhotoCraft's settings files.	你的密钥保存在 {store}，不会写入 PhotoCraft 的设置文件。
+	the macOS Keychain	macOS 钥匙串
+	Windows Credential Manager	Windows 凭据管理器
+	memory until PhotoCraft quits	内存中，直到 PhotoCraft 退出
+
+# Studio provider review and local configuration
+	Configure providers directly in the native app.	请直接在原生应用中配置提供商。
+	Context	上下文
+	Context pixels	周边像素数
+	Endpoint	端点
+	External generation requires direct native confirmation.	外部生成需要在原生应用中直接确认。
+	Generate sends this regional image, masks, prompt and guidance to the displayed external provider. Charges and its data terms apply. Confirm directly for this request only.	“生成”会将此区域、蒙版、提示词和引导发送给显示的外部提供商。适用其收费和数据条款。请仅为此次请求直接确认。
+	Input size	输入尺寸
+	Local endpoint only. No model availability or output quality has been verified.	仅使用本地端点。尚未验证模型可用性或输出质量。
+	Prompt	提示词
+	Regenerate selected result	重新生成所选结果
+	Review request	审查请求
+	Review the request before generating.	请在生成前审查请求。
+	Selection and protection limit the result. Visible guidance and annotations are included. Regeneration uses current artwork and guidance with the selected result hidden.	选区和保护区域限制结果范围。将包括可见引导和注释。重新生成会隐藏所选结果，并使用当前作品和引导。
+	Steps	步数
+	The request changed. Review it again.	请求已更改。请重新审查。
+	Off. Configure a local or external provider to use Generative Fill.	已关闭。请配置本地或外部提供商以使用生成式填充。
+
+	Strength	强度

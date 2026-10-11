@@ -1,6 +1,6 @@
 # PhotoCraft vs Adobe Photoshop: target-app parity
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-10 · **Change:** major (full re-measure against Photoshop 2026 27.11.0; merged `parity-estimate.md` and the roadmap's honest assessment into this file) · **Target:** Adobe Photoshop 2026
+> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-11 · **Change:** minor (unpublished studio provider qualification; historical parity estimates unchanged) · **Target:** Adobe Photoshop 2026
 
 The authoritative answer to "how close is PhotoCraft to Photoshop, and how much work is left". The
 one-page summary is [`ROADMAP.md`](../ROADMAP.md); the ranked work list is [`gaps.md`](gaps.md);
@@ -9,6 +9,14 @@ the measured checklists are [`scorecard.md`](scorecard.md) (`cargo xtask scoreca
 [UI](ui-parity.md), [brushes and painting](brush-parity.md), [context menus](context-menu-parity.md),
 [file formats](file-format-parity.md), [hardware](hardware-parity.md),
 [localization](localization-parity.md).
+
+**Local branch qualification, 2026-10-11:** the studio work now adapts upstream
+#2878 into bounded regional provider jobs with per-request remote consent, separate
+result layers, editable typed guidance and native comparison. Windows synthetic
+contract tests pass; live model/backend availability, artist quality and other
+native platforms remain unqualified. See [provider scope](generative-ai.md) and
+[phase evidence](creative-studio-validation.md). This unpublished work adds no
+Photoshop parity points and does not revise the historical estimates below.
 
 ## Headline (2026-10-10, PhotoCraft 0.6.0, `main` at 3e000bc1)
 
@@ -537,6 +545,7 @@ See [method and results](octagonal-mask-performance.md).
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-11 | minor | Recorded unpublished regional provider/guidance/result contracts; no live model, hardware or Photoshop parity claim, and no change to historical estimates |
 | 2026-10-10 | minor | Readiness-by-audience table: percent and hours for full, mainstream and essentials; full number confirmed as the additive weighted sum over dimensions (46%, reported ~45%) |
 | 2026-10-10 | minor | Added mainstream-practitioner (~43%) and essentials-user (~61%) numbers with written weights and discounts; full ready-for-real-work rechecked against its written weights (46%, reported ~45%), unchanged |
 | 2026-10-10 | minor | Stage checked against the core-workflow alpha gate in `roadmap.md`: passes |
