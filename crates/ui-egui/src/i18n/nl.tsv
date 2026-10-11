@@ -1804,6 +1804,7 @@
 	Cache tile size	Tegelgrootte cache
 	Camera Raw Defaults	Standaardwaarden Camera Raw
 	Canvas border	Canvasrand
+	Show canvas dots	Canvasstippen tonen
 	Canvas color	Canvaskleur
 	Canvas custom color	Aangepaste canvaskleur
 	Color picker	Kleurkiezer
@@ -2094,6 +2095,7 @@
 	Cancelled {label}	{label} geannuleerd
 	Esc to cancel	Esc om te annuleren
 	Opening {name}	{name} openen
+	Saved {name}	{name} opgeslagen
 	Saving {name}	{name} opslaan
 	A save to {name} is still running; try again when it finishes	Er wordt nog opgeslagen naar {name}; probeer het opnieuw zodra dat klaar is
 	{label} is writing the file and can no longer be cancelled	{label} schrijft het bestand en kan niet meer worden geannuleerd
@@ -3644,6 +3646,19 @@ cameraRaw	Whites	Witten
 
 
 
+	Appearance Settings…	Weergave-instellingen…
+	Add to favorites	Toevoegen aan favorieten
+	Remove from favorites	Verwijderen uit favorieten
+# File Info ▸ Camera Data (read-only EXIF fields; "Make" is the camera maker, not the verb).
+cameraData	Make	Merk
+cameraData	Model	Model
+cameraData	Date Taken	Opnamedatum
+cameraData	Exposure	Sluitertijd
+cameraData	F-Stop	Diafragma
+cameraData	ISO Speed	ISO-waarde
+cameraData	Focal Length	Brandpuntsafstand
+cameraData	Focal Length (35 mm)	Brandpuntsafstand (35 mm)
+cameraData	Lens	Lens
 # Shared panel docking
 	Activate Panel	Paneel activeren
 	Change Panel Group	Paneelgroep wijzigen
