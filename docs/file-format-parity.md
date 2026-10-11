@@ -1,6 +1,6 @@
 # File-format parity
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-10 · **Change:** major (first version: every Photoshop 2026 format from its bundle against our readers and writers; Affinity notes moved here from `roadmap.md`) · **Target:** Adobe Photoshop 2026
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-11 · **Change:** minor (local Binder 2.1 standard PDF and paired PSD/PSB qualification; Photoshop PDF editing remains unverified) · **Target:** Adobe Photoshop 2026
 
 Every format Photoshop 2026 (27.11.0) reads or writes, with PhotoCraft's support, fidelity and
 tests. Photoshop's list comes from its `Info.plist` `CFBundleDocumentTypes`, the PiPL read/write
@@ -16,6 +16,8 @@ measured). Weighted by use (PSD/PSB 40%, JPEG 15%, PNG 15%, TIFF 10%, camera raw
 HEIF/JXL 6%, PDF 3%, everything else 3%), presence is ~80% and ready-for-real-work ~60%: PSD
 is broad but not yet reliable against Photoshop (gap G1), and Photoshop PDF, AVIF read and JPEG
 XL are missing (gap G10). Remaining: 300–500 h including PSD fidelity.
+
+The headline counts above remain the 2026-10-10 Photoshop-format baseline. Standard PDF/OCG support does not establish Photoshop PDF editing parity.
 
 ## Photoshop's formats
 
@@ -37,7 +39,7 @@ XL are missing (gap G10). Remaining: 300–500 h including PSD fidelity.
 | Radiance HDR | R/W | yes | yes | f32 |
 | Portable Bit Map (PBM/PGM/PPM/PNM/PFM/PAM) | R/W | yes | yes | 8/16/32f |
 | Targa | R/W | yes | yes | 8-bit |
-| Photoshop PDF | R/W | no (#2541) | raster only (print, artboards to PDF) | No vector/text PDF, no multi-page save, no PDF presentation (FILE-215-10) |
+| Photoshop PDF | R/W | Generic appearance where supported; private editing data unverified (#2541) | Standard PDF only; matching PSD/PSB can accompany it | Local Binder 2.1 opens selected pages as tabs, exports canvas-sized binders and supported OCG raster layers, and creates atomic PDF+PSD/PSB ZIP packages. No editable Photoshop PDF, native PDF text/vector or Photoshop PDF presentation claim. [Qualification](pdf-binder-2.1-qualification.md) |
 | Photoshop EPS, DCS 1.0/2.0, EPS TIFF/PICT preview | R/W | no | no | |
 | Generic EPS / AI | R (rasterize) | no | no | |
 | SVG | R (rasterize) | yes, as editable shape layers or a vector smart object | no | Better than Photoshop for editing; gradients approximated (FILE-215-9) |
@@ -133,4 +135,5 @@ remaining gaps in #1606 stay tracked with per-sample corpus ceilings.
 
 | Date | Change | Summary |
 |---|---|---|
+| 2026-10-11 | minor | Qualify local Binder 2.1 separate tabs, OCG raster layers and paired PSD/PSB; keep direct Photoshop PDF editing unverified |
 | 2026-10-10 | major | First version: Photoshop 2026 27.11.0's formats from its bundle, against our codecs; Affinity notes moved from `roadmap.md` |

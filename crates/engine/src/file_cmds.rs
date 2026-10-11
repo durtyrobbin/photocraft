@@ -454,7 +454,15 @@ fn place_pdf_bytes(s: &mut Session, name: &str, bytes: &[u8], p: &Value) -> Resu
         name,
         bytes,
         pages.as_deref(),
-        photocraft_io::pdf::ImportOptions { resolution },
+        photocraft_io::pdf::ImportOptions {
+            resolution,
+            flatten: p.get("flatten").and_then(Value::as_bool).unwrap_or(false),
+            ocg_selection: p
+                .get("ocgSelection")
+                .filter(|v| !v.is_null())
+                .map(|v| serde_json::from_value(v.clone()).map_err(|_| bad("Invalid OCG selection")))
+                .transpose()?,
+        },
         &photocraft_raster::Interrupt::default(),
     )
     .map_err(|e| EngineError::Other(e.to_string()))?;

@@ -51,6 +51,7 @@ fn pdf_smart_object_requires_manual_rasterization_before_painting() {
     let mut app = app_with(Kind::SmartObject);
     let bytes = photocraft_io::export(&app.session.active().unwrap().doc, "pdf", &Default::default()).unwrap().bytes;
     app.open_file("placed.pdf", &bytes).unwrap();
+    app.set_pdf_import_as_tabs(false).unwrap();
     app.confirm_pdf_pages(&[0]).unwrap();
     let before = app.session.active().unwrap().doc.clone();
     let history = past(&app);

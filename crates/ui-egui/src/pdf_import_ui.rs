@@ -29,6 +29,14 @@ impl ThumbnailSize {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum ImportDestination {
+    #[default]
+    Tabs,
+    SmartObjects,
+    Layers,
+}
+
 pub(crate) struct Picker {
     name: String,
     path: Option<String>,
@@ -41,6 +49,9 @@ pub(crate) struct Picker {
     thumbnails: VecDeque<(usize, Thumbnail)>,
     thumbnail_size: ThumbnailSize,
     resolution: f32,
+    destination: ImportDestination,
+    layers: Vec<photocraft_io::pdf_ocg_import::LayerEntry>,
+    layer_selection: Vec<i32>,
     pub slot: Option<usize>,
     pub target: Option<photocraft_doc::DocId>,
 }
@@ -51,6 +62,8 @@ pub(crate) fn is_pdf(name: &str, bytes: &[u8]) -> bool {
 
 pub(crate) fn queue(app: &mut PhotocraftApp, name: &str, path: Option<String>, bytes: &[u8]) -> Result<(), String> {
     let sizes = photocraft_io::pdf::page_sizes(bytes).map_err(|e| e.to_string())?;
+    let layers = photocraft_io::pdf_ocg_import::inspect(bytes).map_err(|e| e.to_string())?;
+    let layer_selection = layers.iter().filter(|l| !l.group).map(|l| l.id).collect();
     app.pdf_pickers.push_back(Picker {
         name: name.into(),
         path,
@@ -63,6 +76,9 @@ pub(crate) fn queue(app: &mut PhotocraftApp, name: &str, path: Option<String>, b
         thumbnails: VecDeque::new(),
         thumbnail_size: ThumbnailSize::default(),
         resolution: 144.0,
+        destination: ImportDestination::Tabs,
+        layers,
+        layer_selection,
         slot: None,
         target: app.session.active().map(|d| d.doc.id),
     });
@@ -75,18 +91,21 @@ impl PhotocraftApp {
     /// Confirm pages using the destination captured when the picker opened.
     pub fn confirm_pdf_pages(&mut self, pages: &[usize]) -> Result<(), String> {
         let p = self.pdf_pickers.front().ok_or("no PDF is waiting for a page selection")?;
-        let Some(target) = p.target else { return self.open_pdf_pages(pages) };
+        if p.destination != ImportDestination::SmartObjects {
+            return self.open_pdf_pages(pages);
+        }
+        let target = p.target.ok_or("The placement target is no longer available")?;
         if pages.is_empty() || pages.iter().any(|&i| i >= p.sizes.len()) {
             return Err("Choose at least one valid page".into());
         }
-        let (name, bytes, resolution) = (p.name.clone(), p.bytes.clone(), p.resolution);
+        let (name, bytes, resolution, flatten, ocgs) = (p.name.clone(), p.bytes.clone(), p.resolution, true, None::<Vec<i32>>);
         self.refocus(target)?;
         photocraft_engine::file_cmds::place_bytes(
             &mut self.session,
             &name,
             bytes.as_ref().clone(),
             None,
-            &serde_json::json!({"pages": pages, "resolution": resolution}),
+            &serde_json::json!({"pages": pages, "resolution": resolution, "flatten": flatten, "ocgSelection": ocgs}),
         )
         .map_err(|e| e.to_string())?;
         self.pdf_pickers.pop_front();
@@ -96,9 +115,28 @@ impl PhotocraftApp {
         Ok(())
     }
 
+    /// Choose the pending import destination without changing its captured placement target.
+    pub fn set_pdf_import_as_tabs(&mut self, tabs: bool) -> Result<(), String> {
+        let picker = self.pdf_pickers.front_mut().ok_or("no PDF is waiting for a selection")?;
+        if !tabs && picker.target.is_none() {
+            return Err("No document was captured for placement".into());
+        }
+        picker.destination = if tabs { ImportDestination::Tabs } else { ImportDestination::SmartObjects };
+        Ok(())
+    }
+
+    /// Preserve supported source OCG layers, with one editing document per selected page.
+    /// Unsupported structures fail explicitly rather than silently importing a composite.
+    pub fn set_pdf_import_as_layers(&mut self) -> Result<(), String> {
+        let picker = self.pdf_pickers.front_mut().ok_or("no PDF is waiting for a selection")?;
+        layer_import_available(picker)?;
+        picker.destination = ImportDestination::Layers;
+        Ok(())
+    }
+
     /// Set the raster resolution for the pending open/drop picker.
     pub fn set_pdf_import_resolution(&mut self, resolution: f32) -> Result<(), String> {
-        photocraft_io::pdf::ImportOptions { resolution }.validate().map_err(|e| e.to_string())?;
+        photocraft_io::pdf::ImportOptions { resolution, ..Default::default() }.validate().map_err(|e| e.to_string())?;
         self.pdf_pickers.front_mut().ok_or("no PDF is waiting for a page selection")?.resolution = resolution;
         Ok(())
     }
@@ -114,24 +152,26 @@ impl PhotocraftApp {
         if pages.is_empty() || pages.iter().any(|&i| i >= p.sizes.len()) {
             return Err("Choose at least one valid page".into());
         }
+        if p.destination == ImportDestination::Layers {
+            layer_import_available(p)?;
+        }
         // Retain the picker until decoding or starting the job succeeds. A bad resolution
         // must be correctable without reopening the source or losing the selected pages.
         let (name, path, bytes, resolution, slot) = (p.name.clone(), p.path.clone(), Arc::clone(&p.bytes), p.resolution, p.slot);
+        let options = photocraft_io::pdf::ImportOptions {
+            resolution,
+            flatten: p.destination != ImportDestination::Layers,
+            ocg_selection: if p.destination == ImportDestination::Layers { Some(p.layer_selection.clone()) } else { None },
+        };
         if self.background_jobs {
             let count = self.jobs.opens.len();
-            crate::jobs_ui::start_open(self, &name, path, OpenSource::PdfPages { bytes, pages: pages.to_vec(), resolution })?;
+            crate::jobs_ui::start_open(self, &name, path, OpenSource::PdfLayerPages { bytes, pages: pages.to_vec(), options })?;
             if let Some(tab) = self.jobs.opens.get_mut(count) {
                 tab.slot = slot;
             }
         } else {
-            let imported = photocraft_io::pdf::import_pdf_pages_with(
-                &name,
-                &bytes,
-                Some(pages),
-                photocraft_io::pdf::ImportOptions { resolution },
-                &photocraft_raster::Interrupt::default(),
-            )
-            .map_err(|e| e.to_string())?;
+            let imported = photocraft_io::pdf::import_pdf_pages_with(&name, &bytes, Some(pages), options, &photocraft_raster::Interrupt::default())
+                .map_err(|e| e.to_string())?;
             let documents = photocraft_engine::jobs::pdf_page_documents(&imported.document).map_err(|e| e.to_string())?;
             let first = self.session.documents().len();
             for doc in documents {
@@ -146,6 +186,7 @@ impl PhotocraftApp {
             }
             self.sync_views();
             self.ui.status = format!("Opened {} PDF page(s) in separate tabs", pages.len());
+            crate::notices::io_warnings(self, &format!("Opened {name}"), &imported.warnings);
         }
         self.pdf_pickers.pop_front();
         Ok(())
@@ -156,6 +197,18 @@ impl PhotocraftApp {
         self.pdf_pickers.pop_front();
         self.ui.status = "PDF import cancelled".into();
     }
+}
+
+fn layer_import_available(p: &Picker) -> Result<(), String> {
+    if p.layers.is_empty() {
+        return Err("This PDF has no source OCG layers. Choose Separate Tabs or Smart Objects.".into());
+    }
+    if p.layers.iter().any(|layer| !layer.supported) {
+        return Err(
+            "This PDF's layer structure is not supported for independent editing. Choose Separate Tabs or Smart Objects to import its page appearance.".into(),
+        );
+    }
+    Ok(())
 }
 
 fn select(selected: &mut [bool], anchor: &mut Option<usize>, index: usize, shift: bool, value: bool) {
@@ -295,7 +348,21 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let (mut open, mut all, mut cancel) = (false, false, false);
     let modal = egui::Modal::new(egui::Id::new("pdf-page-picker")).show(ctx, |ui| {
         ui.set_width(650.0);
-        let placing = p.target.is_some();
+        ui.horizontal(|ui| {
+            ui.label(tl!("Import As"));
+            crate::widgets::dropdown(
+                ui,
+                "pdf-destination",
+                &mut p.destination,
+                &[
+                    (ImportDestination::Tabs, tl!("Separate Tabs")),
+                    (ImportDestination::SmartObjects, tl!("Smart Objects")),
+                    (ImportDestination::Layers, tl!("Layers")),
+                ],
+                300.0,
+            );
+        });
+        let placing = p.destination == ImportDestination::SmartObjects;
         ui.heading(if placing { tl!("Place PDF pages as smart objects") } else { tl!("Open PDF pages") });
         ui.label(&p.name);
         ui.label(crate::i18n::fmt(
@@ -307,16 +374,25 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
             &[("count", &p.sizes.len().to_string())],
         ));
         ui.label(tl!("Ctrl/Cmd-click adds pages. Shift-click selects a range."));
+        ui.horizontal(|ui| {
+            if ui.button(tl!("Select All")).clicked() {
+                p.selected.fill(true);
+            }
+            if ui.button(tl!("Clear Selection")).clicked() {
+                p.selected.fill(false);
+                p.anchor = None;
+            }
+        });
         ui.separator();
         let t = crate::theme::Tokens::get(ui.ctx());
         egui::Frame::new().fill(t.field).stroke(egui::Stroke::new(1.0, t.field_border)).inner_margin(8.0).show(ui, |ui| {
             let card = p.thumbnail_size.image_size() + egui::vec2(8.0, 26.0);
             let columns = ((ui.available_width() - ui.spacing().scroll.bar_width) / (card.x + ui.spacing().item_spacing.x)).floor().max(1.0) as usize;
-            egui::ScrollArea::vertical().max_height(280.0).auto_shrink([false, false]).id_salt("pdf-pages").show_rows(
-                ui,
-                card.y,
-                p.sizes.len().div_ceil(columns),
-                |ui, rows| {
+            egui::ScrollArea::vertical()
+                .max_height((ui.ctx().content_rect().height() - if p.layers.is_empty() { 420.0 } else { 550.0 }).clamp(60.0, 280.0))
+                .auto_shrink([false, false])
+                .id_salt("pdf-pages")
+                .show_rows(ui, card.y, p.sizes.len().div_ceil(columns), |ui, rows| {
                     for row in rows {
                         ui.horizontal(|ui| {
                             for index in row * columns..((row + 1) * columns).min(p.sizes.len()) {
@@ -327,8 +403,7 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                             }
                         });
                     }
-                },
-            );
+                });
         });
         ui.horizontal(|ui| {
             ui.label(tl!("Thumbnail size"));
@@ -354,6 +429,43 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
             tl!("Preview page: {width} × {height} pixels"),
             &[("width", &format!("{:.0}", (w * p.resolution / 72.0).ceil())), ("height", &format!("{:.0}", (h * p.resolution / 72.0).ceil()))],
         ));
+        if p.destination == ImportDestination::Layers && !p.layers.is_empty() {
+            ui.add_enabled_ui(layer_import_available(p).is_ok(), |ui| {
+                egui::ScrollArea::vertical().id_salt("pdf-source-layers").max_height(100.0).show(ui, |ui| {
+                    for layer in &p.layers {
+                        let mut selected = p.layer_selection.contains(&layer.id);
+                        if ui
+                            .push_id(layer.id, |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.add_space(layer.depth as f32 * 12.0);
+                                    ui.checkbox(&mut selected, &layer.name)
+                                })
+                                .inner
+                            })
+                            .inner
+                            .changed()
+                        {
+                            p.layer_selection.retain(|id| *id != layer.id);
+                            if selected {
+                                p.layer_selection.push(layer.id);
+                            }
+                        }
+                    }
+                });
+            });
+            ui.label(tl!(
+                "Supported source OCGs become separate raster layers; names, order, groups and visibility are retained. PDF text and vectors remain rasterized."
+            ));
+        }
+        let destination_valid = if placing && p.target.is_none() {
+            ui.label(tl!("Open a document before placing PDF Smart Objects."));
+            false
+        } else if p.destination == ImportDestination::Layers && layer_import_available(p).is_err() {
+            ui.label(tl!("Independent layers are unavailable for this PDF structure. Choose Separate Tabs or Smart Objects for its page appearance."));
+            false
+        } else {
+            true
+        };
         ui.label(if placing {
             tl!("Smart objects contain rasterized pages at this resolution. PDF text and vectors remain rasterized.")
         } else {
@@ -365,11 +477,11 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                 if placing { tl!("Place all {count} pages") } else { tl!("Open all {count} pages") },
                 &[("count", &p.sizes.len().to_string())],
             );
-            all = crate::widgets::secondary_button(ui, &all_label, 130.0).clicked();
+            all = ui.add_enabled_ui(destination_valid, |ui| crate::widgets::secondary_button(ui, &all_label, 130.0)).inner.clicked();
             let count = p.selected.iter().filter(|&&v| v).count();
             let selected_label =
                 crate::i18n::fmt(if placing { tl!("Place selected ({count})") } else { tl!("Open selected ({count})") }, &[("count", &count.to_string())]);
-            open = ui.add_enabled_ui(count > 0, |ui| crate::widgets::primary_button(ui, &selected_label, 140.0)).inner.clicked();
+            open = ui.add_enabled_ui(destination_valid && count > 0, |ui| crate::widgets::primary_button(ui, &selected_label, 140.0)).inner.clicked();
         });
     });
     cancel |= modal.should_close();
@@ -384,6 +496,18 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
         }
     } else if cancel {
         app.cancel_pdf_import();
+    }
+}
+
+pub(crate) fn select_placement(app: &mut PhotocraftApp) {
+    if let Some(picker) = app.pdf_pickers.back_mut() {
+        picker.destination = ImportDestination::SmartObjects;
+    }
+}
+
+pub(crate) fn select_tabs(app: &mut PhotocraftApp) {
+    if let Some(picker) = app.pdf_pickers.back_mut() {
+        picker.destination = ImportDestination::Tabs;
     }
 }
 
@@ -407,6 +531,9 @@ mod tests {
             thumbnails: (0..13).map(|i| (i, Err("Test preview".into()))).collect(),
             thumbnail_size: super::ThumbnailSize::Small,
             resolution: 144.0,
+            destination: super::ImportDestination::Tabs,
+            layers: Vec::new(),
+            layer_selection: Vec::new(),
             slot: None,
             target: None,
         });
@@ -446,6 +573,14 @@ mod tests {
         h.run_steps(4);
         assert_eq!(h.state().pdf_pickers[0].selected.iter().filter(|&&v| v).count(), 1);
         assert!(h.state().pdf_pickers[0].selected[0]);
+        h.get_by_label("Select All").click();
+        h.run_steps(4);
+        assert!(h.state().pdf_pickers[0].selected.iter().all(|&v| v));
+        h.get_by_label("Clear Selection").click();
+        h.run_steps(4);
+        assert!(h.state().pdf_pickers[0].selected.iter().all(|&v| !v));
+        assert_eq!(h.state().pdf_pickers[0].anchor, None);
+        assert_eq!(h.state().pdf_pickers[0].destination, super::ImportDestination::Tabs);
     }
 
     #[test]
@@ -481,6 +616,9 @@ mod tests {
                         thumbnails: (0..2).map(|i| (i, Err("Test preview".into()))).collect(),
                         thumbnail_size,
                         resolution: 144.0,
+                        destination: if placing { super::ImportDestination::SmartObjects } else { super::ImportDestination::Tabs },
+                        layers: Vec::new(),
+                        layer_selection: Vec::new(),
                         slot: None,
                         target: placing.then(photocraft_doc::DocId::fresh),
                     });

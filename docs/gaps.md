@@ -1,6 +1,6 @@
 # Where PhotoCraft falls short of Photoshop
 
-> **Last reviewed:** 2026-10-10 · **Last updated:** 2026-10-10 · **Change:** major (first version: every known shortfall ranked, from the 2026-10-10 re-measure) · **Target:** Adobe Photoshop 2026
+> **Last reviewed:** 2026-10-11 · **Last updated:** 2026-10-11 · **Change:** minor (G10 standard PDF evidence; Photoshop PDF editing remains open) · **Target:** Adobe Photoshop 2026
 
 Every known shortfall against Photoshop 2026 (27.11.0), one entry each, ranked by user impact
 on the way to beta. This is the work list agents pick from: take the highest-ranked entry that
@@ -168,11 +168,12 @@ what an agent can't finish alone.
 ## File-format gaps
 
 ### G10. Missing and partial file formats
-- **Missing:** JPEG Options dialog (FILE-215-19), Photoshop PDF read and write and multi-page PDF
+- **Missing:** JPEG Options dialog (FILE-215-19), Photoshop PDF editing-data read/write and PDF presentation
   (FILE-215-10, #2541), AVIF read (#463) and default-build AVIF write, JPEG XL, JPEG 2000 (#1047),
   DPX/Cineon (#1049), DICOM, EPS/DCS, PCX, Pixar, IFF, WBMP, MPO/JPS, PICT, Scitex CT, Photoshop
   Raw; layered TIFF extra alpha channels (FILE-215-7); spot plates (FILE-215-17); .atn, .asl,
   .shc, .csh presets (FILE-215-15); TGA/PNG alpha channels on open (#2225); C2PA (#1050).
+- **Locally qualified:** Binder 2.1 supports selected PDF pages as separate tabs, canvas-sized combined export, supported raster OCG layers and paired layered PSD/PSB. This closes the generic multipage workflow gap, not direct Photoshop PDF editing. [Evidence and remaining limits](pdf-binder-2.1-qualification.md).
 - **Detail:** [`file-format-parity.md`](file-format-parity.md).
 - **Estimate:** 120–220 h.
 
@@ -212,4 +213,5 @@ what an agent can't finish alone.
 | Date | Change | Summary |
 |---|---|---|
 | 2026-10-10 | minor | Checked against the alpha gate (no alpha blockers); #2374 marked closed |
+| 2026-10-11 | minor | Record standard multipage PDF/OCG and paired PSD evidence separately from Photoshop PDF editing |
 | 2026-10-10 | major | First version, from the full re-measure against Photoshop 2026 27.11.0 and the open issues |

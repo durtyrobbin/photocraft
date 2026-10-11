@@ -390,7 +390,16 @@ pub enum OpenSource {
     /// A path the worker reads itself (native), so even the read stays off the UI thread.
     Path(String),
     /// Pages explicitly selected in the PDF import picker.
-    PdfPages { bytes: Arc<Vec<u8>>, pages: Vec<usize>, resolution: f32 },
+    PdfPages {
+        bytes: Arc<Vec<u8>>,
+        pages: Vec<usize>,
+        resolution: f32,
+    },
+    PdfLayerPages {
+        bytes: Arc<Vec<u8>>,
+        pages: Vec<usize>,
+        options: photocraft_io::pdf::ImportOptions,
+    },
 }
 
 /// The command id open jobs report (there is no engine command: opening is the shell's).
@@ -416,7 +425,7 @@ impl Session {
     /// [`Session::open_document`] (Color Settings policies apply). `name` names the document.
     /// The job's result is `{document, name, warnings, color}`; on wasm it runs inline.
     pub fn start_open(&mut self, name: &str, source: OpenSource) -> Result<Started> {
-        let split_pdf = matches!(&source, OpenSource::PdfPages { .. });
+        let split_pdf = matches!(&source, OpenSource::PdfPages { .. } | OpenSource::PdfLayerPages { .. });
         let label = format!("Opening {name}");
         let name_w = name.to_string();
         let name_a = name.to_string();
@@ -428,17 +437,18 @@ impl Session {
             false,
             move |ctx| {
                 ctx.progress(0.0, "Reading");
-                let (bytes, pages, resolution) = match source {
-                    OpenSource::Bytes(b) => (b, None, 144.0),
-                    OpenSource::Path(p) => (Arc::new(read_path(&p)?), None, 144.0),
-                    OpenSource::PdfPages { bytes, pages, resolution } => (bytes, Some(pages), resolution),
+                let (bytes, pages, options) = match source {
+                    OpenSource::Bytes(b) => (b, None, photocraft_io::pdf::ImportOptions::default()),
+                    OpenSource::Path(p) => (Arc::new(read_path(&p)?), None, photocraft_io::pdf::ImportOptions::default()),
+                    OpenSource::PdfPages { bytes, pages, resolution } => {
+                        (bytes, Some(pages), photocraft_io::pdf::ImportOptions { resolution, ..Default::default() })
+                    }
+                    OpenSource::PdfLayerPages { bytes, pages, options } => (bytes, Some(pages), options),
                 };
                 ctx.check()?;
                 ctx.progress(0.02, "Decoding");
                 ctx.stage(0.02, 1.0, "Decoding", |ctl| match &pages {
-                    Some(pages) => {
-                        photocraft_io::pdf::import_pdf_pages_with(&name_w, &bytes, Some(pages), photocraft_io::pdf::ImportOptions { resolution }, ctl)
-                    }
+                    Some(pages) => photocraft_io::pdf::import_pdf_pages_with(&name_w, &bytes, Some(pages), options, ctl),
                     None => photocraft_io::import_with_svg_group_depth_and_interrupt(&name_w, &bytes, max_svg_group_depth, ctl),
                 })
                 .map_err(|e| match e {

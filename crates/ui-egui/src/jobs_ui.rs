@@ -402,8 +402,9 @@ fn on_event(app: &mut PhotocraftApp, ctx: &egui::Context, e: JobEvent) {
             app.ui.panels.brush_settings = true;
             app.ui.brush_tab = 1;
         }
-        JobOutcome::Done(_) => {
+        JobOutcome::Done(v) => {
             app.sync_views();
+            notices::io_warnings(app, &e.label, &warnings_of(&v));
             app.ui.status = e.label;
             app.ui.status_error = false;
         }

@@ -24,21 +24,28 @@ const MAX_TOTAL_PIXELS: u64 = 512_000_000;
 mod guard;
 
 /// Raster resolution selected in the PDF open dialog (pixels per inch).
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct ImportOptions {
     pub resolution: f32,
+    /// Explicitly composite source OCGs instead of reconstructing supported layers.
+    pub flatten: bool,
+    /// Selected OCG object numbers. None includes all source layers.
+    pub ocg_selection: Option<Vec<i32>>,
 }
 
 impl Default for ImportOptions {
     fn default() -> Self {
-        Self { resolution: DPI }
+        Self { resolution: DPI, flatten: false, ocg_selection: None }
     }
 }
 
 impl ImportOptions {
-    pub fn validate(self) -> Result<(), IoError> {
+    pub fn validate(&self) -> Result<(), IoError> {
         if !self.resolution.is_finite() || !(1.0..=2400.0).contains(&self.resolution) {
             return Err(error("PDF resolution must be between 1 and 2400 ppi"));
+        }
+        if !self.flatten && self.ocg_selection.as_ref().is_some_and(|s| s.is_empty() || s.len() > 4096 || s.iter().any(|id| *id <= 0)) {
+            return Err(error("Select between 1 and 4096 valid PDF layer IDs"));
         }
         Ok(())
     }
@@ -169,6 +176,15 @@ fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: I
         canvas_width = canvas_width.max(w);
         sizes.push((w, h));
     }
+    let source_layers = crate::pdf_ocg_import::inspect(bytes)?;
+    if !options.flatten && options.ocg_selection.as_ref().is_some_and(|ids| ids.iter().any(|id| !source_layers.iter().any(|layer| layer.id == *id))) {
+        return Err(error("Selected PDF layer does not exist"));
+    }
+    let ocg_count = source_layers.len();
+    if !options.flatten && total.saturating_mul(ocg_count.max(1) as u64) > MAX_TOTAL_PIXELS {
+        return Err(error("Layered PDF import exceeds 512 megapixels; select fewer pages or lower the resolution"));
+    }
+    let mut layered_pages = 0;
     let mut doc = Document::new(name, Size::new(canvas_width, canvas_height - 32), ColorMode::Rgb, SampleType::U8);
     doc.resolution_dpi = dpi;
     doc.icc_profile = Some(Builtin::Srgb.profile().to_bytes());
@@ -177,23 +193,37 @@ fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: I
     for (done, (&index, &(w, h))) in indices.iter().zip(&sizes).enumerate() {
         let page = &pages[index];
         ctl.check().map_err(|_| IoError::Cancelled)?;
-        let settings = RenderSettings {
-            x_scale: dpi / 72.0,
-            y_scale: dpi / 72.0,
-            width: Some(w as u16),
-            height: Some(h as u16),
-            bg_color: hayro::vello_cpu::color::palette::css::WHITE,
-        };
-        let pixels = hayro::render(page, &cache, &InterpreterSettings::default(), &settings);
-        ctl.check().map_err(|_| IoError::Cancelled)?;
         let rect = Rect::new(0, y, w as i32, y + h as i32);
-        let mut surface = Surface::new(PixelFormat::new(ColorMode::Rgb, SampleType::U8, true));
-        surface.write_interleaved(rect, pixels.data_as_u8_slice());
-        surface.prune();
-        let layer = Layer::new("Page image", LayerContent::Raster(surface));
+        let separated = if options.flatten { None } else { crate::pdf_ocg_import::page_layers(&pdf, index, (w, h), y, options.ocg_selection.as_deref(), ctl)? };
+        let independent = separated.is_some();
+        let children = if let Some(layers) = separated {
+            layered_pages += 1;
+            layers
+        } else {
+            let settings = RenderSettings {
+                x_scale: dpi / 72.0,
+                y_scale: dpi / 72.0,
+                width: Some(w as u16),
+                height: Some(h as u16),
+                bg_color: hayro::vello_cpu::color::palette::css::WHITE,
+            };
+            let pixels = hayro::render(page, &cache, &InterpreterSettings::default(), &settings);
+            ctl.check().map_err(|_| IoError::Cancelled)?;
+            let mut surface = Surface::new(PixelFormat::new(ColorMode::Rgb, SampleType::U8, true));
+            surface.write_interleaved(rect, pixels.data_as_u8_slice());
+            surface.prune();
+            vec![Layer::new("Page image", LayerContent::Raster(surface))]
+        };
         doc.layers.push(Layer::new(
             format!("Page {}", index + 1),
-            LayerContent::Group(Group { children: vec![layer], expanded: true, artboard: Some(Artboard::new(rect)) }),
+            LayerContent::Group(Group {
+                children,
+                expanded: true,
+                artboard: Some(Artboard {
+                    background: if independent { photocraft_doc::ArtboardBackground::Transparent } else { photocraft_doc::ArtboardBackground::White },
+                    ..Artboard::new(rect)
+                }),
+            }),
         ));
         y += h as i32 + 32;
         ctl.progress((done + 1) as f32 / indices.len() as f32);
@@ -203,8 +233,13 @@ fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: I
     Ok(ImportResult {
         document: doc,
         warnings: vec![format!(
-            "Imported {} PDF page(s) as raster artboards at {dpi} ppi. PDF text, vectors, forms and links are not editable objects. Save As PDF exports each artboard as a page; save .pcraft to retain editing layers. The original PDF is not overwritten automatically.",
-            indices.len()
+            "Imported {} page(s) at {dpi} ppi; {layered_pages} page(s) retain independently editable raster OCG layers. Other pages are composited raster appearances. PDF text/vector editability, forms and links are not retained; masks on OCG leaves are baked into alpha. Source PDF is read-only. {}",
+            indices.len(),
+            if ocg_count > 0 && layered_pages == 0 && !options.flatten {
+                "This PDF uses unsupported optional-content structure; its visible appearance was rasterized."
+            } else {
+                ""
+            }
         )],
         source_read_only: true,
         preview_only: false,
@@ -265,13 +300,6 @@ fn export_pdf_layout(
     let mut output_pages = Vec::new();
     for (index, (doc, id, rect)) in pages.iter().enumerate() {
         progress(index as f32 / pages.len() as f32).map_err(error)?;
-        let gray = doc.mode == ColorMode::Grayscale;
-        let source = if matches!(doc.mode, ColorMode::Rgb | ColorMode::Grayscale) {
-            doc.icc_profile.as_deref().and_then(|p| Profile::parse(p).ok()).filter(|p| p.color_space == if gray { ColorSpace::Gray } else { ColorSpace::Rgb })
-        } else {
-            None
-        };
-        let transform = source.as_ref().map(|p| Transform::new(p, Builtin::Srgb.profile(), Intent::RelativeColorimetric, true)).transpose().map_err(error)?;
         let mut one = (*doc).clone();
         if let Some(id) = id {
             one.layers.retain(|l| l.id == *id);
@@ -279,30 +307,6 @@ fn export_pdf_layout(
                 layer.visible = true;
             }
         }
-        let mut rgb = ZlibEncoder::new(Vec::new(), Compression::default());
-        let mut alpha = ZlibEncoder::new(Vec::new(), Compression::default());
-        let mut rendered = 0usize;
-        photocraft_compose::render_bands(&one, *rect, 64, |band| -> Result<(), IoError> {
-            rendered += band.px.len();
-            let fraction = rendered as f32 / (rect.width() as f32 * rect.height() as f32);
-            progress((index as f32 + fraction) / pages.len() as f32).map_err(error)?;
-            let stride = if gray { 1 } else { 3 };
-            let mut colors = Vec::with_capacity(band.px.len() * 3);
-            if let Some(t) = &transform {
-                let source: Vec<f32> = band.px.iter().flat_map(|p| p.iter().take(stride).copied()).collect();
-                colors.resize(band.px.len() * 3, 0.0);
-                t.convert_f32(&source, stride, &mut colors, 3, false);
-            } else {
-                colors.extend(band.px.iter().flat_map(|p| p.iter().take(3).copied()));
-            }
-            let bytes: Vec<u8> = colors.iter().map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8).collect();
-            rgb.write_all(&bytes).map_err(error)?;
-            let bytes: Vec<u8> = band.px.iter().map(|p| (p[3].clamp(0.0, 1.0) * 255.0).round() as u8).collect();
-            alpha.write_all(&bytes).map_err(error)?;
-            Ok(())
-        })?;
-        let rgb = rgb.finish().map_err(error)?;
-        let alpha = alpha.finish().map_err(error)?;
         let (w, h) = (rect.width(), rect.height());
         let (pw, ph) = (f64::from(w) * 72.0 / f64::from(doc.resolution_dpi), f64::from(h) * 72.0 / f64::from(doc.resolution_dpi));
         if !pw.is_finite() || !ph.is_finite() || pw > 14400.0 || ph > 14400.0 {
@@ -311,15 +315,7 @@ fn export_pdf_layout(
         output_pages.push(crate::pdf_writer::RasterPage {
             paper: (pw, ph),
             content: format!("q {pw:.6} 0 0 {ph:.6} 0 0 cm /Im0 Do Q"),
-            image: crate::pdf_writer::RasterImage {
-                width: w,
-                height: h,
-                channels: 3,
-                data: rgb,
-                jpeg: false,
-                icc: Some(Builtin::Srgb.profile().to_bytes().to_vec()),
-                alpha: Some(alpha),
-            },
+            image: render_image(&one, *rect, &mut |fraction| progress((index as f32 + fraction) / pages.len() as f32))?,
         });
     }
     progress(1.0).map_err(error)?;
@@ -330,5 +326,48 @@ fn export_pdf_layout(
             "Exported {} raster PDF page(s) in 8-bit sRGB with lossless compression. Editing layers and PDF text/vectors are not retained; use .pcraft to keep editing layers.",
             pages.len()
         )],
+    })
+}
+
+pub(crate) fn render_image(doc: &Document, rect: Rect, progress: &mut dyn FnMut(f32) -> Result<(), String>) -> Result<crate::pdf_writer::RasterImage, IoError> {
+    let gray = doc.mode == ColorMode::Grayscale;
+    let source = if matches!(doc.mode, ColorMode::Rgb | ColorMode::Grayscale) {
+        doc.icc_profile.as_deref().and_then(|p| Profile::parse(p).ok()).filter(|p| p.color_space == if gray { ColorSpace::Gray } else { ColorSpace::Rgb })
+    } else {
+        None
+    };
+    let transform = source.as_ref().map(|p| Transform::new(p, Builtin::Srgb.profile(), Intent::RelativeColorimetric, true)).transpose().map_err(error)?;
+    let mut rgb = ZlibEncoder::new(Vec::new(), Compression::default());
+    let mut alpha = ZlibEncoder::new(Vec::new(), Compression::default());
+    let mut rendered = 0usize;
+    photocraft_compose::render_bands(doc, rect, 64, |band| -> Result<(), IoError> {
+        rendered += band.px.len();
+        let fraction = rendered as f32 / (rect.width() as f32 * rect.height() as f32);
+        progress(fraction).map_err(error)?;
+        let stride = if gray { 1 } else { 3 };
+        let mut colors = Vec::with_capacity(band.px.len() * 3);
+        if let Some(t) = &transform {
+            let source: Vec<f32> = band.px.iter().flat_map(|p| p.iter().take(stride).copied()).collect();
+            colors.resize(band.px.len() * 3, 0.0);
+            t.convert_f32(&source, stride, &mut colors, 3, false);
+        } else {
+            colors.extend(band.px.iter().flat_map(|p| p.iter().take(3).copied()));
+        }
+        let bytes: Vec<u8> = colors.iter().map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8).collect();
+        rgb.write_all(&bytes).map_err(error)?;
+        let bytes: Vec<u8> = band.px.iter().map(|p| (p[3].clamp(0.0, 1.0) * 255.0).round() as u8).collect();
+        alpha.write_all(&bytes).map_err(error)?;
+        Ok(())
+    })?;
+    let rgb = rgb.finish().map_err(error)?;
+    let alpha = alpha.finish().map_err(error)?;
+    Ok(crate::pdf_writer::RasterImage {
+        width: rect.width(),
+        height: rect.height(),
+        channels: 3,
+        data: rgb,
+        jpeg: false,
+        icc: Some(Builtin::Srgb.profile().to_bytes().to_vec()),
+        alpha: Some(alpha),
     })
 }

@@ -395,20 +395,31 @@ fn app_with_canvas() -> PhotocraftApp {
 }
 
 #[test]
-fn pdf_drop_on_canvas_selects_then_places_a_smart_object() {
-    let ctx = egui::Context::default();
-    let mut app = app_with_canvas();
-    let bytes = photocraft_io::export(&app.session.active().unwrap().doc, "pdf", &photocraft_io::ExportOptions::default()).unwrap().bytes;
-    app.open_dropped(&ctx, vec![dropped("pages.PDF", Ok(bytes))], Some(egui::pos2(400.0, 300.0)));
-    assert_eq!(app.session.documents().len(), 1);
-    assert_eq!(app.pending_pdf_pages(), Some(1));
-    assert!(app.drop_places.is_empty());
-    let before = app.session.active().unwrap().doc.layers.len();
-    app.confirm_pdf_pages(&[0]).unwrap();
-    assert_eq!(app.session.documents().len(), 1);
-    assert_eq!(app.session.active().unwrap().doc.layers.len(), before + 1);
-    let state = app.session.active().unwrap();
-    assert!(matches!(state.doc.layer(state.active_layer.unwrap()).unwrap().content, photocraft_doc::LayerContent::Smart(_)));
+fn pdf_drop_on_canvas_defaults_to_tabs_but_explicit_placement_is_retained() {
+    for place in [false, true] {
+        let ctx = egui::Context::default();
+        let mut app = app_with_canvas();
+        let before = app.session.active().unwrap().doc.clone();
+        let bytes = photocraft_io::export(&before, "pdf", &photocraft_io::ExportOptions::default()).unwrap().bytes;
+        app.open_dropped(&ctx, vec![dropped("pages.PDF", Ok(bytes))], Some(egui::pos2(400.0, 300.0)));
+        assert_eq!(app.session.documents().len(), 1);
+        assert_eq!(app.pending_pdf_pages(), Some(1));
+        assert!(app.drop_places.is_empty());
+        if place {
+            app.set_pdf_import_as_tabs(false).unwrap();
+        }
+        app.confirm_pdf_pages(&[0]).unwrap();
+        if place {
+            assert_eq!(app.session.documents().len(), 1);
+            assert_eq!(app.session.active().unwrap().doc.layers.len(), before.layers.len() + 1);
+            let state = app.session.active().unwrap();
+            assert!(matches!(state.doc.layer(state.active_layer.unwrap()).unwrap().content, photocraft_doc::LayerContent::Smart(_)));
+        } else {
+            assert_eq!(app.session.documents().len(), 2);
+            assert_eq!(app.session.documents()[0].doc, before);
+            assert!(app.session.active().unwrap().source_read_only);
+        }
+    }
 }
 
 fn layer_count(app: &PhotocraftApp) -> usize {

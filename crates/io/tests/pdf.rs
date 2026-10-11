@@ -197,10 +197,10 @@ fn pdf_resolution_validation_and_physical_size() {
     let bytes = export(&document(), "pdf", &ExportOptions::default()).unwrap().bytes;
     let ctl = photocraft_raster::Interrupt::default();
     for dpi in [0.0, -1.0, f32::NAN, f32::INFINITY, 2401.0] {
-        assert!(import_pdf_pages_with("test.pdf", &bytes, Some(&[0]), ImportOptions { resolution: dpi }, &ctl).is_err());
+        assert!(import_pdf_pages_with("test.pdf", &bytes, Some(&[0]), ImportOptions { resolution: dpi, ..Default::default() }, &ctl).is_err());
     }
     for dpi in [72.0, 300.0] {
-        let imported = import_pdf_pages_with("test.pdf", &bytes, Some(&[0]), ImportOptions { resolution: dpi }, &ctl).unwrap().document;
+        let imported = import_pdf_pages_with("test.pdf", &bytes, Some(&[0]), ImportOptions { resolution: dpi, ..Default::default() }, &ctl).unwrap().document;
         assert_eq!(imported.size, Size::new(dpi as u32, (dpi / 2.0) as u32));
         assert_eq!(imported.resolution_dpi, dpi);
         let output = export(&imported, "pdf", &ExportOptions::default()).unwrap();

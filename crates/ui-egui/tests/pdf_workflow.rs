@@ -59,6 +59,7 @@ fn picker_places_in_original_document_and_retains_state_on_failure() {
     let target = app.session.active().unwrap().doc.id;
     let before = app.session.active().unwrap().doc.clone();
     app.open_file("binder.pdf", &binder()).unwrap();
+    app.set_pdf_import_as_tabs(false).unwrap();
     app.session.execute("file.new", serde_json::json!({"width": 20, "height": 20})).unwrap();
     let other = app.session.active().unwrap().doc.clone();
     assert!(app.confirm_pdf_pages(&[3]).is_err());
@@ -71,6 +72,7 @@ fn picker_places_in_original_document_and_retains_state_on_failure() {
     assert!(app.session.undo());
     assert_eq!(app.session.active().unwrap().doc, before);
     app.open_file("binder.pdf", &binder()).unwrap();
+    app.set_pdf_import_as_tabs(false).unwrap();
     app.session.execute("file.close", serde_json::json!({})).unwrap();
     assert!(app.confirm_pdf_pages(&[0]).is_err());
     assert_eq!(app.pending_pdf_pages(), Some(3));
@@ -238,4 +240,58 @@ fn binder_selection_is_stable_across_refresh_reorder_and_new_documents() {
     fields.insert("documentIds".into(), json!([]));
     assert!(!export_dialog::can_confirm(&app, &fields));
     assert!(export_dialog::confirm(&mut app, &fields).is_err());
+}
+
+#[test]
+fn opening_with_active_document_defaults_to_separate_tabs_even_after_switch() {
+    let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Services::default());
+    app.session.execute("file.new", serde_json::json!({"width":20,"height":20})).unwrap();
+    let original = app.session.active().unwrap().doc.clone();
+    app.open_file("binder.pdf", &binder()).unwrap();
+    app.session.execute("file.new", serde_json::json!({"width":30,"height":30})).unwrap();
+    let other = app.session.active().unwrap().doc.clone();
+    app.confirm_pdf_pages(&[0, 2]).unwrap();
+    assert_eq!(app.session.documents().len(), 4);
+    assert_eq!(app.session.documents()[0].doc, original);
+    assert_eq!(app.session.documents()[1].doc, other);
+    assert_eq!(app.session.documents()[2].doc.name, "binder - Page 1.pdf");
+    assert_eq!(app.session.documents()[3].doc.name, "binder - Page 3.pdf");
+}
+
+#[test]
+fn explicit_layers_retains_source_stack_while_tabs_composite_and_unsupported_layers_refuse() {
+    let mut source = Document::with_background("OCG source", Size::new(12, 8), ColorMode::Rgb, SampleType::U8, Color::WHITE);
+    source.layers.push(photocraft_doc::Layer::raster("Hidden ink", photocraft_doc::PixelFormat::new(ColorMode::Rgb, SampleType::U8, true)));
+    source.layers.last_mut().unwrap().visible = false;
+    let bytes = photocraft_io::pdf_layers::export_ocg(&[&source], &mut |_| Ok(())).unwrap().bytes;
+    let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), Services::default());
+    app.open_file("source.pdf", &bytes).unwrap();
+    app.confirm_pdf_pages(&[0]).unwrap();
+    let flat = app.session.active().unwrap().doc.clone();
+    assert_eq!(flat.layers[0].children().unwrap().len(), 1);
+    app.open_file("source.pdf", &bytes).unwrap();
+    app.set_pdf_import_as_layers().unwrap();
+    app.confirm_pdf_pages(&[0]).unwrap();
+    let layers = app.session.active().unwrap().doc.layers[0].children().unwrap();
+    assert_eq!(layers.len(), 2);
+    assert_eq!(layers[1].name, "Hidden ink");
+    assert!(!layers[1].visible);
+    assert_eq!(app.session.documents()[0].doc, flat);
+    let unsupported: Vec<u8> = bytes
+        .windows(b"/PhotoCraftLayered 1".len())
+        .position(|w| w == b"/PhotoCraftLayered 1")
+        .map(|offset| {
+            let mut modified = bytes.clone();
+            modified[offset + b"/PhotoCraftLayered ".len()] = b'0';
+            modified
+        })
+        .unwrap();
+    app.open_file("other-producer.pdf", &unsupported).unwrap();
+    assert!(app.set_pdf_import_as_layers().unwrap_err().contains("not supported"));
+    assert_eq!(app.session.documents().len(), 2);
+    assert_eq!(app.pending_pdf_pages(), Some(1));
+    app.cancel_pdf_import();
+    app.open_file("ordinary.pdf", &binder()).unwrap();
+    assert!(app.set_pdf_import_as_layers().unwrap_err().contains("no source OCG layers"));
+    assert_eq!(app.session.documents().len(), 2);
 }

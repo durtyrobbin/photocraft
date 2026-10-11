@@ -84,7 +84,11 @@ fn photocraft_manages_colors_converts_to_the_printer_profile() {
     assert_eq!(r["color"]["intent"], "perceptual");
     let pdf = std::fs::read(r["pdf"].as_str().unwrap()).unwrap();
     let (_, _, cs, data) = pdf_image(&pdf);
-    assert_eq!(cs, "[/ICCBased 7 0 R]");
+    let reference: u32 = cs.strip_prefix("[/ICCBased ").unwrap().strip_suffix(" 0 R]").unwrap().parse().unwrap();
+    let object_header = format!("{reference} 0 obj\n");
+    let start = find(&pdf, object_header.as_bytes(), 0) + object_header.len();
+    let end = find(&pdf, b">>\nstream\n", start);
+    assert!(String::from_utf8_lossy(&pdf[start..end]).contains("/N 4 /Alternate /DeviceCMYK"));
     assert!(String::from_utf8_lossy(&pdf).contains("/N 4 /Alternate /DeviceCMYK"));
     assert_eq!(data.len(), 300 * 150 * 4);
     // Blue: lots of cyan, little yellow.

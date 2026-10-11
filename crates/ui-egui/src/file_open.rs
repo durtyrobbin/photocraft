@@ -205,7 +205,10 @@ impl PhotocraftApp {
                 crate::read_dropped(&*f).and_then(|bytes| self.place_bytes(&dropped_name(&f), bytes, None))
             };
             match placed {
-                Ok(result) if result.get("pdfPicker").and_then(serde_json::Value::as_bool) == Some(true) => return,
+                Ok(result) if result.get("pdfPicker").and_then(serde_json::Value::as_bool) == Some(true) => {
+                    crate::pdf_import_ui::select_tabs(self);
+                    return;
+                }
                 Ok(_) => {
                     if let Err(e) = crate::transform_tool::begin_placed(self, ctx) {
                         self.ui.status = e;
@@ -222,6 +225,7 @@ impl PhotocraftApp {
         if linked.is_none() && crate::pdf_import_ui::is_pdf(name, &bytes) {
             self.active_doc_id()?;
             crate::pdf_import_ui::queue(self, name, None, &bytes)?;
+            crate::pdf_import_ui::select_placement(self);
             return Ok(serde_json::json!({"pdfPicker": true}));
         }
         let r = photocraft_engine::file_cmds::place_bytes(&mut self.session, name, bytes, linked, &serde_json::json!({})).map_err(|e| e.to_string());

@@ -30,9 +30,15 @@ fn capture(session: &Session, params: Value) -> Snapshot {
     Snapshot::capture_plan(session, &BinderExportPlan::from_params(session, &params).unwrap()).unwrap()
 }
 fn page(bytes: &[u8], index: usize) -> Document {
-    pdf::import_pdf_pages_with("test.pdf", bytes, Some(&[index]), pdf::ImportOptions { resolution: 72. }, &photocraft_raster::Interrupt::default())
-        .unwrap()
-        .document
+    pdf::import_pdf_pages_with(
+        "test.pdf",
+        bytes,
+        Some(&[index]),
+        pdf::ImportOptions { resolution: 72., ..Default::default() },
+        &photocraft_raster::Interrupt::default(),
+    )
+    .unwrap()
+    .document
 }
 fn pixels(doc: &Document) -> Vec<[f32; 4]> {
     photocraft_compose::render(doc, doc.bounds()).px
@@ -72,14 +78,7 @@ fn hidden_override_changes_only_snapshot() {
 fn invalid_selection_and_unsupported_modes_fail_explicitly() {
     let session = fixture();
     let id = session.documents()[0].doc.id.0;
-    for params in [
-        json!({"documentIds":[]}),
-        json!({"documentIds":[id,id]}),
-        json!({"documentIds":[u64::MAX]}),
-        json!({"mode":"layersAsPages"}),
-        json!({"mode":"preserveLayersOcg"}),
-        json!({"includeAllLayers":false}),
-    ] {
+    for params in [json!({"documentIds":[]}), json!({"documentIds":[id,id]}), json!({"documentIds":[u64::MAX]})] {
         assert!(Snapshot::capture_plan(&session, &BinderExportPlan::from_params(&session, &params).unwrap()).is_err());
     }
     for params in [json!({"tabs":[true]}), json!({"tabs":[1,2,3]}), json!({"documentIds":"bad"}), json!({"includeHiddenLayers":"yes"}), json!({"mode":"bogus"})]
@@ -319,4 +318,27 @@ fn close_after_export_keeps_documents_with_pending_edits() {
     release.send(()).unwrap();
     session.wait_job(job).unwrap();
     assert!(session.documents()[0].doc.layers.is_empty(), "pending edit completed on the retained document");
+}
+
+#[test]
+fn paired_layered_export_keeps_hidden_structure_and_closes_only_after_package_write() {
+    let mut s = fixture();
+    let before = s.documents().len();
+    let params = json!({"pairedPhotoshop":true,"mode":"preserveLayersOcg","includeHiddenLayers":true});
+    let snapshot = capture(&s, params.clone());
+    assert!(snapshot.write(&mut s, "test.zip", true, |_, _| Err("disk full".into())).is_err());
+    assert_eq!(s.documents().len(), before);
+    let snapshot = capture(&s, params);
+    let mut output = Vec::new();
+    snapshot
+        .write(&mut s, "test.zip", true, |_, bytes| {
+            output = bytes.to_vec();
+            Ok(())
+        })
+        .unwrap();
+    assert!(s.documents().is_empty());
+    let zip = photocraft_format::zip::ZipReader::new(&output).unwrap();
+    let restored = photocraft_io::import("doc.psd", &zip.read_by_name("document-001.psd", 10_000_000).unwrap()).unwrap().document;
+    assert_eq!(restored.layers.len(), 2);
+    assert!(!restored.layers[1].visible);
 }

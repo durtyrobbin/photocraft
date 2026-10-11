@@ -37,10 +37,13 @@ pub struct BinderDocumentSelection {
     pub document_id: DocId,
     pub layer_policy: LayerPolicy,
     pub mode: PdfBinderMode,
+    pub layer_ids: Option<Vec<photocraft_doc::LayerId>>,
 }
 #[derive(Clone, Debug)]
 pub struct BinderExportPlan {
     pub documents: Vec<BinderDocumentSelection>,
+    pub paired: bool,
+    pub force_psb: bool,
 }
 impl BinderExportPlan {
     /// Resolve positional fixture flags immediately. GUI callers always pass stable document IDs.
@@ -51,7 +54,10 @@ impl BinderExportPlan {
         let flag = |key: &str, default| -> Result<bool> {
             params.get(key).map_or(Ok(default), |v| v.as_bool().ok_or_else(|| bad("PDF binder layer options must be boolean")))
         };
-        let policy = LayerPolicy { include_all_layers: flag("includeAllLayers", true)?, include_hidden_layers: flag("includeHiddenLayers", false)? };
+        let policy = LayerPolicy {
+            include_all_layers: flag("includeAllLayers", true)?,
+            include_hidden_layers: flag("includeHiddenLayers", mode == PdfBinderMode::PreserveLayersOcg || flag("pairedPhotoshop", false)?)?,
+        };
         if params.get("documentIds").is_some() && params.get("tabs").is_some() {
             return Err(bad("Use documentIds or tabs, not both"));
         }
@@ -70,7 +76,31 @@ impl BinderExportPlan {
         } else {
             session.documents().iter().map(|st| st.doc.id).collect()
         };
-        Ok(Self { documents: ids.into_iter().map(|document_id| BinderDocumentSelection { document_id, layer_policy: policy, mode }).collect() })
+        if params.get("layerIds").is_some_and(|v| !v.is_object()) {
+            return Err(bad("layerIds must be an object keyed by document ID"));
+        }
+        let mut documents = Vec::new();
+        for document_id in ids {
+            let layer_ids = params
+                .get("layerIds")
+                .and_then(|v| v.get(document_id.0.to_string()))
+                .map(|v| {
+                    v.as_array()
+                        .ok_or_else(|| bad("layerIds must map document IDs to arrays"))?
+                        .iter()
+                        .map(|id| id.as_u64().map(photocraft_doc::LayerId).ok_or_else(|| bad("Invalid layer ID")))
+                        .collect::<Result<Vec<_>>>()
+                })
+                .transpose()?;
+            if layer_ids.as_ref().is_some_and(|ids| ids.len() > 4096) {
+                return Err(bad("Select at most 4096 layers per document"));
+            }
+            if !policy.include_all_layers && layer_ids.as_ref().is_none_or(Vec::is_empty) {
+                return Err(bad("Select at least one layer per selected document"));
+            }
+            documents.push(BinderDocumentSelection { document_id, layer_policy: policy, mode, layer_ids });
+        }
+        Ok(Self { documents, paired: flag("pairedPhotoshop", false)?, force_psb: flag("forcePsb", false)? })
     }
 }
 
@@ -118,6 +148,9 @@ fn prepare_layers(layers: &mut [Layer], hidden: bool, depth: usize) -> Result<()
 pub struct Snapshot {
     docs: Vec<(Arc<Document>, u64)>,
     rendered: Vec<Document>,
+    mode: PdfBinderMode,
+    paired: bool,
+    force_psb: bool,
 }
 
 impl Snapshot {
@@ -134,8 +167,8 @@ impl Snapshot {
         let mut docs = Vec::new();
         let mut rendered = Vec::new();
         for selected in &plan.documents {
-            if selected.mode != PdfBinderMode::FlattenTabs || !selected.layer_policy.include_all_layers {
-                return Err(EngineError::Other("Only flatten mode with all eligible layers is supported".into()));
+            if plan.documents.first().is_some_and(|first| first.mode != selected.mode) {
+                return Err(EngineError::Other("Use one PDF mode for the whole binder".into()));
             }
             if !seen.insert(selected.document_id) {
                 return Err(EngineError::Other("Duplicate PDF binder document ID".into()));
@@ -149,16 +182,45 @@ impl Snapshot {
                 return Err(EngineError::Other("PDF binder layer nesting exceeds 128 levels".into()));
             }
             let mut doc = (*st.doc).clone();
-            prepare_layers(&mut doc.layers, selected.layer_policy.include_hidden_layers, 0)?;
+            if !selected.layer_policy.include_all_layers {
+                let ids = selected.layer_ids.as_deref().ok_or_else(|| EngineError::Other("Select layers to export".into()))?;
+                if ids.is_empty() || ids.iter().any(|id| doc.layer(*id).is_none()) {
+                    return Err(EngineError::Other("A selected layer no longer exists".into()));
+                }
+                retain_selected(&mut doc.layers, ids);
+            }
+            if selected.mode != PdfBinderMode::FlattenTabs || plan.paired {
+                if !selected.layer_policy.include_hidden_layers {
+                    retain_visible(&mut doc.layers);
+                }
+                // Validate cached appearances without modifying default visibility in the snapshot.
+                let mut checked = doc.layers.clone();
+                prepare_layers(&mut checked, true, 0)?;
+            } else {
+                prepare_layers(&mut doc.layers, selected.layer_policy.include_hidden_layers, 0)?;
+            }
             rendered.push(doc);
             docs.push((Arc::clone(&st.doc), st.revision));
         }
-        Ok(Self { docs, rendered })
+        Ok(Self { docs, rendered, mode: plan.documents.first().map(|d| d.mode).unwrap_or_default(), paired: plan.paired, force_psb: plan.force_psb })
     }
 
     pub fn render(&self, progress: &mut dyn FnMut(f32) -> std::result::Result<(), String>) -> Result<photocraft_io::ExportResult> {
         let docs: Vec<_> = self.rendered.iter().collect();
-        photocraft_io::pdf::export_pdf_canvases(&docs, &ExportOptions::default(), progress).map_err(|e| EngineError::Other(e.to_string()))
+        let weight = if self.paired { 0.5 } else { 1.0 };
+        let mut pdf_progress = |f| progress(f * weight);
+        let out = match self.mode {
+            PdfBinderMode::FlattenTabs => photocraft_io::pdf::export_pdf_canvases(&docs, &ExportOptions::default(), &mut pdf_progress),
+            PdfBinderMode::LayersAsPages => photocraft_io::pdf_layers::export_layers_as_pages(&docs, &ExportOptions::default(), &mut pdf_progress),
+            PdfBinderMode::PreserveLayersOcg => photocraft_io::pdf_layers::export_ocg(&docs, &mut pdf_progress),
+        }
+        .map_err(|e| EngineError::Other(e.to_string()))?;
+        if self.paired {
+            photocraft_io::pdf_layers::paired_package(&docs, out, self.force_psb, &mut |f| progress(0.5 + f * 0.5))
+                .map_err(|e| EngineError::Other(e.to_string()))
+        } else {
+            Ok(out)
+        }
     }
 
     /// Only call after the complete atomic write succeeds.
@@ -181,7 +243,7 @@ impl Snapshot {
     /// Compose in the existing cancellable job system. Commit runs only after the worker
     /// result is accepted, so a cancelled worker cannot replace a destination in the background.
     pub fn start(self, session: &mut Session, path: String, close: bool) -> Result<crate::jobs::Started> {
-        validate_path(&path)?;
+        validate_path(&path, self.paired)?;
         if cfg!(target_arch = "wasm32") {
             return Err(EngineError::Other("PDF binder file export requires the desktop app".into()));
         }
@@ -214,16 +276,17 @@ impl Snapshot {
     /// The writer must report success only after the complete file has been committed.
     /// Closing is opt-in. New tabs and tabs edited since capture always remain open.
     pub fn write(self, session: &mut Session, path: &str, close: bool, write: impl FnOnce(&str, &[u8]) -> std::result::Result<(), String>) -> Result<Value> {
-        validate_path(path)?;
+        validate_path(path, self.paired)?;
         let out = self.render(&mut |_| Ok(()))?;
         write(path, &out.bytes).map_err(EngineError::Other)?;
         Ok(self.finish(session, path, close, out.bytes.len(), out.warnings))
     }
 }
 
-fn validate_path(path: &str) -> Result<()> {
-    if !std::path::Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case("pdf")) {
-        return Err(EngineError::Other("Choose a filename ending in .pdf".into()));
+fn validate_path(path: &str, paired: bool) -> Result<()> {
+    let extension = if paired { "zip" } else { "pdf" };
+    if !std::path::Path::new(path).extension().is_some_and(|e| e.eq_ignore_ascii_case(extension)) {
+        return Err(EngineError::Other(format!("Choose a filename ending in .{extension}")));
     }
     Ok(())
 }
@@ -245,9 +308,31 @@ pub fn specs() -> Vec<CommandSpec> {
         label: "Export All Tabs to PDF…",
         menu: &["File", "Export"],
         shortcut: None,
-        params: r#"{"path":str,"closeAfter":bool=false,"documentIds"?:[u64],"tabs"?:[bool],"mode":"flatten","includeAllLayers":bool=true,"includeHiddenLayers":bool=false}"#,
+        params: r#"{"path":str,"closeAfter":bool=false,"documentIds"?:[u64],"tabs"?:[bool],"mode":"flatten|layersAsPages|preserveLayersOcg","includeAllLayers":bool=true,"includeHiddenLayers"?:bool,"layerIds"?:{documentId:[layerId]},"pairedPhotoshop":bool=false,"forcePsb":bool=false}"#,
         journal: true,
         enabled: crate::file_cmds::native_doc,
         run,
     }]
+}
+
+fn retain_visible(layers: &mut Vec<Layer>) {
+    layers.retain(|l| l.visible);
+    for layer in layers {
+        if let Some(children) = layer.children_mut() {
+            retain_visible(children);
+        }
+    }
+}
+fn retain_selected(layers: &mut Vec<Layer>, ids: &[photocraft_doc::LayerId]) {
+    layers.retain_mut(|layer| {
+        if ids.contains(&layer.id) {
+            return true;
+        }
+        if let Some(children) = layer.children_mut() {
+            retain_selected(children, ids);
+            !children.is_empty()
+        } else {
+            false
+        }
+    });
 }

@@ -2793,3 +2793,25 @@ cameraData	Lens	Объектив
 	Include all eligible layers	Включить все подходящие слои
 	Include hidden layers	Включить скрытые слои
 	Select None	Снять выделение
+
+	Layers as separate PDF pages	Layers as separate PDF pages
+	PDF viewer layers (OCG)	PDF viewer layers (OCG)
+	Include layered PSD/PSB editing files (ZIP package)	Include layered PSD/PSB editing files (ZIP package)
+	Use PSB for every editing file	Use PSB for every editing file
+	OCG layers are PDF viewer controls. Direct Photoshop PDF editing compatibility is unverified; use PSD/PSB for editing.	OCG layers are PDF viewer controls. Direct Photoshop PDF editing compatibility is unverified; use PSD/PSB for editing.
+	OCG exports rasterize each leaf separately. Masks are baked; unsupported backdrop effects require flattened PDF plus PSD/PSB.	OCG exports rasterize each leaf separately. Masks are baked; unsupported backdrop effects require flattened PDF plus PSD/PSB.
+	Import As	Import As
+	Separate Tabs	Separate Tabs
+	Smart Objects in captured document	Smart Objects in captured document
+	Clear Selection	Clear Selection
+	Flatten PDF layers	Flatten PDF layers
+	Supported OCG layers open independently as raster layers. Other PDF structures use a disclosed raster fallback.	Supported OCG layers open independently as raster layers. Other PDF structures use a disclosed raster fallback.
+	Preserves supported editing layers. Review format warnings after export.	Preserves supported editing layers. Review format warnings after export.
+	Preserve Photoshop TIFF layers	Preserve Photoshop TIFF layers
+	This format exports a flattened image, not an editable layer stack.	This format exports a flattened image, not an editable layer stack.
+	EXR export uses the existing linear HDR image encoder. Multipart layer export is not available.	EXR export uses the existing linear HDR image encoder. Multipart layer export is not available.
+
+	{count} selected documents	{count} selected documents
+	Supported source OCGs become separate raster layers; names, order, groups and visibility are retained. PDF text and vectors remain rasterized.	Supported source OCGs become separate raster layers; names, order, groups and visibility are retained. PDF text and vectors remain rasterized.
+	Open a document before placing PDF Smart Objects.	Open a document before placing PDF Smart Objects.
+	Independent layers are unavailable for this PDF structure. Choose Separate Tabs or Smart Objects for its page appearance.	Independent layers are unavailable for this PDF structure. Choose Separate Tabs or Smart Objects for its page appearance.

@@ -11,7 +11,15 @@ use crate::state::DialogKind;
 use crate::theme::Tokens;
 use crate::{ExportSettings, PhotocraftApp};
 
-const FORMATS: [(&str, &str); 6] = [("png", "PNG"), ("jpg", "JPG"), ("webp", "WebP"), ("tif", "TIFF"), ("tga", "TGA"), ("pdf", "PDF")];
+/// Reuse the codec capability table so optional/read-only codecs are never advertised as encoders.
+fn export_formats() -> Vec<(&'static str, &'static str)> {
+    let mut formats = vec![("pcraft", "PhotoCraft"), ("psd", "PSD"), ("psb", "PSB"), ("ora", "OpenRaster"), ("pdf", "PDF")];
+    formats.extend(photocraft_codecs::Format::ALL.into_iter().filter(|f| f.caps().write).filter_map(|f| f.extensions().first().map(|ext| (*ext, f.name()))));
+    formats
+}
+fn layered_format(fmt: &str) -> bool {
+    matches!(fmt, "pcraft" | "psd" | "psb" | "ora" | "tif" | "tiff")
+}
 
 pub fn open(app: &mut PhotocraftApp) -> Result<u64, String> {
     let st = app.session.active().ok_or("no document")?;
@@ -105,7 +113,7 @@ fn export_document(doc: &Document, f: &Map<String, Value>, max_side: Option<u32>
             .map_err(|e| e.to_string())?;
     }
     let fmt = s_fmt(f);
-    if fmt != "pdf" && (!f.get("transparency").and_then(Value::as_bool).unwrap_or(true) || fmt == "jpg") {
+    if !layered_format(&fmt) && fmt != "pdf" && (!f.get("transparency").and_then(Value::as_bool).unwrap_or(true) || fmt == "jpg") {
         s.execute("layer.flattenImage", json!({})).map_err(|e| e.to_string())?;
     }
     s.active().map(|d| (*d.doc).clone()).ok_or_else(|| "export failed".into())
@@ -150,7 +158,7 @@ fn settings(f: &Map<String, Value>) -> ExportSettings {
         webp_lossless: fmt != "webp" || lossless(f),
         webp_quality: (fmt == "webp" && !lossless(f)).then_some(quality),
         xmp_all: s(f, "metadata") == "all",
-        ..Default::default()
+        tiff_layers: f.get("tiffLayers").and_then(Value::as_bool).unwrap_or(true),
     }
 }
 
@@ -168,52 +176,99 @@ fn estimate(app: &PhotocraftApp, doc: &Document, f: &Map<String, Value>) -> Opti
 pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Value>) {
     let t = Tokens::get(ui.ctx());
     if f.get("__all_pdf").and_then(Value::as_bool) == Some(true) {
-        ui.set_width(460.0);
-        let ids: Vec<_> = app.session.documents().iter().map(|st| st.doc.id.0).collect();
-        let mut selected: Vec<u64> = f
-            .get("documentIds")
-            .and_then(Value::as_array)
-            .map(|a| a.iter().filter_map(Value::as_u64).filter(|id| ids.contains(id)).collect())
-            .unwrap_or_default();
-        ui.horizontal(|ui| {
-            if ui.button(tl!("Select All")).clicked() {
-                selected.clone_from(&ids);
-            }
-            if ui.button(tl!("Select None")).clicked() {
-                selected.clear();
-            }
-        });
-        let mut hidden = f.get("includeHiddenLayers").and_then(Value::as_bool).unwrap_or(false);
-        egui::ScrollArea::vertical().max_height((ui.ctx().content_rect().height() - 460.0).clamp(60.0, 190.0)).show(ui, |ui| {
-            for st in app.session.documents() {
-                let id = st.doc.id.0;
-                let mut checked = selected.contains(&id);
-                let label = format!("{} - {} {}", st.doc.name, photocraft_engine::pdf_export_cmds::eligible_layers(&st.doc, hidden), tl!("eligible layers"));
-                let response = ui.push_id(id, |ui| ui.checkbox(&mut checked, &label)).inner;
-                if response.changed() {
-                    let anchor = f.get("__binder_anchor").and_then(Value::as_u64);
-                    select_range(&mut selected, &ids, anchor, id, checked, ui.input(|i| i.modifiers.shift));
-                    f.insert("__binder_anchor".into(), json!(id));
+        egui::ScrollArea::vertical().id_salt("binder-options").max_height((ui.ctx().content_rect().height() - 180.0).max(180.0)).show(ui, |ui| {
+            ui.set_width(460.0);
+            let ids: Vec<_> = app.session.documents().iter().map(|st| st.doc.id.0).collect();
+            let mut selected: Vec<u64> = f
+                .get("documentIds")
+                .and_then(Value::as_array)
+                .map(|a| a.iter().filter_map(Value::as_u64).filter(|id| ids.contains(id)).collect())
+                .unwrap_or_default();
+            ui.horizontal(|ui| {
+                if ui.button(tl!("Select All")).clicked() {
+                    selected.clone_from(&ids);
                 }
+                if ui.button(tl!("Select None")).clicked() {
+                    selected.clear();
+                }
+            });
+            let mut hidden = f.get("includeHiddenLayers").and_then(Value::as_bool).unwrap_or(false);
+            egui::ScrollArea::vertical().max_height((ui.ctx().content_rect().height() - 460.0).clamp(60.0, 190.0)).show(ui, |ui| {
+                for st in app.session.documents() {
+                    let id = st.doc.id.0;
+                    let mut checked = selected.contains(&id);
+                    let label =
+                        format!("{} - {} {}", st.doc.name, photocraft_engine::pdf_export_cmds::eligible_layers(&st.doc, hidden), tl!("eligible layers"));
+                    let response = ui.push_id(id, |ui| ui.checkbox(&mut checked, &label)).inner;
+                    if response.changed() {
+                        let anchor = f.get("__binder_anchor").and_then(Value::as_u64);
+                        select_range(&mut selected, &ids, anchor, id, checked, ui.input(|i| i.modifiers.shift));
+                        f.insert("__binder_anchor".into(), json!(id));
+                    }
+                }
+            });
+            selected = ids.into_iter().filter(|id| selected.contains(id)).collect();
+            ui.label(crate::i18n::fmt(tl!("{count} selected documents"), &[("count", &selected.len().to_string())]));
+            f.insert("documentIds".into(), json!(&selected));
+            let old_mode = s(f, "mode");
+            let mut mode = old_mode.clone();
+            crate::widgets::dropdown(
+                ui,
+                "pdf-structure",
+                &mut mode,
+                &[
+                    ("flatten".to_string(), tl!("Flatten each selected tab")),
+                    ("layersAsPages".to_string(), tl!("Layers as separate PDF pages")),
+                    ("preserveLayersOcg".to_string(), tl!("PDF viewer layers (OCG)")),
+                ],
+                300.0,
+            );
+            if mode != old_mode && mode == "preserveLayersOcg" {
+                hidden = true;
             }
-        });
-        selected = ids.into_iter().filter(|id| selected.contains(id)).collect();
-        ui.label(crate::i18n::fmt(tl!("{count} PDF pages"), &[("count", &selected.len().to_string())]));
-        f.insert("documentIds".into(), json!(selected));
-        ui.label(tl!("Flatten each selected tab"));
-        let mut all = true;
-        ui.add_enabled_ui(false, |ui| {
+            f.insert("mode".into(), json!(mode));
+            let mut all = f.get("includeAllLayers").and_then(Value::as_bool).unwrap_or(true);
             ui.checkbox(&mut all, tl!("Include all eligible layers"));
+            f.insert("includeAllLayers".into(), json!(all));
+            if !all {
+                let mut selections = f.get("layerIds").and_then(Value::as_object).cloned().unwrap_or_default();
+                egui::ScrollArea::vertical().id_salt("pdf-layer-selection").max_height(150.0).show(ui, |ui| {
+                    for st in app.session.documents().iter().filter(|st| selected.contains(&st.doc.id.0)) {
+                        let key = st.doc.id.0.to_string();
+                        let mut layer_ids: Vec<u64> =
+                            selections.get(&key).and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_u64).collect()).unwrap_or_default();
+                        ui.push_id(st.doc.id.0, |ui| ui.collapsing(&st.doc.name, |ui| layer_checkboxes(ui, &st.doc.layers, &mut layer_ids, 0)));
+                        selections.insert(key, json!(layer_ids));
+                    }
+                });
+                f.insert("layerIds".into(), Value::Object(selections));
+            }
+            ui.checkbox(&mut hidden, tl!("Include hidden layers"));
+            f.insert("includeHiddenLayers".into(), json!(hidden));
+            ui.label(tl!("Current edits are included. Each page keeps its size and resolution."));
+            ui.add_space(10.0);
+            let mut close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
+            ui.checkbox(&mut close, tl!("Close exported tabs after successful export"));
+            f.insert("closeAfter".into(), json!(close));
+            ui.label(tl!("Canceled or failed exports leave every tab open."));
+            let mut paired = f.get("pairedPhotoshop").and_then(Value::as_bool).unwrap_or(false);
+            if ui.checkbox(&mut paired, tl!("Include layered PSD/PSB editing files (ZIP package)")).changed() && paired {
+                f.insert("includeHiddenLayers".into(), json!(true));
+            }
+            f.insert("pairedPhotoshop".into(), json!(paired));
+            if paired {
+                let mut psb = f.get("forcePsb").and_then(Value::as_bool).unwrap_or(false);
+                ui.checkbox(&mut psb, tl!("Use PSB for every editing file"));
+                f.insert("forcePsb".into(), json!(psb));
+            }
+            ui.label(
+                egui::RichText::new(tl!(
+                    "OCG layers are PDF viewer controls. Direct Photoshop PDF editing compatibility is unverified; use PSD/PSB for editing."
+                ))
+                .color(t.text_dim),
+            );
+            ui.label(tl!("OCG exports rasterize each leaf separately. Masks are baked; unsupported backdrop effects require flattened PDF plus PSD/PSB."));
         });
-        ui.checkbox(&mut hidden, tl!("Include hidden layers"));
-        f.insert("includeHiddenLayers".into(), json!(hidden));
-        ui.label(tl!("Current edits are included. Each page keeps its size and resolution."));
-        ui.add_space(10.0);
-        let mut close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
-        ui.checkbox(&mut close, tl!("Close exported tabs after successful export"));
-        f.insert("closeAfter".into(), json!(close));
-        ui.label(tl!("Canceled or failed exports leave every tab open."));
-        ui.label(egui::RichText::new(tl!("PDF saves the visible pages with flattened layers.")).color(t.text_dim));
         return;
     }
     let Some(doc) = app.session.active().map(|s| s.doc.clone()) else { return };
@@ -225,12 +280,26 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
             ui.horizontal(|ui| {
                 ui.label(egui::RichText::new(tl!("Format")).color(t.text_dim));
                 let mut fmt = s_fmt(f);
-                let opts: Vec<(String, &str)> = FORMATS.iter().map(|(k, l)| (k.to_string(), *l)).collect();
+                let opts: Vec<(String, &str)> = export_formats().iter().map(|(k, l)| (k.to_string(), *l)).collect();
                 if crate::widgets::dropdown(ui, "export-format", &mut fmt, &opts, 130.0) {
                     set_format_defaults(f, &fmt, &app.session.prefs().export);
                 }
             });
             let fmt = s_fmt(f);
+            if layered_format(&fmt) {
+                ui.label(tl!("Preserves supported editing layers. Review format warnings after export."));
+                if matches!(fmt.as_str(), "tif" | "tiff") {
+                    let mut layers = f.get("tiffLayers").and_then(Value::as_bool).unwrap_or(true);
+                    ui.checkbox(&mut layers, tl!("Preserve Photoshop TIFF layers"));
+                    f.insert("tiffLayers".into(), json!(layers));
+                }
+            } else if fmt != "pdf" {
+                ui.label(tl!("This format exports a flattened image, not an editable layer stack."));
+            }
+            if fmt == "exr" {
+                ui.label(tl!("EXR export uses the existing linear HDR image encoder. Multipart layer export is not available."));
+            }
+
             if fmt == "webp" {
                 let mut ll = lossless(f);
                 crate::widgets::checkbox(ui, &mut ll, tl!("Lossless"));
@@ -248,7 +317,7 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
                         .size(11.5),
                 );
             }
-            if fmt != "jpg" && fmt != "pdf" {
+            if !layered_format(&fmt) && fmt != "jpg" && fmt != "pdf" {
                 let mut tr = f.get("transparency").and_then(Value::as_bool).unwrap_or(true);
                 crate::widgets::checkbox(ui, &mut tr, tl!("Transparency"));
                 f.insert("transparency".into(), json!(tr));
@@ -279,13 +348,14 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
             let layer = f.get("__layer").and_then(Value::as_u64);
             let key = egui::Id::new(("export-preview", doc.id.0, app.session.active().map_or(0, |s| s.revision), layer));
             let sig = format!(
-                "{}{}{}{}{}{}",
+                "{}{}{}{}{}{}{}",
                 s_fmt(f),
                 n(f, "quality", 85.0),
                 lossless(f),
                 f.get("transparency").map(|v| v.to_string()).unwrap_or_default(),
                 n(f, "scale", 100.0),
-                s(f, "metadata")
+                s(f, "metadata"),
+                f.get("tiffLayers").map(Value::to_string).unwrap_or_default()
             );
             let cached: Option<(String, Option<u64>, Arc<egui::TextureHandle>)> = ui.data(|d| d.get_temp(key));
             let (size, tex) = match cached.filter(|c| c.0 == sig) {
@@ -320,7 +390,8 @@ pub fn confirm(app: &mut PhotocraftApp, f: &Map<String, Value>) -> Result<Value,
         let plan = photocraft_engine::pdf_export_cmds::BinderExportPlan::from_params(&app.session, &Value::Object(f.clone())).map_err(|e| e.to_string())?;
         let snapshot = photocraft_engine::pdf_export_cmds::Snapshot::capture_plan(&app.session, &plan).map_err(|e| e.to_string())?;
         let close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
-        return app.pick_save("Combined-pages.pdf", move |app, path| {
+        let suggested = if f.get("pairedPhotoshop").and_then(Value::as_bool) == Some(true) { "Combined-pages.zip" } else { "Combined-pages.pdf" };
+        return app.pick_save(suggested, move |app, path| {
             if app.background_jobs {
                 return match snapshot.start(&mut app.session, path, close).map_err(|e| e.to_string())? {
                     photocraft_engine::jobs::Started::Done(v) => Ok(v),
@@ -334,8 +405,14 @@ pub fn confirm(app: &mut PhotocraftApp, f: &Map<String, Value>) -> Result<Value,
             let result = snapshot.write(&mut app.session, &path, close, |path, bytes| write(path, bytes)).map_err(|e| e.to_string())?;
             app.ui.status = format!("Exported {} tabs to {path}; closed {} tabs", result["tabs"], result["closed"]);
             app.ui.status_error = false;
+            let warnings: Vec<_> =
+                result.get("warnings").and_then(Value::as_array).map(|a| a.iter().filter_map(Value::as_str).map(str::to_string).collect()).unwrap_or_default();
+            crate::notices::io_warnings(app, &format!("Exported {path}"), &warnings);
             Ok(result)
         });
+    }
+    if f.get("preserveLayers").and_then(Value::as_bool) == Some(true) && !layered_format(&s_fmt(f)) {
+        return Err("This format cannot retain an editing layer stack; choose PSD/PSB, OpenRaster or PhotoCraft".into());
     }
     let doc = source_document(app, f)?;
     let stem = doc.name.rsplit_once('.').map_or(doc.name.as_str(), |(a, _)| a).to_string();
@@ -411,6 +488,26 @@ pub fn can_confirm(app: &PhotocraftApp, fields: &Map<String, Value>) -> bool {
     })
 }
 
+fn layer_checkboxes(ui: &mut egui::Ui, layers: &[photocraft_doc::Layer], selected: &mut Vec<u64>, depth: usize) {
+    if depth > 100 {
+        return;
+    }
+    for layer in layers.iter().rev() {
+        ui.push_id(layer.id.0, |ui| {
+            let mut checked = selected.contains(&layer.id.0);
+            if ui.checkbox(&mut checked, &layer.name).changed() {
+                selected.retain(|id| *id != layer.id.0);
+                if checked {
+                    selected.push(layer.id.0);
+                }
+            }
+            if let Some(children) = layer.children() {
+                ui.indent("children", |ui| layer_checkboxes(ui, children, selected, depth + 1));
+            }
+        });
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #[test]
@@ -453,6 +550,20 @@ mod tests {
     }
 
     use super::*;
+
+    #[test]
+    fn layered_export_does_not_flatten_due_to_stale_transparency_field() {
+        use photocraft_doc::{Color, ColorMode, Layer, PixelFormat, SampleType, Size};
+        let mut doc = Document::with_background("layers", Size::new(8, 8), ColorMode::Rgb, SampleType::U8, Color::WHITE);
+        doc.layers.push(Layer::raster("Hidden editing layer", PixelFormat::new(ColorMode::Rgb, SampleType::U8, true)));
+        doc.layers[1].visible = false;
+        for fmt in ["pcraft", "psd", "psb", "ora", "tiff"] {
+            let f = json!({"format":fmt,"transparency":false,"scale":100});
+            let out = export_document(&doc, f.as_object().unwrap(), None).unwrap();
+            assert_eq!(out.layers, doc.layers);
+        }
+        assert!(export_formats().iter().any(|(ext, _)| *ext == "psb"));
+    }
 
     #[test]
     fn export_document_scales_height_when_rounded_width_is_unchanged() {

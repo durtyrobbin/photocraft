@@ -46,6 +46,8 @@ mod multichannel_map;
 mod ora;
 pub mod pattern_map;
 pub mod pdf;
+pub mod pdf_layers;
+pub mod pdf_ocg_import;
 pub mod pdf_writer;
 mod pdn;
 pub mod pixels;
