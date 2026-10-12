@@ -199,7 +199,7 @@ mod tests {
             }
             ctx.begin_pass(raw);
             assert!(cancel_on_context_change(&mut app, &ctx));
-            let _ = ctx.end_pass();
+            ctx.end_pass().textures_delta.clear(); // This input-only test has no renderer.
             tool_event(&mut app, ToolEvent::Up { x: 40.0, y: 40.0 }, egui::Modifiers::NONE);
             assert_eq!(*app.session.active().unwrap().doc, *before);
         }

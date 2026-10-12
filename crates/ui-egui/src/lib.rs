@@ -35,6 +35,7 @@ mod camera_raw_preview_ui;
 mod camera_raw_scope_ui;
 pub mod camera_raw_ui;
 pub mod canvas;
+pub mod shared_canvas;
 pub mod canvas_tool_menu;
 pub mod channel_view;
 pub mod channels_panel;
@@ -431,6 +432,8 @@ pub(crate) type HistJob = (DocId, u64, std::sync::mpsc::Receiver<(DocId, f64, st
 type InfoSampleKey = (i32, i32, u64, u32);
 
 pub struct PhotocraftApp {
+    /// Optional host-owned view; standalone editors keep their native view state.
+    pub shared_canvas: Option<artcraft_canvas::Binding>,
     pub session: Session,
     pub ui: UiState,
     pub services: Services,
@@ -653,6 +656,7 @@ pub struct PhotocraftApp {
 impl PhotocraftApp {
     pub fn new(session: Session, services: Services) -> Self {
         let mut app = Self {
+            shared_canvas: None,
             session,
             ui: UiState::default(),
             services,

@@ -195,7 +195,7 @@ mod tests {
         let ctx = egui::Context::default();
         ctx.begin_pass(Default::default());
         persist(&mut app, &ctx);
-        let _ = ctx.end_pass();
+        ctx.end_pass().textures_delta.clear(); // Persistence is tested without a renderer.
         let text = app.session.prefs_to_json();
         let mut session = photocraft_engine::Session::new();
         session.load_prefs_json(&text).unwrap();

@@ -1626,7 +1626,9 @@ pub(crate) fn retain_gpu_documents(app: &mut PhotocraftApp) {
 /// Tabs + canvas for the active document, or the start screen; then drops layers dragged onto
 /// another document (`layer_transfer`).
 pub fn document_area(app: &mut PhotocraftApp, ui: &mut egui::Ui) {
+    crate::shared_canvas::enter(app);
     documents(app, ui);
+    crate::shared_canvas::leave(app);
     crate::layer_transfer::finish(app, ui.ctx());
     // Once a frame, not per document view: the right-click or options-bar Brush Preset picker.
     crate::paint_mouse::show_picker(app, ui.ctx());
@@ -5813,7 +5815,7 @@ mod tests {
             }
             ctx.begin_pass(raw);
             assert!(cancel_mixer_on_context_change(&mut app, &ctx));
-            let _ = ctx.end_pass();
+            ctx.end_pass().textures_delta.clear(); // This input-only test has no renderer.
             tool_event(&mut app, ToolEvent::Up { x: 30.0, y: 30.0 }, egui::Modifiers::NONE);
             assert!(app.drag.is_none() && app.live_stroke.is_none());
             assert!(std::sync::Arc::ptr_eq(&before, &app.session.active().unwrap().doc));
@@ -6549,7 +6551,7 @@ mod rotation_preview_isolation_tests {
             }
             ctx.begin_pass(raw);
             assert!(cancel_mixer_on_context_change(&mut app, &ctx));
-            let _ = ctx.end_pass();
+            ctx.end_pass().textures_delta.clear(); // This input-only test has no renderer.
             tool_event(&mut app, ToolEvent::Up { x: 30.0, y: 30.0 }, egui::Modifiers::NONE);
             assert!(app.drag.is_none() && app.live_stroke.is_none());
             assert!(std::sync::Arc::ptr_eq(&before, &app.session.active().unwrap().doc));
