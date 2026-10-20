@@ -43,8 +43,17 @@ Native import limits: 100 pages; 16,384 pixels per output side; 64 megapixels pe
 rendered page; 512 megapixels total; 256 MB input file. Before rendering or previews,
 embedded image dictionaries and JPEG frame headers are checked (16,384 pixels per
 side, 16 megapixels per image, 64 megapixels aggregate; JPEG frames count in addition
-to their dictionaries). Flate inflation is checked in 8 KB chunks with cancellation,
-64 MB per decoded stream and 256 MB aggregate. Predictor dimensions are bounded.
+to their dictionaries). Flate inflation is checked in 8 KB chunks with cancellation.
+Decoded streams now share an adaptive memory budget instead of the previous
+64 MB per-stream / 256 MB aggregate caps. Native imports query physical and
+available RAM, reserve 15% of total system RAM, and account for memory already
+used by other applications. Four copies of decoded streams and 12 bytes per
+selected output pixel are estimated before rendering. The stream-only budget
+uses one quarter of that remaining headroom. This is an admission estimate,
+not an OS-enforced process memory limit; parser and renderer allocations can vary.
+If memory information is unavailable, the fallback headroom is 1 GB. Small image
+streams also remain bounded by declared dimensions, depth and predictor overhead.
+Predictor dimensions are bounded.
 
 This version deliberately rejects codecs without enforceable decode budgets:
 JPEG2000/JPX, JBIG2, CCITT and LZW, plus filter chains and inline images. It accepts

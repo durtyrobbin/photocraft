@@ -12,8 +12,45 @@ use hayro::hayro_syntax::{
 };
 use photocraft_raster::Interrupt;
 
-const STREAM_BYTES: usize = 64 * 1024 * 1024;
-const TOTAL_BYTES: usize = 256 * 1024 * 1024;
+// Keep total estimated system use below 85% of physical RAM. The remaining
+// headroom is shared by decoded streams, renderer/cache copies and output tiles.
+const FALLBACK_HEADROOM: u64 = 1024 * 1024 * 1024;
+
+fn headroom(total: u64, available: u64) -> u64 {
+    if total == 0 {
+        return FALLBACK_HEADROOM;
+    }
+    let ceiling = ((u128::from(total) * 85) / 100) as u64;
+    available.min(total).saturating_sub(total - ceiling)
+}
+
+fn memory_headroom() -> u64 {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let mut system = sysinfo::System::new();
+        system.refresh_memory_specifics(sysinfo::MemoryRefreshKind::nothing().with_ram());
+        headroom(system.total_memory(), system.available_memory())
+    }
+    #[cfg(target_arch = "wasm32")]
+    {
+        // This older branch compiles import helpers on the web, but its public
+        // entry points reject before parsing. Do not query native APIs there.
+        headroom(0, 0)
+    }
+}
+
+fn stream_budget() -> usize {
+    usize::try_from(memory_headroom() / 4).unwrap_or(usize::MAX / 4)
+}
+
+pub(super) fn check_render_memory(decoded: usize, pixels: u64) -> Result<(), IoError> {
+    // Four copies of streams plus render pixels, copied RGBA and tile storage.
+    let estimate = (decoded as u64).saturating_mul(4).saturating_add(pixels.saturating_mul(12));
+    if estimate > memory_headroom() {
+        return Err(error("PDF import would exceed the 85% system RAM budget; close other applications, select fewer pages or reduce resolution"));
+    }
+    Ok(())
+}
 const IMAGE_PIXELS: u64 = 16_000_000;
 const TOTAL_IMAGE_PIXELS: u64 = 64_000_000;
 const OBJECTS: usize = 100_000;
@@ -75,7 +112,7 @@ fn jpeg_dimensions(bytes: &[u8]) -> Result<u64, IoError> {
     Err(error("embedded JPEG has no supported frame"))
 }
 
-fn inflate(bytes: &[u8], ctl: &Interrupt) -> Result<Vec<u8>, IoError> {
+fn inflate(bytes: &[u8], ctl: &Interrupt, limit: usize) -> Result<Vec<u8>, IoError> {
     let mut decoder = flate2::read::ZlibDecoder::new(bytes);
     let mut out = Vec::new();
     let mut chunk = [0u8; 8192];
@@ -85,9 +122,10 @@ fn inflate(bytes: &[u8], ctl: &Interrupt) -> Result<Vec<u8>, IoError> {
         if n == 0 {
             break;
         }
-        if out.len().saturating_add(n) > STREAM_BYTES {
-            return Err(error("PDF decoded stream exceeds 64 MB"));
+        if out.len().saturating_add(n) > limit {
+            return Err(error("PDF decoded stream exceeds its memory budget or declared image size"));
         }
+        out.try_reserve(n).map_err(|_| error("not enough memory to decode PDF stream"))?;
         out.extend_from_slice(chunk.get(..n).ok_or_else(|| error("invalid decoded stream length"))?);
     }
     Ok(out)
@@ -158,15 +196,21 @@ fn has_inline_image(data: &[u8]) -> bool {
     })
 }
 
-fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64) -> Result<usize, IoError> {
+fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64, budget: usize) -> Result<usize, IoError> {
     cancelled(ctl)?;
     let dict = stream.dict();
     let is_image = dict.get::<Name<'_>>(b"Subtype").is_some_and(|n| n.as_ref() == b"Image");
+    let mut limit = budget;
     if is_image {
         if let Some(space) = dict.get::<Object<'_>>(b"ColorSpace") {
             image_colorspace(space, 0)?;
         }
-        *images = images.saturating_add(dimensions(dict.get::<u32>(b"Width").unwrap_or(0), dict.get::<u32>(b"Height").unwrap_or(0))?);
+        let height = dict.get::<u32>(b"Height").unwrap_or(0);
+        let pixels = dimensions(dict.get::<u32>(b"Width").unwrap_or(0), height)?;
+        // Up to four 16-bit components and one predictor byte per row. A small
+        // declared image must not acquire the entire machine's stream budget.
+        limit = limit.min(usize::try_from(pixels * 8 + u64::from(height)).unwrap_or(usize::MAX));
+        *images = images.saturating_add(pixels);
         if *images > TOTAL_IMAGE_PIXELS {
             return Err(error("PDF embedded images exceed 64 megapixels in total"));
         }
@@ -193,11 +237,11 @@ fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64) -> Result<usiz
         return Err(error("PDF predictors are only supported on image streams"));
     }
     let raw = stream.raw_data();
-    if raw.len() > STREAM_BYTES {
-        return Err(error("PDF stream exceeds 64 MB"));
+    if raw.len() > budget {
+        return Err(error("PDF stream exceeds the 85% system RAM budget"));
     }
     let decoded = match filter {
-        Some(b"FlateDecode" | b"Fl") => std::borrow::Cow::Owned(inflate(&raw, ctl)?),
+        Some(b"FlateDecode" | b"Fl") => std::borrow::Cow::Owned(inflate(&raw, ctl, limit)?),
         Some(b"DCTDecode" | b"DCT") => {
             if !is_image {
                 return Err(error("JPEG filter on a non-image PDF stream"));
@@ -211,6 +255,9 @@ fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64) -> Result<usiz
         }
         _ => raw,
     };
+    if decoded.len() > limit {
+        return Err(error("PDF decoded stream exceeds its memory budget or declared image size"));
+    }
     // Inline images can occur in page, form, pattern, appearance and Type3 streams.
     // Reject the operator before interpretation, including when nested in resources.
     // This conservative lexical check can also reject a literal string containing BI.
@@ -220,25 +267,49 @@ fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64) -> Result<usiz
     Ok(decoded.len())
 }
 
-pub(super) fn preflight(pdf: &Pdf, ctl: &Interrupt) -> Result<(), IoError> {
+pub(super) fn preflight(pdf: &Pdf, ctl: &Interrupt) -> Result<usize, IoError> {
     if pdf.len() > OBJECTS {
         return Err(error("PDF exceeds 100,000 objects"));
     }
+    let budget = stream_budget();
     let (mut total, mut images) = (0usize, 0u64);
     for object in pdf.objects() {
         cancelled(ctl)?;
         if let Some(s) = object.into_stream() {
-            total = total.saturating_add(stream(&s, ctl, &mut images)?);
-            if total > TOTAL_BYTES {
-                return Err(error("PDF decoded streams exceed 256 MB in total"));
+            total = total.saturating_add(stream(&s, ctl, &mut images, budget.saturating_sub(total))?);
+            if total > budget {
+                return Err(error("PDF decoded streams exceed the 85% system RAM budget"));
             }
         }
     }
-    Ok(())
+    Ok(total)
 }
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn budget_keeps_fifteen_percent_of_ram_and_accounts_for_other_apps() {
+        assert_eq!(super::headroom(1000, 1000), 850);
+        assert_eq!(super::headroom(1000, 400), 250);
+        assert_eq!(super::headroom(1000, 150), 0);
+        assert_eq!(super::headroom(1000, 100), 0);
+        assert_eq!(super::headroom(0, 0), super::FALLBACK_HEADROOM);
+        assert!(super::headroom(u64::MAX, u64::MAX) < u64::MAX);
+    }
+
+    #[test]
+    fn larger_streams_work_but_the_selected_budget_is_still_enforced() {
+        use std::io::Write;
+        let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::fast());
+        for _ in 0..1025 {
+            encoder.write_all(&[b' '; 65536]).unwrap();
+        }
+        let bytes = encoder.finish().unwrap();
+        let ctl = photocraft_raster::Interrupt::default();
+        assert!(super::inflate(&bytes, &ctl, 64 * 1024 * 1024).is_err());
+        assert_eq!(super::inflate(&bytes, &ctl, 85 * 1024 * 1024).unwrap().len(), 1025 * 65536);
+    }
+
     #[test]
     fn inline_image_check_covers_operator_delimiters() {
         for data in [b"BI /W 1".as_slice(), b"q BI/W 1", b"q\nBI\n/W 1", b"BI", b"(x)BI/W 1", b"q B#49/W 1", b"q #42I/W 1"] {

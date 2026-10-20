@@ -184,6 +184,11 @@ fn pdf_inflation_budget_and_cancellation_are_checked_inside_streams() {
     }
     let bytes = image_fixture(1, 1, "/Filter /FlateDecode", &encoder.finish().unwrap());
     assert!(import("bomb.pdf", &bytes).unwrap_err().to_string().contains("decoded stream exceeds"));
+    let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::fast());
+    for _ in 0..1025 {
+        encoder.write_all(&[0; 65536]).unwrap();
+    }
+    let bytes = image_fixture(4000, 4000, "/Filter /FlateDecode", &encoder.finish().unwrap());
     let calls = AtomicUsize::new(0);
     let cancel = || calls.fetch_add(1, Ordering::Relaxed) >= 20;
     let ctl = photocraft_raster::Interrupt::cancel_only(&cancel);

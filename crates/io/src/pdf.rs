@@ -117,7 +117,7 @@ pub fn page_preview(bytes: Arc<Vec<u8>>, index: usize) -> Result<(u32, u32, Vec<
         if pdf.pages().is_empty() || pdf.pages().len() > MAX_PAGES {
             return Err(error("PDF must contain between 1 and 100 pages"));
         }
-        guard::preflight(&pdf, &Interrupt::default())?;
+        let decoded = guard::preflight(&pdf, &Interrupt::default())?;
         let page = pdf.pages().get(index).ok_or_else(|| error("page number is out of range"))?;
         let (w, h) = page.render_dimensions();
         if !w.is_finite() || !h.is_finite() || w <= 0.0 || h <= 0.0 {
@@ -125,6 +125,7 @@ pub fn page_preview(bytes: Arc<Vec<u8>>, index: usize) -> Result<(u32, u32, Vec<
         }
         let scale = (420.0 / w).min(420.0 / h);
         let (width, height) = ((w * scale).ceil() as u16, (h * scale).ceil() as u16);
+        guard::check_render_memory(decoded, u64::from(width) * u64::from(height))?;
         let settings =
             RenderSettings { x_scale: scale, y_scale: scale, width: Some(width), height: Some(height), bg_color: hayro::vello_cpu::color::palette::css::WHITE };
         let pixels = hayro::render(page, &RenderCache::new(), &InterpreterSettings::default(), &settings);
@@ -140,7 +141,7 @@ fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: I
     if pages.is_empty() || pages.len() > MAX_PAGES {
         return Err(error("PDF must contain between 1 and 100 pages"));
     }
-    guard::preflight(&pdf, ctl)?;
+    let decoded = guard::preflight(&pdf, ctl)?;
     let dpi = options.resolution;
     let indices: Vec<usize> = match selected {
         Some(s) if s.is_empty() || s.iter().any(|&i| i >= pages.len()) => return Err(error("select at least one valid PDF page")),
@@ -169,6 +170,7 @@ fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: I
         canvas_width = canvas_width.max(w);
         sizes.push((w, h));
     }
+    guard::check_render_memory(decoded, total)?;
     let mut doc = Document::new(name, Size::new(canvas_width, canvas_height - 32), ColorMode::Rgb, SampleType::U8);
     doc.resolution_dpi = dpi;
     doc.icc_profile = Some(Builtin::Srgb.profile().to_bytes());
