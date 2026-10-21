@@ -19,14 +19,12 @@ opens as an RGB 8-bit image in its own named tab, in binder order. Resolution
 changes the pixel dimensions while preserving the physical page size.
 Cancel leaves existing documents untouched. The CLI retains multipage
 artboard import for batch conversion.
-Crop and Trim resize a single-page artboard along with its canvas, so PDF exports
-use the cropped page dimensions instead of retaining the original blank sheet.
 Crop boxes and page rotation are applied by Hayro, the pure Rust PDF renderer
 also used by PdfCraft/PrintCraft. Imported PDFs have no automatic overwrite path.
 
 Save As > PDF and Export As > PDF write one page per artboard, top to bottom in
 the Layers panel. An ordinary image document becomes a single-page PDF. Exports
-use lossless compression, 8-bit sRGB pixels, embedded ICC colour information,
+use lossless compression, 8-bit RGB, grayscale or CMYK pixels, retained source ICC colour information,
 and soft masks for transparency. Physical page size comes from pixel dimensions
 and document resolution. Export As > Metadata > None omits XMP metadata.
 Print, Artboards to PDF and document/binder export share the raster PDF writer
@@ -60,7 +58,8 @@ JPEG2000/JPX, JBIG2, CCITT and LZW, plus filter chains and inline images. It acc
 unfiltered, Flate and JPEG streams and supported device/ICC/indexed image color
 spaces. Unsupported input returns an error rather than opening a page with missing
 artwork. Resave unsupported PDFs with JPEG or Flate image XObjects. Inline-image
-detection is conservative and can also reject a literal `BI` token in a stream.
+detection checks operator tokens, skipping PDF strings, names, hex strings and
+comments, so ordinary text such as `(BI)` does not trigger the rejection.
 These checks bound supported stream/image decoding, not all allocations or runtime
 in the third-party parser and interpreter. Cancellation is checked during preflight
 and before/after each render; Hayro itself has no mid-render cancellation hook.

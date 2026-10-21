@@ -179,7 +179,57 @@ fn image_colorspace(space: Object<'_>, depth: u8) -> Result<(), IoError> {
 
 fn has_inline_image(data: &[u8]) -> bool {
     let delimiter = |b: u8| b.is_ascii_whitespace() || b"()<>[]{}/%".contains(&b);
-    data.split(|b| delimiter(*b)).any(|token| {
+    let mut pos = 0;
+    while let Some(&byte) = data.get(pos) {
+        pos += 1;
+        match byte {
+            b'%' => {
+                while data.get(pos).is_some_and(|b| !matches!(b, b'\r' | b'\n')) {
+                    pos += 1;
+                }
+                continue;
+            }
+            b'(' => {
+                // Literal strings can contain nested parentheses and escaped delimiters.
+                // Drawing labels such as [(U) -20 (BI) 10 (NG)] are text, not operators.
+                let mut depth = 1usize;
+                while let Some(&b) = data.get(pos) {
+                    pos += 1;
+                    match b {
+                        b'\\' => pos = pos.saturating_add(1).min(data.len()),
+                        b'(' => depth = depth.saturating_add(1),
+                        b')' => {
+                            depth -= 1;
+                            if depth == 0 {
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+                continue;
+            }
+            b'<' => {
+                if data.get(pos) == Some(&b'<') {
+                    pos += 1;
+                } else {
+                    while let Some(&b) = data.get(pos) {
+                        pos += 1;
+                        if b == b'>' {
+                            break;
+                        }
+                    }
+                }
+                continue;
+            }
+            b if delimiter(b) => continue,
+            _ => {}
+        }
+        let start = pos - 1;
+        while data.get(pos).is_some_and(|b| !delimiter(*b)) {
+            pos += 1;
+        }
+        let Some(token) = data.get(start..pos) else { return false };
         let mut bytes = token.iter().copied();
         // Hayro normalizes name escapes while reading operators too. Cover those
         // spellings even though conforming PDF content uses the literal BI token.
@@ -192,8 +242,11 @@ fn has_inline_image(data: &[u8]) -> bool {
             let b = char::from(bytes.next()?).to_digit(16)? as u8;
             Some((a << 4) | b)
         };
-        next() == Some(b'B') && next() == Some(b'I') && next().is_none()
-    })
+        if next() == Some(b'B') && next() == Some(b'I') && next().is_none() {
+            return true;
+        }
+    }
+    false
 }
 
 fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64, budget: usize) -> Result<usize, IoError> {
@@ -260,7 +313,7 @@ fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64, budget: usize)
     }
     // Inline images can occur in page, form, pattern, appearance and Type3 streams.
     // Reject the operator before interpretation, including when nested in resources.
-    // This conservative lexical check can also reject a literal string containing BI.
+    // Skip strings and comments so text labels containing BI are not mistaken for operators.
     if !is_image && has_inline_image(&decoded) {
         return Err(error("Inline PDF images are not supported by bounded import; resave them as image XObjects"));
     }
@@ -308,6 +361,23 @@ mod tests {
         let ctl = photocraft_raster::Interrupt::default();
         assert!(super::inflate(&bytes, &ctl, 64 * 1024 * 1024).is_err());
         assert_eq!(super::inflate(&bytes, &ctl, 85 * 1024 * 1024).unwrap().len(), 1025 * 65536);
+    }
+
+    #[test]
+    fn inline_image_check_ignores_text_strings_and_comments() {
+        for data in [
+            b"BT [(U) -20 (BI) 10 (NG)] TJ ET".as_slice(),
+            b"BT (BI) Tj (nested (BI) text) Tj ET",
+            br"BT (escaped \(BI\) and \\ BI) Tj ET",
+            b"% BI /W 100\r\nBT <4249> Tj ET",
+            b"(unfinished BI",
+            b"<4249",
+        ] {
+            assert!(!super::has_inline_image(data), "{data:?}");
+        }
+        for data in [b"(BI) BI/W 1".as_slice(), b"% BI\nBI/W 1", b"<4249>BI/W 1", br"(escaped \) BI) BI/W 1", b"<< /Key (BI) >> BI/W 1"] {
+            assert!(super::has_inline_image(data), "{data:?}");
+        }
     }
 
     #[test]

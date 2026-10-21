@@ -212,3 +212,61 @@ fn pdf_resolution_validation_and_physical_size() {
         assert_eq!(photocraft_io::pdf::page_sizes(&output.bytes).unwrap(), [(72.0, 36.0)]);
     }
 }
+
+#[test]
+#[cfg(not(target_arch = "wasm32"))]
+fn pdf_import_renders_vector_shapes_and_text_without_raster_images() {
+    let content = b"1 0 0 rg 0 0 18 36 re f 0 0 0 rg BT /F1 12 Tf 24 12 Td (PDF) Tj ET";
+    let bytes = text_vector_fixture(content);
+    let imported = import("text-and-vector.pdf", &bytes).unwrap();
+    let page = photocraft_compose::render(&imported.document, imported.document.bounds());
+    assert_eq!(imported.document.size, Size::new(144, 72));
+    let red = page.px[10 * 144 + 10];
+    assert!(red[0] > 0.95 && red[1] < 0.05 && red[2] < 0.05, "vector rectangle: {red:?}");
+    assert!(
+        page.px.as_chunks::<144>().0.iter().flat_map(|row| &row[48..]).any(|p| p[..3].iter().all(|&v| v < 0.2)),
+        "standard PDF text must render as visible glyphs"
+    );
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn text_vector_fixture(content: &[u8]) -> Vec<u8> {
+    let objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>".to_vec(),
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>".to_vec(),
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 72 36] /Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>".to_vec(),
+        [format!("<< /Length {} >>\nstream\n", content.len()).as_bytes(), content, b"\nendstream"].concat(),
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".to_vec(),
+    ];
+    let mut bytes = b"%PDF-1.4\n".to_vec();
+    let mut offsets = Vec::new();
+    for (i, object) in objects.iter().enumerate() {
+        offsets.push(bytes.len());
+        bytes.extend_from_slice(format!("{} 0 obj\n", i + 1).as_bytes());
+        bytes.extend_from_slice(object);
+        bytes.extend_from_slice(b"\nendobj\n");
+    }
+    let xref = bytes.len();
+    bytes.extend_from_slice(b"xref\n0 6\n0000000000 65535 f \n");
+    for offset in offsets {
+        bytes.extend_from_slice(format!("{offset:010} 00000 n \n").as_bytes());
+    }
+    bytes.extend_from_slice(format!("trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n").as_bytes());
+    bytes
+}
+
+#[test]
+#[cfg(not(target_arch = "wasm32"))]
+fn pdf_bi_text_label_import_and_preview_match_hex_string() {
+    let literal = text_vector_fixture(b"BT /F1 12 Tf 24 12 Td [(BI)] TJ ET");
+    let hex = text_vector_fixture(b"BT /F1 12 Tf 24 12 Td [<4249>] TJ ET");
+    let a = import("label.pdf", &literal).unwrap().document;
+    let b = import("hex.pdf", &hex).unwrap().document;
+    let a = photocraft_compose::render(&a, a.bounds());
+    let b = photocraft_compose::render(&b, b.bounds());
+    assert_eq!(a.px, b.px);
+    assert!(a.px.iter().any(|p| p[..3].iter().all(|&v| v < 0.2)));
+    let a = photocraft_io::pdf::page_preview(Arc::new(literal), 0).unwrap();
+    let b = photocraft_io::pdf::page_preview(Arc::new(hex), 0).unwrap();
+    assert_eq!(a, b);
+}

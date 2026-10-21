@@ -1,7 +1,7 @@
 //! Capability-based filesystem policy for untrusted automation paths.
 
-use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::io::{Read, Write};
+use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 
 use cap_std::ambient_authority;
@@ -16,14 +16,19 @@ const DENIED: &str = "automation filesystem access is not granted";
 #[derive(Clone)]
 struct RootCapability {
     dir: Arc<Dir>,
+    /// The root as an absolute path (trusted launch configuration), to recognise absolute request
+    /// paths that name a file beneath it.
+    path: PathBuf,
 }
 
 /// Separate directory capabilities for automation reads and writes.
 ///
 /// Root paths are trusted launch-time configuration. Request paths are always
 /// untrusted, forward-slash relative paths resolved by `cap-std` beneath the
-/// held directory handle. Absolute paths, parent traversal, alternate
-/// separators, Windows prefixes and empty components are rejected before I/O.
+/// held directory handle, or absolute paths whose text lies beneath the root
+/// (translated to relative ones, see [`request_path`]). Parent traversal,
+/// alternate separators, Windows prefixes and empty components are rejected
+/// before I/O.
 #[derive(Clone, Default)]
 pub struct AuthorizedWorkspace {
     read: Option<RootCapability>,
@@ -39,15 +44,29 @@ impl AuthorizedWorkspace {
 
     /// Read one regular file below the configured read root.
     pub fn read(&self, path: &str) -> Result<Vec<u8>, AutomationError> {
-        let relative = relative_path(path)?;
+        let relative = request_path(path, self.read.as_ref())?;
         let root = self.read.as_ref().ok_or_else(|| AutomationError::BadRequest(format!("{DENIED}: read authority is absent")))?;
         let mut file = root.dir.open(&relative).map_err(|e| file_error("read", path, e))?;
         let metadata = file.metadata().map_err(|e| file_error("read", path, e))?;
         if !metadata.is_file() {
             return Err(AutomationError::BadRequest(format!("automation read path is not a regular file: `{path}`")));
         }
-        // Bounded reads, and a clear error for a file larger than memory (#375).
-        photocraft_format::read::read_all(&mut file, metadata.len()).map_err(|e| file_error("read", path, e))
+        read_to_observed_length(&mut file, metadata.len())
+    }
+
+    /// Load one `.pcraft` document in directory form — the native on-disk layout — below the
+    /// read root. `read` serves regular files only (the zip form), so a regular file at the
+    /// path is reported as `Ok(None)` for the caller to fall back to.
+    pub fn open_pcraft(&self, path: &str) -> Result<Option<photocraft_doc::Document>, AutomationError> {
+        let relative = request_path(path, self.read.as_ref())?;
+        let root = self.read.as_ref().ok_or_else(|| AutomationError::BadRequest(format!("{DENIED}: read authority is absent")))?;
+        let dir = match root.dir.open_dir(&relative) {
+            Ok(dir) => dir,
+            Err(e) if e.kind() == std::io::ErrorKind::NotADirectory => return Ok(None),
+            Err(e) => return Err(file_error("read", path, e)),
+        };
+        let source = DirHandle { dir };
+        Ok(Some(photocraft_format::load_bytes_source(&source, &photocraft_format::LoadOptions::default())?))
     }
 
     /// Create or replace one file below the configured write root, crash-safely: the bytes go to
@@ -55,21 +74,38 @@ impl AuthorizedWorkspace {
     /// as [`photocraft_format::atomic_write`], through the directory capability). On failure
     /// the previous file is untouched and the temporary file is removed.
     ///
+    /// Replacing a file carries its extended attributes — macOS Finder tags, Linux `user.*` —
+    /// onto the file that takes its place (#7095), through the two open descriptors rather than
+    /// their paths, so nothing here reaches outside the write root to finish a write. The rest
+    /// of what [`photocraft_format::atomic_write`] preserves does not follow: its permission
+    /// step is tracked in #4963, and the Windows `ReplaceFileW` swap is path-based, which this
+    /// path may not use.
+    ///
     /// The parent directory must already exist. `cap-std` performs path
     /// resolution and file creation relative to the held directory handle, so
     /// a non-existent final target is supported without ambient path access.
     pub fn write(&self, path: &str, bytes: &[u8]) -> Result<(), AutomationError> {
-        let relative = relative_path(path)?;
+        let relative = request_path(path, self.write.as_ref())?;
         let root = self.write.as_ref().ok_or_else(|| AutomationError::BadRequest(format!("{DENIED}: write authority is absent")))?;
         let leaf = relative.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
         let parent = relative.parent().map(Path::to_path_buf).unwrap_or_default();
         let tmp = parent.join(photocraft_format::atomic::temp_name(&leaf));
         let mut options = OpenOptions::new();
         options.write(true).create_new(true);
-        let written = root.dir.open_with(&tmp, &options).and_then(|mut file| {
+        let written = root.dir.open_with(&tmp, &options).and_then(|file| {
+            let mut file = file.into_std();
             file.write_all(bytes)?;
+            #[cfg(unix)]
+            {
+                use std::os::fd::AsFd;
+                // Best effort, and only when there is a file being replaced: a save still
+                // succeeds for a document whose Finder tag could not come along.
+                if let Ok(old) = root.dir.open(&relative) {
+                    let _ = photocraft_format::atomic::meta::copy_xattrs(old.as_fd(), file.as_fd());
+                }
+            }
             // Falls back to a plain fsync on shares that refuse a full flush (#1336).
-            photocraft_format::atomic::sync_file(&file.into_std())
+            photocraft_format::atomic::sync_file(&file)
         });
         let renamed = written.and_then(|()| photocraft_format::atomic::retry_rename(RenameRetry::platform(), || root.dir.rename(&tmp, &root.dir, &relative)));
         if let Err(e) = renamed {
@@ -88,6 +124,34 @@ impl AuthorizedWorkspace {
     }
 }
 
+fn read_to_observed_length(reader: &mut impl Read, observed_length: u64) -> Result<Vec<u8>, AutomationError> {
+    // Do not reserve from a potentially stale or attacker-controlled metadata length. Read in
+    // chunks, and reject growth beyond the length observed on the opened file before appending.
+    let mut bytes = Vec::new();
+    let mut chunk = [0u8; 64 << 10];
+    loop {
+        let remaining = observed_length.saturating_sub(bytes.len() as u64);
+        let ask = chunk.len().min(usize::try_from(remaining.saturating_add(1)).unwrap_or(chunk.len()));
+        let n = match reader.read(&mut chunk[..ask]) {
+            Ok(n) => n,
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(e) => return Err(AutomationError::Io(format!("automation read failed: {e}"))),
+        };
+        if n == 0 {
+            return Ok(bytes);
+        }
+        if n as u64 > remaining {
+            return Err(AutomationError::BadRequest(format!("automation file grew beyond its observed length of {observed_length} bytes")));
+        }
+        let needed = bytes.len().checked_add(n).ok_or_else(|| AutomationError::BadRequest("automation file is too large to read".into()))?;
+        if needed > bytes.capacity() {
+            let target = bytes.capacity().saturating_add(bytes.capacity() / 2).max(needed).min(usize::try_from(observed_length).unwrap_or(usize::MAX));
+            bytes.try_reserve_exact(target - bytes.len()).map_err(|e| AutomationError::Io(format!("automation read allocation failed: {e}")))?;
+        }
+        bytes.extend_from_slice(&chunk[..n]);
+    }
+}
+
 fn open_root(path: Option<&Path>, authority: &str) -> Result<Option<RootCapability>, AutomationError> {
     let Some(path) = path else { return Ok(None) };
     if path.as_os_str().is_empty() {
@@ -95,7 +159,33 @@ fn open_root(path: Option<&Path>, authority: &str) -> Result<Option<RootCapabili
     }
     let dir = Dir::open_ambient_dir(path, ambient_authority())
         .map_err(|e| AutomationError::Io(format!("cannot open automation {authority} root `{}`: {e}", path.display())))?;
-    Ok(Some(RootCapability { dir: Arc::new(dir) }))
+    // Textual (no link resolution), like the request paths it is compared with.
+    let absolute =
+        std::path::absolute(path).map_err(|e| AutomationError::Io(format!("cannot resolve automation {authority} root `{}`: {e}", path.display())))?;
+    Ok(Some(RootCapability { dir: Arc::new(dir), path: absolute }))
+}
+
+/// A request path as the relative path the root's capability resolves. An absolute path is
+/// accepted only when its text names a file beneath `root`: the root's components are
+/// stripped (the drive letter compared without case) and the rest must pass
+/// [`relative_path`], so `..`, prefixes and device names are refused as before. Nothing is
+/// resolved on the filesystem; the held directory handle still does all the opening, so
+/// links cannot escape the root.
+fn request_path(raw: &str, root: Option<&RootCapability>) -> Result<PathBuf, AutomationError> {
+    let Some(root) = root.filter(|_| Path::new(raw).is_absolute()) else { return relative_path(raw) };
+    let mut request = Path::new(raw).components();
+    for want in root.path.components() {
+        let same = match (request.next(), want) {
+            (Some(Component::Prefix(a)), Component::Prefix(b)) => a.as_os_str().eq_ignore_ascii_case(b.as_os_str()),
+            (Some(got), want) => got == want,
+            (None, _) => false,
+        };
+        if !same {
+            return Err(path_error(raw, "absolute paths must be inside the automation root"));
+        }
+    }
+    let rest: Vec<&str> = request.map(|c| c.as_os_str().to_str().unwrap_or("\u{FFFD}")).collect();
+    relative_path(&rest.join("/"))
 }
 
 fn relative_path(raw: &str) -> Result<PathBuf, AutomationError> {
@@ -142,6 +232,24 @@ fn path_error(path: &str, reason: &str) -> AutomationError {
     AutomationError::BadRequest(format!("automation path rejected: {reason}: `{path}`"))
 }
 
+/// A `.pcraft` directory behind the read-root capability: bounded reads, no ambient paths.
+struct DirHandle {
+    dir: Dir,
+}
+
+impl photocraft_format::ByteSource for DirHandle {
+    fn get(&self, path: &str, max: usize) -> photocraft_format::Result<Vec<u8>> {
+        let missing = || photocraft_format::FormatError::Corrupt(format!("missing `{path}`"));
+        let mut file = self.dir.open(path).map_err(|_| missing())?;
+        let metadata = file.metadata().map_err(|_| missing())?;
+        if !metadata.is_file() {
+            // A FIFO or device would block the open and stream without end.
+            return Err(photocraft_format::FormatError::Corrupt(format!("`{path}` is not a regular file")));
+        }
+        photocraft_format::read_entry(&mut file, metadata.len(), max, path)
+    }
+}
+
 fn file_error(operation: &str, path: &str, error: std::io::Error) -> AutomationError {
     let kind = error.kind();
     AutomationError::Io(format!("automation {operation} `{path}` failed ({kind:?}): {error}"))
@@ -161,6 +269,7 @@ pub fn authorize_engine_command(id: &str, params: &Value) -> Result<(), Automati
             | "file.fileInfo"
             | "file.automate.fitImage"
             | "file.automate.conditionalModeChange"
+            | "file.automate.cropAndStraightenPhotos"
             | "file.scripts.flattenAllLayerEffects"
             | "file.scripts.flattenAllMasks"
             | "file.scripts.deleteAllEmptyLayers"
@@ -243,7 +352,8 @@ fn params_contain_ambient_path(id: &str, params: &Value) -> bool {
 }
 
 fn profile_command_may_read_ambient(id: &str, params: &Value) -> bool {
-    if matches!(id, "color.profileMismatch" | "edit.colorSettings" | "view.proofSetup") {
+    // Installed profiles scan OS and user directories even without a request path.
+    if matches!(id, "color.profileMismatch" | "edit.colorSettings" | "edit.installedProfiles" | "view.proofSetup") {
         return true;
     }
     matches!(id, "edit.assignProfile" | "edit.convertToProfile" | "edit.profileInfo")
@@ -270,12 +380,16 @@ fn preference_uses_ambient_filesystem(path: &str) -> bool {
 
 fn command_uses_ambient_path(id: &str, params: &Value) -> bool {
     match id {
-        "brush.presets.importAbr" | "gradient.presets.importGrd" | "plugin.install" | "swatches.import" => {
+        "actions.load" | "brush.presets.importAbr" | "brush.presets.importImage" | "gradient.presets.importGrd" | "plugin.install" | "swatches.import" => {
             // `data` wins over `path` in these commands; any `path` without it reads the filesystem.
             params.get("data").is_none() && params.get("path").is_some()
         }
         // With a `path` the file is written there; without one the bytes come back as `data`.
-        "swatches.export" => params.get("path").is_some(),
+        "actions.save" | "swatches.export" => params.get("path").is_some(),
+        // Shortcut sets: a .kys read or written by path, or a Summarize page written by path.
+        "edit.keyboardShortcuts" => {
+            params.get("path").is_some() || ["importKys", "exportKys", "summarize"].iter().any(|k| params.get(*k).and_then(|v| v.get("path")).is_some())
+        }
         "plugin.reload" => true,
         _ => false,
     }
@@ -302,7 +416,7 @@ pub(crate) struct ExportSequence {
 
 impl AuthorizedWorkspace {
     pub(crate) fn export_sequence(&self, path: &str) -> Result<ExportSequence, AutomationError> {
-        let relative = relative_path(path)?;
+        let relative = request_path(path, self.write.as_ref())?;
         let root = self.write.as_ref().ok_or_else(|| AutomationError::BadRequest(format!("{DENIED}: write authority is absent")))?;
         root.dir.create_dir_all(&relative).map_err(|e| file_error("mkdir", path, e))?;
         let dir = root.dir.open_dir(&relative).map_err(|e| file_error("open export directory", path, e))?;
@@ -400,6 +514,62 @@ mod tests {
         assert_eq!(std::fs::read(inside.join("new-output.txt")).unwrap(), b"created");
     }
 
+    #[test]
+    fn large_observed_length_does_not_trigger_a_fixed_limit_or_upfront_reservation() {
+        let mut shortened = std::io::Cursor::new(b"psb");
+        assert_eq!(read_to_observed_length(&mut shortened, (1 << 30) + 1).unwrap(), b"psb");
+    }
+
+    #[test]
+    fn read_growth_is_rejected_at_the_observed_length() {
+        let mut growing = std::io::repeat(b'x').take(65);
+        let error = read_to_observed_length(&mut growing, 64).unwrap_err().to_string();
+        assert!(error.contains("grew beyond its observed length of 64 bytes"), "{error}");
+        let mut allowed = std::io::repeat(b'x').take(64);
+        assert_eq!(read_to_observed_length(&mut allowed, 64).unwrap().len(), 64);
+        let mut empty = std::io::Cursor::new(b"x");
+        assert!(read_to_observed_length(&mut empty, 0).is_err());
+    }
+
+    #[test]
+    fn open_pcraft_loads_a_directory_below_the_read_root() {
+        let (inside, _, workspace) = roots("pcraft-dir");
+        let doc = photocraft_doc::Document::new("Native", photocraft_doc::Size::new(16, 12), photocraft_doc::ColorMode::Rgb, photocraft_doc::SampleType::U8);
+        photocraft_format::PcraftWriter::new().save_dir(&doc, &inside.join("native.pcraft"), &photocraft_format::SaveOptions::default()).unwrap();
+        let loaded = workspace.open_pcraft("native.pcraft").unwrap().expect("the directory form loads");
+        assert_eq!(loaded.name, doc.name);
+        assert_eq!((loaded.size.width, loaded.size.height), (16, 12));
+    }
+
+    #[test]
+    fn open_pcraft_reports_zip_files_and_missing_paths_clearly() {
+        let (inside, _, workspace) = roots("pcraft-errors");
+        let doc = photocraft_doc::Document::new("Zipped", photocraft_doc::Size::new(4, 4), photocraft_doc::ColorMode::Rgb, photocraft_doc::SampleType::U8);
+        let zip = inside.join("zipped.pcraft");
+        photocraft_format::PcraftWriter::new().save_path(&doc, &zip, &photocraft_format::SaveOptions::default()).unwrap();
+        assert!(zip.is_file());
+        assert!(workspace.open_pcraft("zipped.pcraft").unwrap().is_none(), "the zip form falls back to the bytes path");
+        let error = workspace.open_pcraft("missing.pcraft").unwrap_err().to_string();
+        assert!(error.contains("failed"), "a missing path propagates its io error: {error}");
+        assert!(AuthorizedWorkspace::default().open_pcraft("x.pcraft").is_err(), "no read authority fails closed");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn open_pcraft_rejects_non_regular_entries_and_escaping_symlinks() {
+        let (inside, _, workspace) = roots("pcraft-nonregular");
+        let bundle = inside.join("native.pcraft");
+        std::fs::create_dir_all(bundle.join("manifest.json")).unwrap();
+        let error = workspace.open_pcraft("native.pcraft").unwrap_err().to_string();
+        assert!(error.contains("not a regular file"), "a directory entry is refused, not streamed: {error}");
+
+        let (inside2, _, workspace2) = roots("pcraft-symlink");
+        let bundle2 = inside2.join("native.pcraft");
+        std::fs::create_dir(&bundle2).unwrap();
+        std::os::unix::fs::symlink("/dev/zero", bundle2.join("manifest.json")).unwrap();
+        assert!(workspace2.open_pcraft("native.pcraft").is_err(), "an escaping symlink entry is refused");
+    }
+
     fn temp_files(dir: &Path) -> Vec<String> {
         std::fs::read_dir(dir).unwrap().flatten().map(|e| e.file_name().to_string_lossy().into_owned()).filter(|n| n.ends_with(".tmp")).collect()
     }
@@ -416,6 +586,32 @@ mod tests {
         std::fs::create_dir_all(inside.join("adir")).unwrap();
         assert!(workspace.write("adir", b"x").is_err());
         assert!(inside.join("adir").is_dir());
+        assert!(temp_files(&inside).is_empty());
+    }
+
+    /// #7095: replacing a file through the automation path keeps the old file's extended
+    /// attributes, the same as a save through `atomic_write` does.
+    #[cfg(any(target_os = "linux", target_os = "android", target_vendor = "apple"))]
+    #[test]
+    fn write_keeps_the_replaced_files_extended_attributes() {
+        #[cfg(target_os = "macos")]
+        const TAG: &str = "com.apple.metadata:_kMDItemUserTags";
+        #[cfg(not(target_os = "macos"))]
+        const TAG: &str = "user.photocraft.test";
+
+        let (inside, _, workspace) = roots("xattr");
+        let path = inside.join("doc.psd");
+        workspace.write("doc.psd", b"original").unwrap();
+        if rustix::fs::setxattr(&path, TAG, b"tagged", rustix::fs::XattrFlags::empty()).is_err() {
+            return; // a file system without extended attributes: nothing to assert
+        }
+
+        workspace.write("doc.psd", b"replacement, longer").unwrap();
+
+        assert_eq!(std::fs::read(&path).unwrap(), b"replacement, longer");
+        let mut buf = [0u8; 64];
+        let len = rustix::fs::getxattr(&path, TAG, buf.as_mut_slice()).expect("the attribute was dropped");
+        assert_eq!(&buf[..len], b"tagged");
         assert!(temp_files(&inside).is_empty());
     }
 
@@ -547,6 +743,8 @@ mod tests {
             assert!(authorize_engine_command(id, &serde_json::json!({})).is_err());
         }
         assert!(authorize_engine_command("file.new", &serde_json::json!({})).is_ok());
+        assert!(authorize_engine_command("file.automate.cropAndStraightenPhotos", &serde_json::json!({})).is_ok());
+        assert!(authorize_desktop_engine_command("file.automate.cropAndStraightenPhotos", &serde_json::json!({})).is_ok());
         for id in ["layer.smartObjects.editContents", "layer.smartObjects.convertToLayers", "layer.smartObjects.saveContents"] {
             assert!(authorize_desktop_engine_command(id, &serde_json::json!({"layer": 19})).is_ok(), "{id}");
         }
@@ -561,6 +759,12 @@ mod tests {
         assert!(authorize_desktop_engine_command("image.mode.cmyk", &serde_json::json!({})).is_err());
         assert!(authorize_engine_command("image.mode.rgb", &serde_json::json!({"profile": "/outside/profile.icc"})).is_err());
         assert!(authorize_engine_command("image.mode.rgb", &serde_json::json!({"profile": "srgb"})).is_ok());
+        // Shortcut sets: text in and out is fine; a path reads or writes the filesystem.
+        let ks = |p: serde_json::Value| authorize_engine_command("edit.keyboardShortcuts", &p);
+        assert!(ks(serde_json::json!({"exportKys": true, "summarize": true, "importKys": "<photoshop-keyboard-shortcuts/>"})).is_ok());
+        for key in ["importKys", "exportKys", "summarize"] {
+            assert!(ks(serde_json::json!({ key: {"path": "/outside/set.kys"} })).is_err(), "{key}");
+        }
         assert!(authorize_engine_command("filter.distort.displace", &serde_json::json!({"mapPath": "outside.png"})).is_err());
         assert!(authorize_engine_command("layer.setAdjustment", &serde_json::json!({"file": "outside.cube"})).is_err());
         assert!(authorize_engine_command("prefs.set", &serde_json::json!({"path": "colorSettings.workingRgb", "value": "outside.icc"})).is_err());
@@ -607,6 +811,7 @@ mod tests {
     fn automation_rejects_ambient_path_commands_and_preferences() {
         for (id, params) in [
             ("brush.presets.importAbr", serde_json::json!({"path": "/outside/set.abr"})),
+            ("brush.presets.importImage", serde_json::json!({"path": "/outside/tip.png"})),
             ("gradient.presets.importGrd", serde_json::json!({"path": "/outside/set.grd"})),
             ("plugin.install", serde_json::json!({"path": "/outside/plugin.wasm"})),
             ("plugin.reload", serde_json::json!({"path": "/outside/plugins"})),
@@ -614,15 +819,20 @@ mod tests {
             ("plugin.install", serde_json::json!({"path": " "})),
             ("swatches.import", serde_json::json!({"path": "/outside/set.aco"})),
             ("swatches.export", serde_json::json!({"path": "/outside/set.ase"})),
+            ("actions.load", serde_json::json!({"path": "/outside/set.atn"})),
+            ("actions.save", serde_json::json!({"path": "/outside/set.atn"})),
         ] {
             assert!(authorize_engine_command(id, &params).is_err(), "{id}: {params}");
         }
         for (id, params) in [
             ("brush.presets.importAbr", serde_json::json!({"data": "QUJD"})),
+            ("brush.presets.importImage", serde_json::json!({"data": "QUJD"})),
             ("gradient.presets.importGrd", serde_json::json!({"data": "QUJD"})),
             ("plugin.install", serde_json::json!({"data": "QUJD"})),
             ("swatches.import", serde_json::json!({"data": "QUJD"})),
             ("swatches.export", serde_json::json!({"format": "ase"})),
+            ("actions.load", serde_json::json!({"data": "QUJD"})),
+            ("actions.save", serde_json::json!({"set": "S"})),
         ] {
             assert!(authorize_engine_command(id, &params).is_ok(), "{id}: {params}");
         }
@@ -698,8 +908,13 @@ mod tests {
                 | "path.moveHandle"
                 | "path.bendSegment"
                 | "path.convertPoint"
+                | "path.addAnchor"
+                | "path.deleteAnchor"
                 | "path.clippingPath.set"
                 | "path.rename"
+                | "path.stroke"
+                | "type.attachToPath"
+                | "type.detachFromPath"
                 | "select.toWorkPath"
                 | "layer.vectorMask.add"
                 | "layer.vectorMask.edit"
@@ -752,5 +967,57 @@ mod tests {
         }
         headless.command_run("file.new", serde_json::json!({"width": 5, "height": 5})).unwrap();
         assert!(headless.session.file_menu.event_log.is_empty());
+    }
+
+    /// #2176: an absolute path beneath the root names the same file as its relative path; every
+    /// other absolute path is refused before any file effect.
+    #[test]
+    fn absolute_paths_beneath_the_root_are_translated_and_others_refused() {
+        let (inside, outside, workspace) = roots("absolute-paths");
+        let abs = |p: &Path| p.to_string_lossy().into_owned();
+
+        workspace.write(&abs(&inside.join("a.bin")), b"one").unwrap();
+        assert_eq!(std::fs::read(inside.join("a.bin")).unwrap(), b"one");
+        assert_eq!(workspace.read(&abs(&inside.join("a.bin"))).unwrap(), b"one");
+        // Forward slashes too (on Windows the native spelling uses `\`).
+        assert_eq!(workspace.read(&abs(&inside.join("a.bin")).replace('\\', "/")).unwrap(), b"one");
+        std::fs::create_dir(inside.join("sub")).unwrap();
+        workspace.write(&abs(&inside.join("sub").join("b.bin")), b"two").unwrap();
+        assert_eq!(std::fs::read(inside.join("sub/b.bin")).unwrap(), b"two");
+        assert_eq!(workspace.read("sub/b.bin").unwrap(), b"two", "relative paths still work");
+
+        let refused = |path: String| {
+            let error = workspace.write(&path, b"x").unwrap_err().to_string();
+            assert!(error.contains("automation path rejected"), "{path}: {error}");
+        };
+        refused(abs(&outside.join("escape.bin")));
+        refused(abs(&inside.join("..").join("outside").join("traversal.bin")));
+        refused(abs(&inside));
+        refused(abs(&inside.join("CON")));
+        refused(format!("{}:hidden", abs(&inside.join("a.bin"))));
+        // A sibling whose name merely starts with the root's name is not beneath it.
+        let sibling = inside.with_file_name("inside-sibling");
+        std::fs::create_dir_all(&sibling).unwrap();
+        refused(abs(&sibling.join("lookalike.bin")));
+        refused(format!("{}-sibling/lookalike.bin", abs(&inside)));
+        // Climbing back out through a subdirectory is refused too.
+        refused(abs(&inside.join("sub").join("..").join("..").join("outside").join("climb.bin")));
+        assert!(!sibling.join("lookalike.bin").exists());
+        assert!(!outside.join("climb.bin").exists());
+        assert!(!outside.join("escape.bin").exists());
+        assert!(!outside.join("traversal.bin").exists());
+        assert_eq!(std::fs::read(inside.join("a.bin")).unwrap(), b"one");
+    }
+
+    /// Each authority is checked against its own root, and none granted refuses absolute paths.
+    #[test]
+    fn absolute_paths_are_checked_against_the_authority_s_own_root() {
+        let (inside, outside, _) = roots("absolute-authority");
+        let workspace = AuthorizedWorkspace::new(Some(&outside), Some(&inside)).unwrap();
+        let target = inside.join("written.bin");
+        workspace.write(&target.to_string_lossy(), b"w").unwrap();
+        assert!(workspace.read(&target.to_string_lossy()).is_err(), "not under the read root");
+        let none = AuthorizedWorkspace::default();
+        assert!(none.read(&target.to_string_lossy()).is_err());
     }
 }

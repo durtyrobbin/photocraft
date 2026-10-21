@@ -2,6 +2,7 @@
 use std::sync::{Arc, mpsc};
 
 use crate::PhotocraftApp;
+use crate::i18n::fmt;
 use photocraft_engine::jobs::OpenSource;
 
 type Preview = Result<(u32, u32, Vec<u8>), String>;
@@ -43,7 +44,7 @@ pub(crate) fn queue(app: &mut PhotocraftApp, name: &str, path: Option<String>, b
         resolution: 144.0,
         slot: None,
     });
-    app.ui.status = "Choose PDF pages to open".into();
+    app.ui.status = tl!("Open PDF pages").into();
     app.ui.status_error = false;
     Ok(())
 }
@@ -65,7 +66,7 @@ impl PhotocraftApp {
     pub fn open_pdf_pages(&mut self, pages: &[usize]) -> Result<(), String> {
         let p = self.pdf_pickers.front().ok_or("no PDF is waiting for a page selection")?;
         if pages.is_empty() || pages.iter().any(|&i| i >= p.sizes.len()) {
-            return Err("Choose at least one valid page".into());
+            return Err(tl!("Choose at least one valid page").into());
         }
         let p = self.pdf_pickers.pop_front().ok_or("no PDF is waiting for a page selection")?;
         if self.background_jobs {
@@ -96,7 +97,7 @@ impl PhotocraftApp {
                 self.opened_from(&path);
             }
             self.sync_views();
-            self.ui.status = format!("Opened {} PDF page(s) in separate tabs", pages.len());
+            self.ui.status = fmt(tl!("Opened {count} PDF page(s) in separate tabs"), &[("count", &pages.len().to_string())]);
         }
         Ok(())
     }
@@ -104,7 +105,7 @@ impl PhotocraftApp {
     /// Dismiss the current picker without creating or changing a document.
     pub fn cancel_pdf_import(&mut self) {
         self.pdf_pickers.pop_front();
-        self.ui.status = "PDF import cancelled".into();
+        self.ui.status = tl!("PDF import cancelled").into();
     }
 }
 
@@ -140,7 +141,7 @@ fn preview(p: &mut Picker, ctx: &egui::Context) {
             Err(mpsc::TryRecvError::Disconnected) => {
                 p.loading = None;
                 p.shown = Some(p.preview);
-                p.error = Some("Preview unavailable".into());
+                p.error = Some(tl!("Preview unavailable").into());
             }
             Err(mpsc::TryRecvError::Empty) => {}
         }
@@ -171,10 +172,10 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let (mut open, mut all, mut cancel) = (false, false, false);
     let modal = egui::Modal::new(egui::Id::new("pdf-page-picker")).show(ctx, |ui| {
         ui.set_width(650.0);
-        ui.heading("Open PDF pages");
+        ui.heading(tl!("Open PDF pages"));
         ui.label(&p.name);
-        ui.label(format!("{} pages • Each selected page opens in its own tab", p.sizes.len()));
-        ui.label("Click to select pages. Shift-click selects a range.");
+        ui.label(fmt(tl!("{count} pages • Each selected page opens in its own tab"), &[("count", &p.sizes.len().to_string())]));
+        ui.label(tl!("Click to select pages. Shift-click selects a range."));
         ui.separator();
         ui.horizontal_top(|ui| {
             ui.set_height(360.0);
@@ -184,11 +185,11 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                     for i in 0..p.selected.len() {
                         ui.horizontal(|ui| {
                             let mut checked = p.selected[i];
-                            if ui.checkbox(&mut checked, format!("Page {}", i + 1)).changed() {
+                            if ui.checkbox(&mut checked, fmt(tl!("Page {n}"), &[("n", &(i + 1).to_string())])).changed() {
                                 select(&mut p.selected, &mut p.anchor, i, ui.input(|i| i.modifiers.shift), checked);
                                 p.preview = i;
                             }
-                            if ui.small_button("Preview").clicked() {
+                            if ui.small_button(tl!("Preview")).clicked() {
                                 p.preview = i;
                             }
                         });
@@ -200,30 +201,36 @@ pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
                 ui.set_max_size(egui::vec2(420.0, 360.0));
                 ui.set_min_size(egui::vec2(420.0, 360.0));
                 let (w, h) = p.sizes[p.preview];
-                ui.label(format!("Page {} — {:.1} × {:.1} in", p.preview + 1, w / 72.0, h / 72.0));
+                ui.label(fmt(
+                    tl!("Page {n} — {width} × {height} in"),
+                    &[("n", &(p.preview + 1).to_string()), ("width", &format!("{:.1}", w / 72.0)), ("height", &format!("{:.1}", h / 72.0))],
+                ));
                 if let Some(texture) = &p.texture {
                     ui.add(egui::Image::new(texture).max_size(egui::vec2(420.0, 330.0)).maintain_aspect_ratio(true));
                 } else if let Some(error) = &p.error {
                     ui.label(error);
                 } else {
                     ui.spinner();
-                    ui.label("Loading preview…");
+                    ui.label(tl!("Loading preview…"));
                 }
             });
         });
         ui.separator();
         ui.horizontal(|ui| {
-            let label = ui.label("Resolution (ppi)");
+            let label = ui.label(tl!("Resolution (ppi)"));
             ui.add(egui::DragValue::new(&mut p.resolution).range(1.0..=2400.0).speed(1.0)).labelled_by(label.id);
         });
         let (w, h) = p.sizes[p.preview];
-        ui.label(format!("Preview page: {:.0} × {:.0} pixels", (w * p.resolution / 72.0).ceil(), (h * p.resolution / 72.0).ceil()));
-        ui.label("Pages open as RGB 8-bit images. PDF text and vector objects are rasterized.");
+        ui.label(fmt(
+            tl!("Preview page: {width} × {height} pixels"),
+            &[("width", &format!("{:.0}", (w * p.resolution / 72.0).ceil())), ("height", &format!("{:.0}", (h * p.resolution / 72.0).ceil()))],
+        ));
+        ui.label(tl!("Pages open as RGB 8-bit images. PDF text and vector objects are rasterized."));
         ui.horizontal(|ui| {
-            cancel = ui.button("Cancel").clicked();
-            all = ui.button(format!("Open all {} pages", p.sizes.len())).clicked();
+            cancel = ui.button(tl!("Cancel")).clicked();
+            all = ui.button(fmt(tl!("Open all {count} pages"), &[("count", &p.sizes.len().to_string())])).clicked();
             let count = p.selected.iter().filter(|&&v| v).count();
-            open = ui.add_enabled(count > 0, egui::Button::new(format!("Open selected ({count})"))).clicked();
+            open = ui.add_enabled(count > 0, egui::Button::new(fmt(tl!("Open selected ({count})"), &[("count", &count.to_string())]))).clicked();
         });
     });
     cancel |= modal.should_close();

@@ -117,7 +117,7 @@ fn pdf_open_and_save_as_use_shared_codec_and_protect_original() {
     let writes = Rc::new(RefCell::new(Vec::new()));
     let captured = writes.clone();
     let services = Services {
-        import: Some(Box::new(|name, bytes| import(name, bytes).map(|r| (r.document, r.warnings)).map_err(|e| e.to_string()))),
+        import: Some(Box::new(|name, bytes, _| import(name, bytes).map(|r| (r.document, r.warnings)).map_err(|e| e.to_string()))),
         export: Some(Box::new(|doc, path, _| export(doc, path, &ExportOptions::default()).map(|r| (r.bytes, r.warnings)).map_err(|e| e.to_string()))),
         write: Some(Box::new(move |path, bytes| {
             captured.borrow_mut().push((path.to_string(), bytes.to_vec()));
@@ -141,4 +141,18 @@ fn pdf_open_and_save_as_use_shared_codec_and_protect_original() {
     let reopened = import("edited.pdf", &written[0].1).unwrap();
     assert_eq!(reopened.document.artboards().len(), 1);
     assert_eq!(reopened.document.size, Size::new(144, 72));
+}
+
+#[test]
+fn automation_pdf_name_and_magic_are_read_only_sources() {
+    for (name, bytes) in [("original.PDF", b"synthetic".as_slice()), ("misnamed.bin", b"%PDF-1.7".as_slice())] {
+        let services = Services {
+            import: Some(Box::new(|name, _, _| Ok((Document::with_background(name, Size::new(8, 8), ColorMode::Rgb, SampleType::U8, Color::WHITE), vec![])))),
+            ..Default::default()
+        };
+        let mut app = PhotocraftApp::new(photocraft_engine::Session::new(), services);
+        app.open_automation_bytes(name, bytes).unwrap();
+        assert!(app.session.active().unwrap().source_read_only, "{name}");
+        assert!(app.session.active().unwrap().path.is_none());
+    }
 }

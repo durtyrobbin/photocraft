@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use flate2::{Compression, write::ZlibEncoder};
 use hayro::{RenderCache, RenderSettings, hayro_interpret::InterpreterSettings, hayro_syntax::Pdf};
-use photocraft_cms::{Builtin, ColorSpace, Intent, Profile, Transform};
+use photocraft_cms::Builtin;
 use photocraft_color::{ColorMode, PixelFormat, SampleType};
 use photocraft_doc::{Artboard, Document, Group, Layer, LayerContent};
 use photocraft_geom::{Rect, Size};
@@ -247,13 +247,12 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
     }
     let mut output_pages = Vec::new();
     for (doc, id, rect) in &pages {
-        let gray = doc.mode == ColorMode::Grayscale;
-        let source = if matches!(doc.mode, ColorMode::Rgb | ColorMode::Grayscale) {
-            doc.icc_profile.as_deref().and_then(|p| Profile::parse(p).ok()).filter(|p| p.color_space == if gray { ColorSpace::Gray } else { ColorSpace::Rgb })
-        } else {
-            None
+        let channels = match doc.mode {
+            ColorMode::Rgb => 3,
+            ColorMode::Grayscale => 1,
+            ColorMode::Cmyk => 4,
+            mode => return Err(error(format!("PDF saves RGB, Grayscale and CMYK documents; convert {mode:?} using Image > Mode first"))),
         };
-        let transform = source.as_ref().map(|p| Transform::new(p, Builtin::Srgb.profile(), Intent::RelativeColorimetric, true)).transpose().map_err(error)?;
         let mut one = (*doc).clone();
         if let Some(id) = id {
             one.layers.retain(|l| l.id == *id);
@@ -263,22 +262,22 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
         }
         let mut rgb = ZlibEncoder::new(Vec::new(), Compression::default());
         let mut alpha = ZlibEncoder::new(Vec::new(), Compression::default());
-        photocraft_compose::render_bands(&one, *rect, 64, |band| -> Result<(), IoError> {
-            let stride = if gray { 1 } else { 3 };
-            let mut colors = Vec::with_capacity(band.px.len() * 3);
-            if let Some(t) = &transform {
-                let source: Vec<f32> = band.px.iter().flat_map(|p| p.iter().take(stride).copied()).collect();
-                colors.resize(band.px.len() * 3, 0.0);
-                t.convert_f32(&source, stride, &mut colors, 3, false);
-            } else {
-                colors.extend(band.px.iter().flat_map(|p| p.iter().take(3).copied()));
-            }
-            let bytes: Vec<u8> = colors.iter().map(|v| (v.clamp(0.0, 1.0) * 255.0).round() as u8).collect();
-            rgb.write_all(&bytes).map_err(error)?;
-            let bytes: Vec<u8> = band.px.iter().map(|p| (p[3].clamp(0.0, 1.0) * 255.0).round() as u8).collect();
-            alpha.write_all(&bytes).map_err(error)?;
-            Ok(())
-        })?;
+        // Composite in the document's native channels, in bounded bands. In particular,
+        // CMYK ink values must not round-trip through sRGB, or lose their source profile.
+        let fmt = PixelFormat::new(doc.mode, SampleType::F32, true);
+        let mut top = rect.y0;
+        while top < rect.y1 {
+            let bottom = top.saturating_add(64).min(rect.y1);
+            let band = Rect::new(rect.x0, top, rect.x1, bottom);
+            let surface = photocraft_compose::composite_to_surface(&one, band, fmt, None);
+            let pixels = surface.read_region(band);
+            let to8 = |v: f32| (v.clamp(0.0, 1.0) * 255.0).round() as u8;
+            let colors: Vec<u8> = pixels.chunks_exact(channels + 1).flat_map(|p| p[..channels].iter().copied().map(to8)).collect();
+            let coverage: Vec<u8> = pixels.chunks_exact(channels + 1).map(|p| to8(p[channels])).collect();
+            rgb.write_all(&colors).map_err(error)?;
+            alpha.write_all(&coverage).map_err(error)?;
+            top = bottom;
+        }
         let rgb = rgb.finish().map_err(error)?;
         let alpha = alpha.finish().map_err(error)?;
         let (w, h) = (rect.width(), rect.height());
@@ -292,10 +291,10 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
             image: crate::pdf_writer::RasterImage {
                 width: w,
                 height: h,
-                channels: 3,
+                channels,
                 data: rgb,
                 jpeg: false,
-                icc: Some(Builtin::Srgb.profile().to_bytes().to_vec()),
+                icc: doc.icc_profile.as_ref().map(|p| p.to_vec()),
                 alpha: Some(alpha),
             },
         });
@@ -304,8 +303,18 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
     Ok(ExportResult {
         bytes: crate::pdf_writer::write_pdf(&output_pages, metadata.map(String::as_str)),
         warnings: vec![format!(
-            "Exported {} raster PDF page(s) in 8-bit sRGB with lossless compression. Editing layers and PDF text/vectors are not retained; use .pcraft to keep editing layers.",
+            "Exported {} raster PDF page(s) in 8-bit document color with lossless compression and transparency. Editing layers are flattened and PDF text/vectors are not retained; use .pcraft to keep editing layers.",
             pages.len()
         )],
     })
 }
+
+/// Default PDF export, retained for callers of the original single-document API.
+pub fn export(doc: &Document) -> Result<ExportResult, IoError> {
+    export_pdf(doc, &ExportOptions::default())
+}
+
+pub use crate::pdf_writer::{Marks, PrintImage, PrintPage, print_pdf};
+
+#[cfg(test)]
+mod tests;
