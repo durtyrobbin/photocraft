@@ -726,8 +726,10 @@ pub fn body(app: &mut PhotocraftApp, ui: &mut egui::Ui, f: &mut Map<String, Valu
             }
         });
         ui.add_space(10.0);
-        let mut close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
-        crate::widgets::checkbox(ui, &mut close, tl!("Close exported tabs after successful export"));
+        let mut close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false) && !app.services.write_unconfirmed;
+        if !app.services.write_unconfirmed {
+            crate::widgets::checkbox(ui, &mut close, tl!("Close exported tabs after successful export"));
+        }
         f.insert("closeAfter".into(), json!(close));
         ui.label(tl!("Canceled or failed exports leave every tab open."));
         ui.label(egui::RichText::new(tl!("PDF saves the visible pages with flattened layers.")).color(t.text_dim));
@@ -879,6 +881,8 @@ pub fn confirm(app: &mut PhotocraftApp, f: &Map<String, Value>) -> Result<Value,
         let snapshot = photocraft_engine::pdf_export_cmds::Snapshot::capture(&app.session).map_err(|e| e.to_string())?;
         let close = f.get("closeAfter").and_then(Value::as_bool).unwrap_or(false);
         return app.pick_save("Combined-pages.pdf", move |app, path| {
+            // A browser download can still be cancelled after its writer returns.
+            let close = close && !app.services.write_unconfirmed;
             let write = app.services.write.as_mut().ok_or("no writer configured")?;
             let result = snapshot.write(&mut app.session, &path, close, |path, bytes| write(path, bytes)).map_err(|e| e.to_string())?;
             app.ui.status = crate::i18n::fmt(

@@ -151,3 +151,19 @@ fn transparent_rgb_pixels_keep_their_straight_color_and_soft_mask() {
     assert_eq!(stream_after(&out.bytes, "/ColorSpace /DeviceGray /BitsPerComponent 8"), vec![128; 8]);
     check_structure(&out.bytes);
 }
+
+#[test]
+fn pdf_export_respects_the_embed_color_profile_option() {
+    for (mode, device) in [(ColorMode::Rgb, "/DeviceRGB"), (ColorMode::Grayscale, "/DeviceGray"), (ColorMode::Cmyk, "/DeviceCMYK")] {
+        let mut d = doc(mode);
+        d.icc_profile = Some(std::sync::Arc::new(vec![1, 2, 3, 4, 5, 6, 7, 8]));
+        let mut opts = crate::ExportOptions::default();
+        for embed in [false, true] {
+            opts.encode.embed_icc = embed;
+            let out = super::export_pdf(&d, &opts).unwrap();
+            assert_eq!(has(&out.bytes, "/ICCBased"), embed);
+            assert!(has(&out.bytes, device));
+            check_structure(&out.bytes);
+        }
+    }
+}

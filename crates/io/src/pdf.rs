@@ -294,7 +294,7 @@ pub fn export_pdf_documents(docs: &[&Document], opts: &ExportOptions) -> Result<
                 channels,
                 data: rgb,
                 jpeg: false,
-                icc: doc.icc_profile.as_ref().map(|p| p.to_vec()),
+                icc: doc.icc_profile.as_ref().filter(|_| opts.encode.embed_icc).map(|p| p.to_vec()),
                 alpha: Some(alpha),
             },
         });

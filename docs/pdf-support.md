@@ -80,3 +80,5 @@ node -e "console.log(require('./target/pdf-web-smoke/pdf_web_smoke.js').pdf_web_
 Build with `cargo build --release -p photocraft -p photocraft-cli`.
 The focused regression tests are `cargo test -p photocraft-io --test pdf`.
 `file.export.allTabsPdf` also accepts `{ "path": "binder.pdf", "closeAfter": false }` from the local CLI command runner.
+
+Browser binder exports keep all tabs open because a requested download does not confirm that the file was saved. The close-after-export option is available only for writers that confirm completion. PDF Export As honors Embed Color Profile for RGB, grayscale and CMYK.
