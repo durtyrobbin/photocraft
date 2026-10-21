@@ -32,6 +32,7 @@ pub struct PrintPage {
     pub emulsion_down: bool,
 }
 
+/// Escape a PDF literal string for print labels and metadata text.
 fn pdf_string(s: &str) -> String {
     let mut o = String::from("(");
     for c in s.chars() {
@@ -48,6 +49,7 @@ fn pdf_string(s: &str) -> String {
     o
 }
 
+/// Encode a byte slice with the shared lossless PDF stream compressor.
 fn deflate(data: &[u8]) -> Vec<u8> {
     // Fast: print PDFs are transient and large; level 1 is ~4× quicker than the default.
     let mut e = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::fast());
@@ -109,6 +111,7 @@ pub struct RasterPage {
     pub content: String,
 }
 
+/// Wrap encoded bytes in a PDF stream object with an exact byte length.
 fn stream(dict: &str, bytes: &[u8]) -> Vec<u8> {
     let mut out = format!("<< {dict} /Length {} >>\nstream\n", bytes.len()).into_bytes();
     out.extend_from_slice(bytes);

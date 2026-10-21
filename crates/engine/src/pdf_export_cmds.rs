@@ -10,6 +10,7 @@ pub struct Snapshot {
 }
 
 impl Snapshot {
+    /// Retain immutable document snapshots and revisions in tab order; reject an empty session.
     pub fn capture(session: &Session) -> Result<Self> {
         if session.documents().is_empty() {
             return Err(EngineError::NoDocument);
@@ -40,6 +41,7 @@ impl Snapshot {
     }
 }
 
+/// Validate binder command parameters and use the atomic file writer before considering tab closure.
 fn run(session: &mut Session, params: &Value) -> Result<Value> {
     let bad = || EngineError::BadParams { cmd: "file.export.allTabsPdf".into(), msg: "expected {path: string, closeAfter?: boolean}".into() };
     let path = params.get("path").and_then(Value::as_str).filter(|p| !p.is_empty()).ok_or_else(bad)?;
@@ -50,6 +52,7 @@ fn run(session: &mut Session, params: &Value) -> Result<Value> {
     Snapshot::capture(session)?.write(session, path, close, |path, bytes| crate::file_cmds::write_file(path, bytes).map_err(|e| e.to_string()))
 }
 
+/// Register binder export for menus, automation and the command journal.
 pub fn specs() -> Vec<CommandSpec> {
     vec![CommandSpec {
         id: "file.export.allTabsPdf",

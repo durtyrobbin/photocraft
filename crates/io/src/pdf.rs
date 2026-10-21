@@ -36,6 +36,7 @@ impl Default for ImportOptions {
 }
 
 impl ImportOptions {
+    /// Require a finite raster resolution in the supported 1–2400 ppi range.
     pub fn validate(self) -> Result<(), IoError> {
         if !self.resolution.is_finite() || !(1.0..=2400.0).contains(&self.resolution) {
             return Err(error("PDF resolution must be between 1 and 2400 ppi"));
@@ -60,6 +61,7 @@ fn error(message: impl ToString) -> IoError {
     IoError::Pdf(message.to_string())
 }
 
+/// Validate one raster page before allocation and return its pixel count.
 fn check_size(w: u32, h: u32) -> Result<u64, IoError> {
     let n = u64::from(w) * u64::from(h);
     if w == 0 || h == 0 || w > MAX_SIDE || h > MAX_SIDE || n > MAX_PIXELS {
@@ -78,6 +80,8 @@ pub fn import_pdf_pages(name: &str, bytes: &[u8], selected: Option<&[usize]>, ct
     import_pdf_pages_with(name, bytes, selected, ImportOptions::default(), ctl)
 }
 
+/// Rasterize selected pages at an explicit resolution after native-platform, input-size and cancellation checks.
+/// Renderer panics become errors on native builds; this is not an isolated memory sandbox.
 pub fn import_pdf_pages_with(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: ImportOptions, ctl: &Interrupt) -> Result<ImportResult, IoError> {
     require_native_import()?;
     options.validate()?;
@@ -95,6 +99,7 @@ pub fn page_sizes(bytes: &[u8]) -> Result<Vec<(f32, f32)>, IoError> {
     catch_unwind(AssertUnwindSafe(|| page_sizes_inner(bytes))).map_err(|_| error("the PDF parser could not inspect this document"))?
 }
 
+/// Inspect dimensions under the input-byte and page-count limits without invoking the renderer.
 fn page_sizes_inner(bytes: &[u8]) -> Result<Vec<(f32, f32)>, IoError> {
     if bytes.len() > 256 * 1024 * 1024 {
         return Err(error("PDF exceeds the 256 MB import limit"));
@@ -134,6 +139,7 @@ pub fn page_preview(bytes: Arc<Vec<u8>>, index: usize) -> Result<(u32, u32, Vec<
     .map_err(|_| error("the PDF renderer could not preview this page"))?
 }
 
+/// Preflight streams, admit the selected raster sizes, and construct page artboards in binder order.
 fn import_inner(name: &str, bytes: &[u8], selected: Option<&[usize]>, options: ImportOptions, ctl: &Interrupt) -> Result<ImportResult, IoError> {
     let pdf = Pdf::new(Arc::new(bytes.to_vec()))
         .map_err(|e| error(format!("cannot open PDF ({e:?}); password-protected files must first be unlocked in a PDF editor")))?;

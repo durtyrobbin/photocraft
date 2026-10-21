@@ -16,6 +16,7 @@ use photocraft_raster::Interrupt;
 // headroom is shared by decoded streams, renderer/cache copies and output tiles.
 const FALLBACK_HEADROOM: u64 = 1024 * 1024 * 1024;
 
+/// Estimate additional memory available while reserving 15% of physical RAM; use a fallback if RAM is unknown.
 fn headroom(total: u64, available: u64) -> u64 {
     if total == 0 {
         return FALLBACK_HEADROOM;
@@ -24,6 +25,7 @@ fn headroom(total: u64, available: u64) -> u64 {
     available.min(total).saturating_sub(total - ceiling)
 }
 
+/// Refresh available native RAM for admission estimates; never query native system APIs on the web.
 fn memory_headroom() -> u64 {
     #[cfg(not(target_arch = "wasm32"))]
     {
@@ -39,10 +41,12 @@ fn memory_headroom() -> u64 {
     }
 }
 
+/// Reserve room for four estimated stream copies within the current available-memory allowance.
 fn stream_budget() -> usize {
     usize::try_from(memory_headroom() / 4).unwrap_or(usize::MAX / 4)
 }
 
+/// Admit estimated stream copies plus raster/tile storage; this cannot constrain third-party allocations.
 pub(super) fn check_render_memory(decoded: usize, pixels: u64) -> Result<(), IoError> {
     // Four copies of streams plus render pixels, copied RGBA and tile storage.
     let estimate = (decoded as u64).saturating_mul(4).saturating_add(pixels.saturating_mul(12));
@@ -55,6 +59,7 @@ const IMAGE_PIXELS: u64 = 16_000_000;
 const TOTAL_IMAGE_PIXELS: u64 = 64_000_000;
 const OBJECTS: usize = 100_000;
 
+/// Reject zero, excessive-side and excessive-area embedded images before decoding.
 fn dimensions(w: u32, h: u32) -> Result<u64, IoError> {
     let pixels = u64::from(w) * u64::from(h);
     if w == 0 || h == 0 || w > 16_384 || h > 16_384 || pixels > IMAGE_PIXELS {
@@ -63,6 +68,7 @@ fn dimensions(w: u32, h: u32) -> Result<u64, IoError> {
     Ok(pixels)
 }
 
+/// Translate cooperative cancellation into the import error shared by the caller.
 fn cancelled(ctl: &Interrupt) -> Result<(), IoError> {
     ctl.check().map_err(|_| IoError::Cancelled)
 }
@@ -112,6 +118,7 @@ fn jpeg_dimensions(bytes: &[u8]) -> Result<u64, IoError> {
     Err(error("embedded JPEG has no supported frame"))
 }
 
+/// Decode Flate incrementally with cancellation checks and a hard bound on the accumulated output.
 fn inflate(bytes: &[u8], ctl: &Interrupt, limit: usize) -> Result<Vec<u8>, IoError> {
     let mut decoder = flate2::read::ZlibDecoder::new(bytes);
     let mut out = Vec::new();
@@ -131,6 +138,7 @@ fn inflate(bytes: &[u8], ctl: &Interrupt, limit: usize) -> Result<Vec<u8>, IoErr
     Ok(out)
 }
 
+/// Bound predictor row geometry and reject parameter arrays that could bypass single-filter validation.
 fn predictor(dict: &Dict<'_>) -> Result<(), IoError> {
     let params = dict.get::<Dict<'_>>(b"DecodeParms").or_else(|| dict.get::<Dict<'_>>(b"DP"));
     // Filter arrays are rejected below; don't let an array of parameters evade checks.
@@ -148,6 +156,7 @@ fn predictor(dict: &Dict<'_>) -> Result<(), IoError> {
     Ok(())
 }
 
+/// Accept supported image color spaces while bounding nested indexed spaces to prevent unbounded recursion.
 fn image_colorspace(space: Object<'_>, depth: u8) -> Result<(), IoError> {
     if depth > 2 {
         return Err(error("PDF image color space nesting exceeds decode limits"));
@@ -177,6 +186,7 @@ fn image_colorspace(space: Object<'_>, depth: u8) -> Result<(), IoError> {
     Ok(())
 }
 
+/// Recognize the BI operator while skipping strings, names, hex strings and comments that merely contain its letters.
 fn has_inline_image(data: &[u8]) -> bool {
     let delimiter = |b: u8| b.is_ascii_whitespace() || b"()<>[]{}/%".contains(&b);
     let mut pos = 0;
@@ -249,6 +259,7 @@ fn has_inline_image(data: &[u8]) -> bool {
     false
 }
 
+/// Validate one stream and its decoder, update aggregate image costs, and return its admitted byte cost.
 fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64, budget: usize) -> Result<usize, IoError> {
     cancelled(ctl)?;
     let dict = stream.dict();
@@ -320,6 +331,7 @@ fn stream(stream: &Stream<'_>, ctl: &Interrupt, images: &mut u64, budget: usize)
     Ok(decoded.len())
 }
 
+/// Inspect all available streams under object, aggregate image and decoded-byte limits before rendering.
 pub(super) fn preflight(pdf: &Pdf, ctl: &Interrupt) -> Result<usize, IoError> {
     if pdf.len() > OBJECTS {
         return Err(error("PDF exceeds 100,000 objects"));
