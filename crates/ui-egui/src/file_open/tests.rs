@@ -1030,3 +1030,18 @@ fn opening_an_open_file_again_shows_its_tab() {
         let _ = std::fs::remove_dir_all(&d);
     }
 }
+
+#[test]
+fn automation_pdf_save_never_reuses_the_original_source_path() {
+    for (path, bytes) in [("/pics/source.PDF", b"synthetic".as_slice()), ("/pics/renamed.psd", b"%PDF-1.7".as_slice())] {
+        let (mut app, written) = app_with(vec![None]);
+        app.open_automation_bytes(&display_name(path), bytes).unwrap();
+        app.opened_from(path);
+        assert!(app.session.active().unwrap().source_read_only);
+        assert!(app.session.active().unwrap().path.is_none());
+        let result = menus::invoke(&mut app, &egui::Context::default(), "file.save", json!({})).unwrap();
+        assert_eq!(result, json!({"fileDialog": "save"}));
+        answer(&mut app);
+        assert!(written.borrow().is_empty());
+    }
+}
