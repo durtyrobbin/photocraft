@@ -2095,6 +2095,11 @@
 	Apply the pen's tilt and rotation to the tip shape	Primeni nagib i rotaciju olovke na oblik vrha
 	Mixer Brush	Četkica za mešanje
 	Wet	Vlažnost
+	Current Brush Load	Trenutno punjenje četkice
+	Load Brush	Napuni četkicu
+	Clean Brush	Očisti četkicu
+	Load the brush after each stroke	Napuni četkicu posle svakog poteza
+	Clean the brush after each stroke	Očisti četkicu posle svakog poteza
 	Mix	Mešanje
 	Wetness Jitter	Kolebanje vlažnosti
 	Mix Jitter	Kolebanje mešanja
@@ -4321,6 +4326,11 @@ shape	Appearance	Izgled
 # DDS Options (#1327)
 	DDS Options	DDS opcije
 	Generate Mipmaps	Generiši mipmape
+
+# Graphics Adapter preference (#1885)
+	GPU adapter	GPU adapter
+
+# Contributor workflow labels
 	Canceled or failed exports leave every tab open.	Отказан или неуспешан извоз оставља све картице отворене.
 	Choose at least one valid page	Изаберите бар једну важећу страницу
 	Click to select pages. Shift-click selects a range.	Кликните да изаберете странице. Shift-клик бира опсег.

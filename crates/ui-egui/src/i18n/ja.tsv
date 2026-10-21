@@ -2153,6 +2153,11 @@
 	Mixer Brush Tool	混合ブラシツール
 	Color Replacement Tool	色の置き換えツール
 	Wet	ウェット
+	Current Brush Load	現在のブラシの絵の具
+	Load Brush	ブラシに補充
+	Clean Brush	ブラシを洗浄
+	Load the brush after each stroke	ストロークごとにブラシに補充
+	Clean the brush after each stroke	ストロークごとにブラシを洗浄
 	Mix	混合
 	Wetness Jitter	ウェットのジッター
 	Mix Jitter	混合のジッター
@@ -3926,6 +3931,11 @@ curves	Smooth	スムーズ
 	DDS Options	DDS オプション
 	Compression	圧縮
 	Generate Mipmaps	ミップマップを生成
+
+# Graphics Adapter preference (#1885)
+	GPU adapter	GPU アダプター
+
+# Contributor workflow labels
 	Canceled or failed exports leave every tab open.	書き出しがキャンセルまたは失敗した場合、すべてのタブは開いたままです。
 	Choose at least one valid page	有効なページを1つ以上選択してください
 	Click to select pages. Shift-click selects a range.	クリックでページを選択します。Shift キーを押しながらクリックすると範囲を選択できます。

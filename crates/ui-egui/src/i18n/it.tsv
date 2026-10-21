@@ -2153,6 +2153,11 @@
 	Mixer Brush Tool	Strumento Pennello miscelatore
 	Color Replacement Tool	Strumento Sostituzione colore
 	Wet	Bagnato
+	Current Brush Load	Carico attuale del pennello
+	Load Brush	Carica pennello
+	Clean Brush	Pulisci pennello
+	Load the brush after each stroke	Carica il pennello dopo ogni tratto
+	Clean the brush after each stroke	Pulisci il pennello dopo ogni tratto
 	Mix	Miscela
 	Wetness Jitter	Variazione bagnato
 	Mix Jitter	Variazione miscela
@@ -4365,6 +4370,11 @@ shape	Appearance	Aspetto
 # DDS Options (#1327)
 	DDS Options	Opzioni DDS
 	Generate Mipmaps	Genera mipmap
+
+# Graphics Adapter preference (#1885)
+	GPU adapter	Adattatore GPU
+
+# Contributor workflow labels
 	Canceled or failed exports leave every tab open.	Le esportazioni annullate o non riuscite lasciano aperte tutte le schede.
 	Choose at least one valid page	Scegli almeno una pagina valida
 	Click to select pages. Shift-click selects a range.	Fai clic per selezionare le pagine. Maiusc-clic seleziona un intervallo.
