@@ -23,10 +23,12 @@ pub(crate) struct Picker {
     pub slot: Option<usize>,
 }
 
+/// Identify PDF sources by extension or file signature, including renamed files.
 pub(crate) fn is_pdf(name: &str, bytes: &[u8]) -> bool {
     name.to_ascii_lowercase().ends_with(".pdf") || bytes.starts_with(b"%PDF-")
 }
 
+/// Inspect the binder and queue a selection dialog without creating any editing documents.
 pub(crate) fn queue(app: &mut PhotocraftApp, name: &str, path: Option<String>, bytes: &[u8]) -> Result<(), String> {
     let sizes = photocraft_io::pdf::page_sizes(bytes).map_err(|e| e.to_string())?;
     app.pdf_pickers.push_back(Picker {
@@ -92,6 +94,8 @@ impl PhotocraftApp {
                     st.source_read_only = true;
                 }
             }
+            let documents: Vec<_> = (first..self.session.documents().len()).collect();
+            let first = crate::jobs_ui::move_opened_tabs(self, &documents, p.slot)?;
             self.session.set_active(first);
             if let Some(path) = p.path {
                 self.opened_from(&path);
@@ -109,6 +113,7 @@ impl PhotocraftApp {
     }
 }
 
+/// Apply a checkbox toggle or an inclusive Shift range from the previous selection anchor.
 fn select(selected: &mut [bool], anchor: &mut Option<usize>, index: usize, shift: bool, value: bool) {
     if shift && let Some(start) = *anchor {
         selected[start.min(index)..=start.max(index)].fill(true);
@@ -118,6 +123,7 @@ fn select(selected: &mut [bool], anchor: &mut Option<usize>, index: usize, shift
     }
 }
 
+/// Poll or start a page-preview worker and update the picker texture without creating a tab.
 fn preview(p: &mut Picker, ctx: &egui::Context) {
     if let Some((index, rx)) = &p.loading {
         match rx.try_recv() {
@@ -166,6 +172,7 @@ fn preview(p: &mut Picker, ctx: &egui::Context) {
     }
 }
 
+/// Draw the pending PDF picker and dispatch only explicit open or cancel actions.
 pub(crate) fn show(app: &mut PhotocraftApp, ctx: &egui::Context) {
     let Some(p) = app.pdf_pickers.front_mut() else { return };
     preview(p, ctx);

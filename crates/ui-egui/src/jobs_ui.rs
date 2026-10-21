@@ -524,6 +524,24 @@ fn on_event(app: &mut PhotocraftApp, ctx: &egui::Context, e: JobEvent) {
     }
 }
 
+/// Place every newly opened page at the drop slot, preserving page order and each document's view.
+/// Capture identities before moving: an earlier move can change later document indices.
+pub(crate) fn move_opened_tabs(app: &mut PhotocraftApp, documents: &[usize], slot: Option<usize>) -> Result<usize, String> {
+    let ids = documents
+        .iter()
+        .map(|&i| app.session.documents().get(i).map(|s| s.doc.id).ok_or_else(|| "an opened document is gone".to_string()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let first = *ids.first().ok_or("the open job returned no documents")?;
+    if let Some(slot) = slot {
+        let slot = slot.min(app.session.documents().len().saturating_sub(ids.len()));
+        for (offset, id) in ids.iter().enumerate() {
+            let index = app.session.documents().iter().position(|s| s.doc.id == *id).ok_or("an opened document is gone")?;
+            app.run("document.move", json!({"document": index, "to": slot.saturating_add(offset)}))?;
+        }
+    }
+    app.session.documents().iter().position(|s| s.doc.id == first).ok_or_else(|| "an opened document is gone".into())
+}
+
 /// What [`crate::PhotocraftApp::open_bytes`] does after decoding, for a background open's result
 /// (`{document, warnings, color}`).
 fn finish_open(app: &mut PhotocraftApp, name: &str, path: Option<&str>, v: &Value, slot: Option<usize>) -> Result<(), String> {
@@ -556,11 +574,13 @@ fn finish_open(app: &mut PhotocraftApp, name: &str, path: Option<&str>, v: &Valu
         crate::open_prompt::arrive(app, held(doc, read_only, None, true));
         return Ok(());
     }
-    if let Some(slot) = slot
-        && let Ok(moved) = app.run("document.move", json!({"document": index, "to": slot}))
-    {
-        index = moved.get("document").and_then(Value::as_u64).map_or(index, |i| i as usize);
-    }
+    let documents = v
+        .get("documents")
+        .and_then(Value::as_array)
+        .map(|docs| docs.iter().filter_map(|v| v.as_u64().and_then(|i| usize::try_from(i).ok())).collect::<Vec<_>>())
+        .filter(|docs| !docs.is_empty())
+        .unwrap_or_else(|| vec![index]);
+    index = move_opened_tabs(app, &documents, slot)?;
     app.session.set_active(index);
     after_open(app, name, path, &warnings, None);
     Ok(())
