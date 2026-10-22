@@ -346,6 +346,7 @@ fn canvas_artboard(doc: &Document) -> Option<photocraft_doc::LayerId> {
     }
 }
 
+/// Fit the previously identified canvas board to the new bounds and discard its obsolete size preset.
 fn fit_canvas_artboard(doc: &mut Document, id: Option<photocraft_doc::LayerId>) {
     let bounds = doc.bounds();
     if let Some(board) = id.and_then(|id| doc.layer_mut(id)).and_then(|layer| layer.artboard_mut()) {

@@ -2,6 +2,7 @@ use photocraft_doc::{Artboard, ColorMode, Document, Group, Layer, LayerContent, 
 use photocraft_engine::Session;
 use serde_json::json;
 
+/// Build a synthetic document whose artboards carry presets so crop preservation can be checked.
 fn fixture(rects: &[Rect]) -> Session {
     let mut doc = Document::new("Synthetic canvas", Size::new(100, 80), ColorMode::Rgb, SampleType::U8);
     for rect in rects {
@@ -14,6 +15,7 @@ fn fixture(rects: &[Rect]) -> Session {
     session
 }
 
+/// A sole canvas board follows both crop modes and rotations, with exact undo and redo.
 #[test]
 fn canvas_artboard_follows_crop_and_undo_including_rotated_and_nondestructive_crops() {
     for delete in [false, true] {
@@ -33,6 +35,7 @@ fn canvas_artboard_follows_crop_and_undo_including_rotated_and_nondestructive_cr
     }
 }
 
+/// Independent boards retain their layout and preset when the canvas origin moves.
 #[test]
 fn crop_preserves_partial_and_multiple_artboard_layouts_and_presets() {
     for rects in [vec![Rect::new(10, 10, 50, 50)], vec![Rect::new(0, 0, 100, 80), Rect::new(60, 10, 90, 50)]] {
@@ -45,6 +48,7 @@ fn crop_preserves_partial_and_multiple_artboard_layouts_and_presets() {
     }
 }
 
+/// Trimming transparent margins fits the sole canvas board and remains reversible.
 #[test]
 fn trim_fits_a_canvas_artboard_to_visible_pixels() {
     let mut doc = Document::new("Trim", Size::new(100, 80), ColorMode::Rgb, SampleType::U8);
@@ -66,6 +70,7 @@ fn trim_fits_a_canvas_artboard_to_visible_pixels() {
     assert_eq!(*s.active().unwrap().doc, before);
 }
 
+/// Target-size resampling keeps the canvas board aligned with the final size and resolution.
 #[test]
 fn crop_target_resampling_keeps_the_page_board_fitted() {
     for angle in [0.0, 17.0] {

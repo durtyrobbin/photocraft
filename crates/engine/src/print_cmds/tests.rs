@@ -870,6 +870,7 @@ fn the_windows_pdf_check_is_a_no_op_elsewhere() {
     assert!(require_windows_pdf().is_ok());
 }
 
+/// Dry-run queries reject both implicit and explicitly unavailable printer backends before discovery.
 #[test]
 fn printer_queries_refuse_dry_runs_before_contacting_a_backend() {
     let mut s = Session::new();
