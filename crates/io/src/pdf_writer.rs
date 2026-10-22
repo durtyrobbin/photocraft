@@ -18,6 +18,27 @@ pub struct Marks {
     pub corner_crop: bool,
     pub center_crop: bool,
     pub registration: bool,
+    /// Photoshop's Functions › Bleed, in points: corner crop marks sit this far inside the image
+    /// edge, so the trim cuts through the image and leaves no paper-white sliver. 0 = on the edge.
+    pub bleed: f64,
+}
+
+/// Gap between the image edge and a crop mark, and the mark's length (pt).
+pub const MARK_GAP: f64 = 6.0;
+pub const MARK_LEN: f64 = 18.0;
+
+/// Corner crop marks around `(x, y, w, h)` as eight `(from, to)` segments, a horizontal then a
+/// vertical one per corner. Each starts `MARK_GAP` outside the image (so it never prints on it)
+/// and lies on the trim line, `bleed` inside the edge. The inset is symmetric, so this holds for
+/// both bottom-up (PDF) and top-down (Windows) coordinates.
+pub fn corner_crop_segments(bleed: f64, (x, y, w, h): (f64, f64, f64, f64)) -> [((f64, f64), (f64, f64)); 8] {
+    let mut out = [((0.0, 0.0), (0.0, 0.0)); 8];
+    for (i, (cx, cy, dx, dy)) in [(x, y, -1.0, -1.0), (x + w, y, 1.0, -1.0), (x, y + h, -1.0, 1.0), (x + w, y + h, 1.0, 1.0)].into_iter().enumerate() {
+        let (tx, ty) = (cx - dx * bleed, cy - dy * bleed);
+        out[2 * i] = ((cx + dx * MARK_GAP, ty), (cx + dx * (MARK_GAP + MARK_LEN), ty));
+        out[2 * i + 1] = ((tx, cy + dy * MARK_GAP), (tx, cy + dy * (MARK_GAP + MARK_LEN)));
+    }
+    out
 }
 
 /// One page: paper (pt), image box (pt, origin bottom-left), marks and texts.
@@ -32,17 +53,52 @@ pub struct PrintPage {
     pub emulsion_down: bool,
 }
 
-/// Escape a PDF literal string for print labels and metadata text.
+/// Encode print labels in WinAnsi with fixed-width octal escapes for non-ASCII bytes.
+// ISO 32000-1, Annex D.2: the standard Helvetica font below uses WinAnsiEncoding,
+// not UTF-8. Escape non-ASCII bytes as three octal digits so the content stays ASCII
+// and a following digit cannot become part of the escape. Other scripts still need
+// an embedded font; retain the existing '?' fallback for unsupported characters.
 fn pdf_string(s: &str) -> String {
     let mut o = String::from("(");
     for c in s.chars() {
-        match c {
-            '(' | ')' | '\\' => {
+        let byte = match c {
+            '\u{20}'..='\u{7e}' | '\u{a0}'..='\u{ff}' => c as u8,
+            '€' => 0x80,
+            '‚' => 0x82,
+            'ƒ' => 0x83,
+            '„' => 0x84,
+            '…' => 0x85,
+            '†' => 0x86,
+            '‡' => 0x87,
+            'ˆ' => 0x88,
+            '‰' => 0x89,
+            'Š' => 0x8a,
+            '‹' => 0x8b,
+            'Œ' => 0x8c,
+            'Ž' => 0x8e,
+            '‘' => 0x91,
+            '’' => 0x92,
+            '“' => 0x93,
+            '”' => 0x94,
+            '•' => 0x95,
+            '–' => 0x96,
+            '—' => 0x97,
+            '˜' => 0x98,
+            '™' => 0x99,
+            'š' => 0x9a,
+            '›' => 0x9b,
+            'œ' => 0x9c,
+            'ž' => 0x9e,
+            'Ÿ' => 0x9f,
+            _ => b'?',
+        };
+        match byte {
+            b'(' | b')' | b'\\' => {
                 o.push('\\');
-                o.push(c);
+                o.push(char::from(byte));
             }
-            c if c.is_ascii() && !c.is_ascii_control() => o.push(c),
-            _ => o.push('?'),
+            0x80..=0xff => o.push_str(&format!("\\{byte:03o}")),
+            _ => o.push(char::from(byte)),
         }
     }
     o.push(')');
@@ -60,12 +116,11 @@ fn deflate(data: &[u8]) -> Vec<u8> {
 /// Vector marks around `(x, y, w, h)`.
 fn marks_ops(m: Marks, (x, y, w, h): (f64, f64, f64, f64)) -> String {
     let mut s = String::from("q 0 G 0.3 w\n");
-    let (gap, len) = (6.0, 18.0);
+    let (gap, len) = (MARK_GAP, MARK_LEN);
     let line = |s: &mut String, x0: f64, y0: f64, x1: f64, y1: f64| s.push_str(&format!("{x0:.2} {y0:.2} m {x1:.2} {y1:.2} l S\n"));
     if m.corner_crop {
-        for (cx, cy, dx, dy) in [(x, y, -1.0, -1.0), (x + w, y, 1.0, -1.0), (x, y + h, -1.0, 1.0), (x + w, y + h, 1.0, 1.0)] {
-            line(&mut s, cx + dx * gap, cy, cx + dx * (gap + len), cy);
-            line(&mut s, cx, cy + dy * gap, cx, cy + dy * (gap + len));
+        for ((x0, y0), (x1, y1)) in corner_crop_segments(m.bleed, (x, y, w, h)) {
+            line(&mut s, x0, y0, x1, y1);
         }
     }
     if m.center_crop {
@@ -246,4 +301,22 @@ pub fn raster_pdf(pages: &[(u32, u32, f32, Vec<u8>)]) -> Vec<u8> {
         })
         .collect();
     write_pdf(&pages, None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn print_strings_keep_winansi_accents_and_punctuation() {
+        assert_eq!(pdf_string("Café – résumé"), r"(Caf\351 \226 r\351sum\351)");
+        assert_eq!(pdf_string("€ ‘quote’ “double” • Œœ Šš Žž Ÿ"), r"(\200 \221quote\222 \223double\224 \225 \214\234 \212\232 \216\236 \237)");
+        assert_eq!(pdf_string("é7"), r"(\3517)", "octal escapes must have three digits before a digit");
+    }
+
+    #[test]
+    fn print_strings_keep_pdf_delimiters_safe_and_fallback_bounded() {
+        assert_eq!(pdf_string(r"a(b)\c"), r"(a\(b\)\\c)");
+        assert_eq!(pdf_string("\n\r\t\0\u{7f}\u{81}中😀"), "(????????)");
+        assert_eq!(pdf_string(""), "()");
+    }
 }
