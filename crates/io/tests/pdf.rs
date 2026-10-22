@@ -1,3 +1,6 @@
+//! Kept in a separate test process: PDF admission reads available system RAM.
+//! Running beside the large format-corpus allocations in `it` can correctly reject
+//! tiny fixtures at the 85% RAM ceiling, obscuring their format assertions.
 use hayro::{RenderCache, RenderSettings, hayro_interpret::InterpreterSettings, hayro_syntax::Pdf};
 use photocraft_doc::{Artboard, ColorMode, Document, Group, Layer, LayerContent, PixelFormat, Rect, SampleType, Size, Surface};
 use photocraft_io::{ExportOptions, XmpEmbed, export, import};
