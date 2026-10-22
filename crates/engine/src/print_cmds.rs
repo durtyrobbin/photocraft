@@ -855,8 +855,8 @@ fn print_windows(page: &PrintPage, p: &Value, title: &str, copies: u32) -> Resul
     )
 }
 
-// Driver discovery/settings are external I/O, even when no page is spooled. A dry run must
-// not block on a disconnected printer or a print server (including in the command panic hunt).
+/// Reject dry-run discovery and settings queries before contacting external printer services.
+/// This also keeps command validation independent of disconnected printers and print servers.
 fn require_live_printer_query(p: &Value) -> Result<()> {
     if p.get("dryRun").and_then(Value::as_bool).unwrap_or(false) {
         Err(other("printer queries are unavailable in a dry run; omit dryRun to query the live printer backend"))
@@ -865,6 +865,7 @@ fn require_live_printer_query(p: &Value) -> Result<()> {
     }
 }
 
+/// List native printers, rejecting dry runs before calling the platform backend.
 fn printers(_: &mut Session, p: &Value) -> Result<Value> {
     require_live_printer_query(p)?;
     match craft_print::rgb::printers() {
@@ -874,6 +875,7 @@ fn printers(_: &mut Session, p: &Value) -> Result<Value> {
     }
 }
 
+/// Query paper dimensions and printable bounds for the selected printer and orientation.
 fn printer_page(_: &mut Session, p: &Value) -> Result<Value> {
     require_live_printer_query(p)?;
     // Checked before the printer, so a bad value is the error whether or not a printer answers.
@@ -929,6 +931,7 @@ fn print(s: &mut Session, p: &Value) -> Result<Value> {
     do_print(s, p, "file.print")
 }
 
+/// Print one copy using remembered settings and overrides; dry runs skip printer discovery.
 fn print_one_copy(s: &mut Session, p: &Value) -> Result<Value> {
     let mut q = last_print(s).unwrap_or_else(|| json!({}));
     // A printer remembered from an earlier session may be gone: then the default takes the job,
@@ -1107,6 +1110,7 @@ fn has_paths(s: &Session) -> std::result::Result<(), String> {
     if d.doc.paths.is_empty() && d.doc.work_path.is_none() { Err("the document has no paths".into()) } else { Ok(()) }
 }
 
+/// Register printing, printer-query, packaging, and path-export commands with their parameters.
 pub fn specs() -> Vec<CommandSpec> {
     macro_rules! spec {
         ($id:expr, $label:expr, $menu:expr, $sc:expr, $params:expr, $enabled:expr, $run:expr) => {
